@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/splash_screen.dart';
 
 import 'config/theme.dart';

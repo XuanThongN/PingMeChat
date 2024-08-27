@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -8,16 +9,20 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     this.autoFocus = false,
     required this.controller,
-    this.errorText,
-    this.onChanged,
+    this.validator,
+    this.keyboardType,
+    this.focusNode,
+    this.onFieldSubmitted,
   });
 
   final String label;
   final bool isPassword;
   final bool autoFocus;
   final TextEditingController controller;
-  final String? errorText;
-  final void Function(String)? onChanged;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +30,11 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       autofocus: autoFocus,
       obscureText: isPassword,
+      validator: validator,
+      keyboardType: keyboardType,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      focusNode: focusNode,
+      onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         border: const UnderlineInputBorder(),
         labelText: label,
@@ -32,9 +42,7 @@ class CustomTextField extends StatelessWidget {
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: AppColors.primary),
         ),
-        errorText: errorText,
       ),
-      onChanged: onChanged,
     );
   }
 }
