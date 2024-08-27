@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
 import 'package:pingmechat_ui/presentation/widgets/social_button.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -9,102 +12,130 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2D1B69),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              const Text(
-                'C',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+              Transform.rotate(
+                angle: 180,
+                // Convert degrees to radians
+                child: Container(
+                  width: 800,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(180),
+                    // Half of height to make it ellipse
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF43116A).withOpacity(0),
+                        Color(0xFF0A1832).withOpacity(1),
+                      ],
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                    ),
+                  ),
                 ),
               ),
-              // const SizedBox(height: 40),
-              const Text(
-                'Connect\nfriends\neasily &\nquickly',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 44,
-                  fontWeight: FontWeight.bold,
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Our chat app is the perfect way to stay\nconnected with friends and family.',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SocialButton(
-                    icon: 'assets/icons/facebook_icon.png',
-                    onPressed: () {},
+                  const Padding(
+                    padding: EdgeInsets.only(top: 30.0),
+                    child: Center(
+                      child: Text(
+                        'Ping Me Chat',
+                        style: AppTypography.subH2,
+                      ),
+                    ),
                   ),
-                  SocialButton(
-                    icon: 'assets/icons/google_icon.png',
-                    onPressed: () {},
+                  RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Connect\nfriends\n',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 68,
+                            fontFamily: 'Caros',
+                            letterSpacing: 5,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'easily &\nquickly',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 68,
+                            fontFamily: 'Caros',
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SocialButton(
-                    icon: 'assets/icons/apple_icon.png',
-                    onPressed: () {},
+                  const Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: Text(
+                      'Our chat app is the perfect way to stay\nconnected with friends and family.',
+                      style: TextStyle(
+                        color: AppColors.tertiary,
+                        fontSize: 16,
+                        height: 1.5,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ListSocialButtons(),
+                  const SizedBox(height: 24),
+                  CustomDivider(),
+                  const SizedBox(height: 32),
+                  CustomElevatedButton(
+                    text: 'Sign up with mail',
+                    backgroundColor: AppColors.white,
+                    foregroundColor: AppColors.secondary,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterPage()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Existing account ?',
+                            style: AppTypography.subH3,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Text(
+                              'Log in',
+                              style: AppTypography.subH3.copyWith(
+                                color: AppColors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-              const Center(
-                child: Text(
-                  'OR',
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const RegisterPage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Sign up with mail',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
-                    );
-                  },
-                  child: const Text(
-                    'Existing account\? Log in',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ),
               ),
             ],
           ),

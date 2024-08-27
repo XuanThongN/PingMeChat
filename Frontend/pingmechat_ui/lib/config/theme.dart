@@ -4,6 +4,7 @@ class AppTypography {
   static const TextStyle h1 = TextStyle(
     fontFamily: 'Caros',
     fontSize: 40,
+    color: AppColors.surface,
   );
 
   static const TextStyle h2 = TextStyle(
@@ -22,32 +23,34 @@ class AppTypography {
   );
 
   static const TextStyle subH1 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 12,
   );
 
   static const TextStyle subH2 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 14,
+    color: AppColors.white,
   );
 
   static const TextStyle subH3 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 16,
+    color: AppColors.tertiary,
   );
 
   static const TextStyle p1 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 16,
   );
 
   static const TextStyle p2 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 14,
   );
 
   static const TextStyle p3 = TextStyle(
-    fontFamily: 'Circular Std',
+    fontFamily: 'CircularStd',
     fontSize: 12,
   );
 }
@@ -57,8 +60,10 @@ class AppColors {
   static const Color secondary = Color(0xFF000E08);
   static const Color tertiary = Color(0xFF797C7B);
   static const Color background = Color(0xFF121414);
+  static const Color background2 = Color(0xFFF5F5F5);
   static const Color surface = Color(0xFFF2F7FB);
   static const Color white = Color(0xFFFFFFFF);
+  static const Color disabledColor = Color(0xFFF3F6F6);
 }
 
 final ThemeData appTheme = ThemeData(
@@ -67,6 +72,7 @@ final ThemeData appTheme = ThemeData(
     surface: AppColors.surface,
   ),
   scaffoldBackgroundColor: AppColors.surface,
+  fontFamily: 'CircularStd',
   textTheme: const TextTheme(
     headlineLarge: AppTypography.h1,
     headlineMedium: AppTypography.h2,

@@ -32,3 +32,26 @@ class SocialButton extends StatelessWidget {
     );
   }
 }
+
+class ListSocialButtons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        SocialButton(
+          icon: 'assets/icons/facebook_icon.png',
+          onPressed: () {},
+        ),
+        SocialButton(
+          icon: 'assets/icons/google_icon.png',
+          onPressed: () {},
+        ),
+        SocialButton(
+          icon: 'assets/icons/apple_icon.png',
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
+}

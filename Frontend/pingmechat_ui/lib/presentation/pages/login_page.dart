@@ -1,107 +1,147 @@
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_text_field.dart';
 
+import '../../config/theme.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isButtonEnabled = false;
+  String? _emailError;
+  String? _passwordError;
+  bool _isEmailTouched = false;
+  bool _isPasswordTouched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_validateFields);
+    _passwordController.addListener(_validateFields);
+  }
+
+  void _validateFields() {
+    setState(() {
+      if (_isEmailTouched) {
+        _emailError = _validateEmail(_emailController.text);
+      }
+      if (_isPasswordTouched) {
+        _passwordError = _validatePassword(_passwordController.text);
+      }
+      _isButtonEnabled = _emailError == null && _passwordError == null;
+    });
+  }
+
+  String? _validateEmail(String email) {
+    if (email.isEmpty) {
+      return 'Email cannot be empty';
+    }
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(email)) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String password) {
+    if (password.isEmpty) {
+      return 'Password cannot be empty';
+    }
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
+      // backgroundColor: AppColors.white,
+      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Log in to Chatbox',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Welcome back! Sign in using your social\naccount or email to continue us',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+            const Center(
+              child: Column(
+                children: [
+                  Text(
+                    'Log in to Chatbox',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    'Welcome back! Sign in using your social\naccount or email to continue us',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                SocialButton(
-                  icon: 'assets/icons/facebook_icon.png',
-                  onPressed: () {},
-                ),
-                SocialButton(
-                  icon: 'assets/icons/google_icon.png',
-                  onPressed: () {},
-                ),
-                SocialButton(
-                  icon: 'assets/icons/apple_icon.png',
-                  onPressed: () {},
-                ),
-              ],
-            ),
+            ListSocialButtons(),
             const SizedBox(height: 32),
-            const Row(
-              children: [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('OR', style: TextStyle(color: Colors.grey)),
-                ),
-                Expanded(child: Divider()),
-              ],
-            ),
+            CustomDivider(),
             const SizedBox(height: 32),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Your email',
-                labelStyle: TextStyle(color: Colors.teal),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.teal),
-                ),
-              ),
+            CustomTextField(
+              label: 'Your email',
+              autoFocus: true,
+              controller: _emailController,
+              errorText: _emailError,
+              onChanged: (value) {
+                setState(() {
+                  _isEmailTouched = true;
+                });
+              },
             ),
             const SizedBox(height: 16),
-            const TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.teal),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.teal),
-                ),
-              ),
+            CustomTextField(
+              label: 'Password',
+              isPassword: true,
+              controller: _passwordController,
+              errorText: _passwordError,
+              onChanged: (value) {
+                setState(() {
+                  _isPasswordTouched = true;
+                });
+              },
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Log in',
-                    style: TextStyle(fontSize: 16, color: Colors.white)),
-              ),
+            CustomElevatedButton(
+              text: 'Log in',
+              onPressed: _isButtonEnabled
+                  ? () {
+                      print("Log in button pressed");
+                    }
+                  : () {},
+              foregroundColor: AppColors.tertiary,
+              backgroundColor: _isButtonEnabled
+                  ? AppColors.primary
+                  : AppColors.disabledColor,
             ),
             const SizedBox(height: 16),
             Center(
