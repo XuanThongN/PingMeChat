@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pingmechat_ui/splash_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:pingmechat_ui/presentation/pages/home.dart';
 
 import 'config/theme.dart';
 
@@ -15,9 +17,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: appTheme,
       debugShowCheckedModeBanner: false,
-      home: const Scaffold(
-        body: OnboardingScreen(),
-      ),
+      home: const HomePage(),
+      // home: const Scaffold(
+      //   body: OnboardingScreen(),
+      // ),
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), // English
+        Locale('vi', ''), // Vietnamese
+      ],
     );
   }
 }

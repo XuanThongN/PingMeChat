@@ -1,0 +1,783 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:pingmechat_ui/config/theme.dart';
+import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
+import 'package:pingmechat_ui/presentation/pages/call_page.dart';
+import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
+import 'package:pingmechat_ui/presentation/pages/video_call_page.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
+import 'package:video_player/video_player.dart';
+
+import 'incomming_call.dart';
+
+class Message {
+  final String sender;
+  final String content;
+  final DateTime timestamp;
+  final bool isAudio;
+  final String? audioDuration;
+  final String? audioUrl;
+  final String? imageUrl;
+  final String? videoUrl;
+
+  Message({
+    required this.sender,
+    required this.content,
+    required this.timestamp,
+    this.isAudio = false,
+    this.audioDuration,
+    this.audioUrl,
+    this.imageUrl,
+    this.videoUrl,
+  });
+}
+
+class ChatScreen extends StatefulWidget {
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final List<Message> messages = [
+    Message(
+        sender: 'Jhon Abraham',
+        content: 'Hello ! Nazrul How are you?',
+        timestamp: DateTime.now().subtract(Duration(minutes: 16))),
+    Message(
+        sender: 'Nazrul',
+        content: 'You did your job well!',
+        timestamp: DateTime.now().subtract(Duration(minutes: 15))),
+    Message(
+        sender: 'Jhon Abraham',
+        content: 'Have a great working week!!',
+        videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
+        timestamp: DateTime.now().subtract(Duration(minutes: 14))),
+    Message(
+        sender: 'Jhon Abraham',
+        content: 'Hope you like it',
+        imageUrl: 'https://i.sstatic.net/B7tGA.gif?s=256',
+        timestamp: DateTime.now().subtract(Duration(minutes: 14))),
+    Message(
+      sender: 'Nazrul',
+      content: '',
+      timestamp: DateTime.now().subtract(Duration(minutes: 13)),
+      isAudio: true,
+      audioDuration: '00:16',
+      audioUrl:
+          'https://stream.nct.vn/NhacCuaTui2056/TraiDatOmMatTroi-KaiDinhAMEEGREYD-15211404.mp3', // Ensure this URL is correct and accessible
+    ),
+  ];
+
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textController = TextEditingController();
+  bool _isComposing = false;
+  String? _selectedImage;
+  String? _selectedVideo;
+
+  // late AudioPlayer _audioPlayer =
+  //     AudioPlayer(); // Dùng để làm gì trong đây? // Để phát audio từ URL
+  // final PlayerController _playerController = PlayerController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    // _audioPlayer = AudioPlayer();
+    // _audioPlayer.setReleaseMode(ReleaseMode.stop);
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    // _audioPlayer.dispose();
+    // _playerController.dispose();
+    super.dispose();
+  }
+
+  void _playPauseAudio(String url) async {
+    // try {
+    //   if (_audioPlayer.state == audioplayers.PlayerState.playing) {
+    //     await _audioPlayer.pause();
+    //   } else {
+    //     // await _audioPlayer.play(UrlSource(url));
+    //   }
+    // } catch (e) {
+    //   print('Error playing audio: $e');
+    // }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final showAvatar = _shouldShowAvatar(index);
+                final showTimestamp = _shouldShowTimestamp(index);
+
+                return _buildMessageItem(message, showAvatar, showTimestamp);
+              },
+            ),
+          ),
+          _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: CustomSvgIcon(
+          svgPath: 'assets/icons/Back_app_bar.svg',
+          color: AppColors.secondary,
+          size: 30,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: GestureDetector(
+        onTap: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => UserInformationPage()));
+        },
+        child: Row(
+          children: [
+            // add status icon here
+            Stack(
+              children: [
+                CircleAvatar(
+                  backgroundImage:
+                      NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+                  radius: 20,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // CircleAvatar(
+            //   backgroundImage:
+            //       NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+            //   radius: 20,
+            // ),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Jhon Abraham',
+                  style: AppTypography.chatName.copyWith(
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  'Active now',
+                  style: AppTypography.caption,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: CustomSvgIcon(
+            svgPath: 'assets/icons/Call_in_message.svg',
+            color: AppColors.tertiary,
+            size: 24,
+          ),
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => GroupCallPage()));
+            // MaterialPageRoute(builder: (context) => IncomingCallPage()));
+            // context, MaterialPageRoute(builder: (context) => CallScreen()));
+          },
+        ),
+        IconButton(
+          icon: CustomSvgIcon(
+            svgPath: 'assets/icons/Video_in_message.svg',
+            color: AppColors.tertiary,
+            size: 24,
+          ),
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => VideoCallPage()));
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMessageItem(
+      Message message, bool showAvatar, bool showTimestamp) {
+    final isMe = message.sender == 'Nazrul';
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMe && showAvatar) ...[
+            CircleAvatar(
+              backgroundImage:
+                  NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+              radius: 16,
+            ),
+            SizedBox(width: 8),
+          ],
+          if (!isMe && !showAvatar) SizedBox(width: 40),
+          Column(
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Container(
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.7),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isMe ? AppColors.primary_chat : AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  // children: [
+                  //   message.audioUrl!.isNotEmpty
+                  //       ? _buildAudioMessage(
+                  //           message.audioDuration!, message.audioUrl!)
+                  //       : Text(
+                  //           message.content,
+                  //           style: AppTypography.message.copyWith(
+                  //             color: isMe ? AppColors.white : AppColors.secondary,
+                  //           ),
+                  //         ),
+                  // ],
+                  children: [
+                    if (message.audioUrl != null &&
+                        message.audioDuration != null)
+                      _buildAudioMessage(
+                          message.audioDuration!, message.audioUrl!),
+                    if (message.imageUrl != null)
+                      // Image.network(message.imageUrl!),
+                      // Hiển thị hình ảnh trong một container có kích thước cố định và bo tròn
+                      Container(
+                        width: 200,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: NetworkImage(message.imageUrl!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    if (message.videoUrl != null)
+                      // Use a video player widget to display the video
+                      Container(
+                        width: 200,
+                        height: 150,
+                        child: VideoPlayerWidget(url: message.videoUrl!),
+                      ),
+                    Text(
+                      message.content,
+                      style: AppTypography.message.copyWith(
+                        color: isMe ? AppColors.white : AppColors.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (showTimestamp)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    DateFormat('hh:mm a').format(message.timestamp),
+                    style: AppTypography.chatTime,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget _buildAudioMessage(String duration) {
+  //   return Row(
+  //     mainAxisSize: MainAxisSize.min,
+  //     children: [
+  //       Icon(Icons.play_arrow, color: AppColors.white, size: 20),
+  //       SizedBox(width: 8),
+  //       Container(
+  //         width: 100,
+  //         height: 4,
+  //         decoration: BoxDecoration(
+  //           color: AppColors.white.withOpacity(0.5),
+  //           borderRadius: BorderRadius.circular(2),
+  //         ),
+  //       ),
+  //       SizedBox(width: 8),
+  //       Text(
+  //         duration,
+  //         style: TextStyle(color: AppColors.white, fontSize: 12),
+  //       ),
+  //     ],
+  //   );
+  // }
+
+  Widget _buildAudioMessage(String duration, String url) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(Icons.play_arrow, color: AppColors.white, size: 20),
+          onPressed: () => _playPauseAudio(url),
+        ),
+        SizedBox(width: 8),
+        Container(
+          width: 100,
+          height: 30,
+          // child: AudioFileWaveforms(
+          //   playerWaveStyle: const PlayerWaveStyle(
+          //     fixedWaveColor: AppColors.white,
+          //     liveWaveColor: AppColors.primary,
+          //     spacing: 6,
+          //   ),
+          //   size: Size(MediaQuery.of(context).size.width, 100.0),
+          //   playerController: _playerController,
+          //   waveformType: WaveformType.long,
+          //   enableSeekGesture: true,
+          //   waveformData: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+          // ),
+        ),
+        SizedBox(width: 8),
+        Text(
+          duration,
+          style: TextStyle(color: AppColors.white, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMessageInput() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, -1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: CustomSvgIcon(
+              svgPath: 'assets/icons/Clip, Attachment.svg',
+              color: AppColors.secondary,
+            ),
+            onPressed: _pickAction,
+          ),
+          Expanded(
+            child: TextField(
+              controller: _textController,
+              onChanged: (text) {
+                setState(() {
+                  _isComposing = text.isNotEmpty;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Aa',
+                hintStyle: TextStyle(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: AppColors.surface,
+                // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                suffixIcon: IconButton(
+                  icon: CustomSvgIcon(
+                    svgPath: 'assets/icons/files_in_message.svg',
+                    color: AppColors.tertiary,
+                    size: 24,
+                  ),
+                  onPressed: _pickSticker,
+                ),
+              ),
+            ),
+          ),
+          if (!_isComposing) ...[
+            // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/camera 01_in_message.svg',
+                color: AppColors.secondary,
+                size: 24,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/microphone_in_message.svg',
+                color: AppColors.secondary,
+                size: 24,
+              ),
+              onPressed: _pickVideo,
+            ),
+          ],
+          if (_isComposing)
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/Send_in_message.svg',
+                color: AppColors.primary,
+              ),
+              onPressed: _handleSubmitted,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Widget _buildMessageInput() {
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.1),
+  //           spreadRadius: 1,
+  //           blurRadius: 3,
+  //           offset: Offset(0, -1),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         IconButton(
+  //           icon: Icon(Icons.image),
+  //           onPressed: _pickImage,
+  //         ),
+  //         IconButton(
+  //           icon: Icon(Icons.videocam),
+  //           onPressed: _pickVideo,
+  //         ),
+  //         IconButton(
+  //           icon: Icon(Icons.emoji_emotions),
+  //           onPressed: _pickSticker,
+  //         ),
+  //         Expanded(
+  //           child: TextField(
+  //             controller: _textController,
+  //             onChanged: (text) {
+  //               setState(() {
+  //                 _isComposing = text.isNotEmpty;
+  //               });
+  //             },
+  //             decoration: InputDecoration(
+  //               hintText: 'Aa',
+  //               hintStyle: TextStyle(color: Colors.grey[400]),
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(25),
+  //                 borderSide: BorderSide.none,
+  //               ),
+  //               filled: true,
+  //               fillColor: AppColors.surface,
+  //               contentPadding:
+  //                   EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //               suffixIcon: IconButton(
+  //                 icon: Icon(Icons.send),
+  //                 onPressed: _handleSubmitted,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  void _handleSubmitted() {
+    final text = _textController.text;
+    if (text.isNotEmpty || _selectedImage != null || _selectedVideo != null) {
+      setState(() {
+        messages.add(Message(
+          sender: 'Nazrul',
+          content: text,
+          timestamp: DateTime.now(),
+          imageUrl: _selectedImage,
+          videoUrl: _selectedVideo,
+        ));
+        _textController.clear();
+        _isComposing = false;
+        _selectedImage = null;
+        _selectedVideo = null;
+      });
+      _scrollToBottom();
+    }
+  }
+
+  void _pickImage() async {
+    // Implement image picker logic
+  }
+
+  void _pickVideo() async {
+    // Implement video picker logic
+  }
+
+  void _pickSticker() async {
+    // Hiển thị một modal bottom sheet để chọn sticker
+    final selectedSticker = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 200,
+          child: ListView(
+            children: [
+              // Hiển thị các sticker tại đây sử dụng telegram_stickers_importer để import sticker từ Telegram ở dưới đây
+            ],
+          ),
+        );
+      },
+    );
+    if (selectedSticker != null) {
+      setState(() {
+        _textController.text = selectedSticker;
+        _isComposing = true;
+      });
+    }
+  }
+
+  void _pickAction() {
+    _isComposing = false;
+    // Hiển thị một modal bottom sheet để chọn hành động (image, share file, share location, ...) nếu là cuộc trò chuyẹn nhóm thì có thêm chức năng tạo khảo sát
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          //Chiều cao của modal bootom sheet vừa đủ để hiển thị các lựa chọn và không bị tràn ra
+          // Modal phải có tiêu đề và có nút close để đóng modal
+          height: 300,
+          child: Column(
+            children: [
+              // Có một thanh ngang màu xám ở đầu modal dùng để kéo modal
+              Container(
+                height: 4,
+                width: 40,
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Column(
+                children: [
+                  ListTile(
+                    leading: CustomSvgIcon(
+                      svgPath: 'assets/icons/media_in_message.svg',
+                      color: AppColors.tertiary,
+                    ),
+                    title: Text('Media'),
+                    subtitle: Text('Share photos and videos'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage();
+                    },
+                  ),
+                  ListTile(
+                    leading: CustomSvgIcon(
+                      svgPath: 'assets/icons/doc_in_message.svg',
+                      color: AppColors.tertiary,
+                    ),
+                    title: Text('File', style: AppTypography.p1),
+                    subtitle: Text('Share files, documents, and more'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Implement file picker logic
+                    },
+                  ),
+                  ListTile(
+                    leading: CustomSvgIcon(
+                      svgPath: 'assets/icons/Pin, Location.svg',
+                      color: AppColors.tertiary,
+                    ),
+                    title: Text('Location'),
+                    subtitle: Text('Share your location'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Implement location picker logic
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // void _handleSubmitted() {
+  //   final text = _textController.text;
+  //   if (text.isNotEmpty) {
+  //     setState(() {
+  //       messages.add(Message(
+  //         sender: 'Nazrul',
+  //         content: text,
+  //         timestamp: DateTime.now(),
+  //       ));
+  //       _textController.clear();
+  //       _isComposing = false;
+  //     });
+  //     _scrollToBottom();
+  //   }
+  // }
+
+  bool _shouldShowAvatar(int index) {
+    if (index == 0) return true;
+    final currentMessage = messages[index];
+    final previousMessage = messages[index - 1];
+    return currentMessage.sender != previousMessage.sender ||
+        currentMessage.timestamp
+                .difference(previousMessage.timestamp)
+                .inMinutes >=
+            1;
+  }
+
+  bool _shouldShowTimestamp(int index) {
+    if (index == messages.length - 1) return true;
+    final currentMessage = messages[index];
+    final nextMessage = messages[index + 1];
+    return currentMessage.sender != nextMessage.sender ||
+        nextMessage.timestamp.difference(currentMessage.timestamp).inMinutes >=
+            1;
+  }
+}
+
+class VideoPlayerWidget extends StatefulWidget {
+  final String url;
+
+  VideoPlayerWidget({required this.url});
+
+  @override
+  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        setState(() {});
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Hiển thị hình ảnh tĩnh thay vì video và hiển thị một nút để phát video khi người dùng nhấn vào
+    // return Stack(
+    //   children: [
+    //     _controller.value.isInitialized
+    //         ? AspectRatio(
+    //             aspectRatio: _controller.value.aspectRatio, // 16:9
+    //             child: VideoPlayer(_controller),
+    //           )
+    //         : Center(child: CircularProgressIndicator()),
+    //     Center(
+    //       child: IconButton(
+    //         icon: Icon(
+    //           _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+    //           color: AppColors.white,
+    //           size: 40,
+    //         ),
+    //         onPressed: () {
+    //           setState(() {
+    //             if (_controller.value.isPlaying) {
+    //               _controller.pause();
+    //             } else {
+    //               _controller.play();
+    //             }
+    //           });
+    //         },
+    //       ),
+    //     ),
+    //   ],
+    // );
+    // Video hiển thị chiều cao chưa đúng khi dùng stack để chứa video player và nút play/pause, hãy sửa dưới đây
+    return _controller.value.isInitialized
+        ? AspectRatio(
+            aspectRatio: _controller.value.aspectRatio, // 16:9
+            child: Stack(
+              children: [
+                VideoPlayer(_controller),
+                Center(
+                  child: IconButton(
+                    icon: Icon(
+                      _controller.value.isPlaying
+                          ? Icons.pause
+                          : Icons.play_arrow,
+                      color: AppColors.white,
+                      size: 40,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (_controller.value.isPlaying) {
+                          _controller.pause();
+                        } else {
+                          _controller.play();
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          )
+        : Center(child: CircularProgressIndicator());
+  }
+}

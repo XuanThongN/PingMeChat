@@ -9,6 +9,7 @@ import 'package:pingmechat_ui/presentation/widgets/custom_text_field.dart';
 import '../../config/theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
+import 'home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -65,7 +66,8 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(
+            vertical: 12.0, horizontal: 24), // Khoảng cách giữa các cạnh
         child: Form(
           key: _formKey,
           child: Column(
@@ -93,9 +95,11 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              ListSocialButtons(),
-              const SizedBox(height: 32),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                child: ListSocialButtons(),
+              ),
               const CustomDivider(),
               const SizedBox(height: 32),
               _buildEmailField(),
@@ -133,8 +137,6 @@ class _LoginPageState extends State<LoginPage> {
                   );
                 },
               ),
-
-              const SizedBox(height: 16),
               Center(
                 child: TextButton(
                   onPressed: () {},
@@ -187,6 +189,11 @@ class _LoginPageState extends State<LoginPage> {
         // Xử lý kết quả đăng nhập thành công
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful')),
+        );
+        //Sau khi đăng nhập thành công, chuyển hướng đến trang Home
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
         );
       } catch (e) {
         // Xử lý lỗi

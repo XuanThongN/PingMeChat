@@ -10,6 +10,7 @@ class AppTypography {
   static const TextStyle h2 = TextStyle(
     fontFamily: 'Caros',
     fontSize: 20,
+    color: AppColors.white,
   );
 
   static const TextStyle h3 = TextStyle(
@@ -44,19 +45,89 @@ class AppTypography {
     fontSize: 16,
   );
 
-  static const TextStyle p2 = TextStyle(
+  static const TextStyle message = TextStyle(
     fontFamily: 'CircularStd',
-    fontSize: 14,
+    fontSize: 12,
+    color: AppColors.secondary,
+  );
+  static const TextStyle otherMessage = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 12,
+    color: AppColors.secondary,
+  );
+  static const TextStyle myMessage = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 12,
+    color: AppColors.white,
   );
 
   static const TextStyle p3 = TextStyle(
     fontFamily: 'CircularStd',
     fontSize: 12,
   );
+
+  //Tạo style cho hiển thị tên người dùng đoạn chat
+  static const TextStyle chatName = TextStyle(
+    fontFamily: 'Caros',
+    fontSize: 20,
+    color: AppColors.secondary,
+    fontWeight: FontWeight.w500,
+  );
+  static const TextStyle headline = TextStyle(
+    fontFamily: 'Caros',
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 12,
+    color: AppColors.tertiary,
+  );
+
+  static const TextStyle badge = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 10,
+    color: AppColors.white,
+    fontWeight: FontWeight.bold,
+  );
+
+  //Tạo style cho hiển thị tin nhắn cuối cùng trong danh sách chat
+  static const TextStyle chatMessage = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 12,
+    color: AppColors.tertiary,
+    fontWeight: FontWeight.w300,
+  );
+
+  //Tạo style cho hiển thị thời gian cho tin nhắn trong đoạn chat
+  static const TextStyle chatTime = TextStyle(
+    fontFamily: 'CircularStd',
+    fontSize: 10,
+    color: AppColors.tertiary,
+    fontWeight: FontWeight.w300,
+  );
+
+  // Method to get medium font style
+  static TextStyle getMediumStyle(TextStyle style) {
+    return style.copyWith(fontWeight: FontWeight.w500);
+  }
+
+  // Method to get book font style
+  static TextStyle getBookStyle(TextStyle style) {
+    return style.copyWith(fontWeight: FontWeight.w300);
+  }
+
+  // Method to get italic font style
+  static TextStyle getItalicStyle(TextStyle style) {
+    return style.copyWith(fontStyle: FontStyle.italic);
+  }
 }
 
 class AppColors {
   static const Color primary = Color(0xFF24786D);
+  static const Color primary_chat = Color(0xFF20A090);
   static const Color secondary = Color(0xFF000E08);
   static const Color tertiary = Color(0xFF797C7B);
   static const Color background = Color(0xFF121414);
@@ -64,6 +135,11 @@ class AppColors {
   static const Color surface = Color(0xFFF2F7FB);
   static const Color white = Color(0xFFFFFFFF);
   static const Color disabledColor = Color(0xFFF3F6F6);
+  static const Color red = Color(0xFFEA3736);
+  static const Color rippleColor = Color(0xFFD9D9D9);
+  static const Color hoverColor = Color(0xFFE0E0E0);
+  static const Color colorOtherMessage = Color(0xFFE0E0E0);
+  static const Color grey = Color(0xFFF0F3F5);
 }
 
 final ThemeData appTheme = ThemeData(
@@ -81,7 +157,7 @@ final ThemeData appTheme = ThemeData(
     titleMedium: AppTypography.subH3,
     titleSmall: AppTypography.subH2,
     bodyLarge: AppTypography.p1,
-    bodyMedium: AppTypography.p2,
+    // bodyMedium: AppTypography.p2,
     bodySmall: AppTypography.p3,
   ),
 );

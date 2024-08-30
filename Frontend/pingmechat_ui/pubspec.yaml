@@ -35,7 +35,17 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  flutter_slidable: ^3.0.0 #Giúp cho việc vuốt ngang từng đoạn chat
+  flutter_slidable: ^3.1.1 #Giúp cho việc vuốt ngang từng đoạn chat
+  flutter_svg: ^0.22.0 #Hỗ trợ hiển thị ảnh svg`
+  cached_network_image: ^3.0.0 #Hỗ trợ load ảnh từ mạng
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0 #Hỗ trợ đa ngôn ngữ
+  video_player: ^2.9.1 #Hỗ trợ chơi video
+  camera: ^0.10.0+1 #Hỗ trợ chụp ảnh và quay video
+  flutter_webrtc: ^0.11.0 #Hỗ trợ video call
+#  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
+#  audio_waveforms: ^1.0.5 #Hỗ trợ hiển thị sóng nhạc
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +103,9 @@ flutter:
     - family: Caros
       fonts:
         - asset: assets/fonts/Caros.ttf
+        - asset: assets/fonts/Caros Medium.ttf
+
+  generate: true #Hỗ trợ generate file code
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

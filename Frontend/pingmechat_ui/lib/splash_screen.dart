@@ -43,7 +43,7 @@ class OnboardingScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
-                    padding: EdgeInsets.only(top: 30.0),
+                    padding: EdgeInsets.only(top: 20.0),
                     child: Center(
                       child: Text(
                         'Ping Me Chat',
@@ -58,7 +58,7 @@ class OnboardingScreen extends StatelessWidget {
                           text: 'Connect\nfriends\n',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 68,
+                            fontSize: 50,
                             fontFamily: 'Caros',
                             letterSpacing: 5,
                           ),
@@ -67,7 +67,7 @@ class OnboardingScreen extends StatelessWidget {
                           text: 'easily &\nquickly',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 68,
+                            fontSize: 60,
                             fontFamily: 'Caros',
                             fontWeight: FontWeight.w900,
                             letterSpacing: 5,
@@ -84,15 +84,19 @@ class OnboardingScreen extends StatelessWidget {
                         color: AppColors.tertiary,
                         fontSize: 16,
                         height: 1.5,
-                        letterSpacing: 1,
+                        // letterSpacing: ,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  ListSocialButtons(),
-                  const SizedBox(height: 24),
-                  CustomDivider(),
-                  const SizedBox(height: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20.0, horizontal: 10.0),
+                    child: ListSocialButtons(),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 10.0),
+                    child: CustomDivider(),
+                  ),
                   CustomElevatedButton(
                     text: 'Sign up with mail',
                     backgroundColor: AppColors.white,
@@ -105,7 +109,6 @@ class OnboardingScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
                   Center(
                     child: TextButton(
                       onPressed: () {

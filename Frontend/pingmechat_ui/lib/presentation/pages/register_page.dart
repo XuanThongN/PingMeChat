@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/core/utils/input_validator.dart';
+import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
@@ -156,6 +157,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildNameField() {
     return CustomTextField(
       label: 'Full Name',
+      autoFocus: true,
       controller: _nameController,
       validator: InputValidator.validateName,
       keyboardType: TextInputType.name,
@@ -213,7 +215,11 @@ class _RegisterPageState extends State<RegisterPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration successful')),
         );
-        // Navigate to next screen or login screen
+        //Sau khi đăng ký thành công, chuyển hướng đến trang Login
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
       } catch (e) {
         // Xử lý lỗi
         ScaffoldMessenger.of(context).showSnackBar(

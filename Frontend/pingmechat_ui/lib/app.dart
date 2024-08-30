@@ -23,7 +23,7 @@ class MainPage extends StatelessWidget {
             Text('Subheading 2', style: AppTypography.subH2),
             Text('Subheading 3', style: AppTypography.subH3),
             Text('Paragraph 1', style: AppTypography.p1),
-            Text('Paragraph 2', style: AppTypography.p2),
+            // Text('Paragraph 2', style: AppTypography.p2),
             Text('Paragraph 3', style: AppTypography.p3),
           ],
         ),
