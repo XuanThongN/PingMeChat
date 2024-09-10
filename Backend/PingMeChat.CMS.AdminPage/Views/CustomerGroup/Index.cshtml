@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "Nhóm khách hàng";
+}
+
+
+<style>
+    .form-control, .form-select, .btn {
+        border-radius: 0;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .table th {
+        font-weight: normal;
+    }
+
+    .pagination {
+        justify-content: flex-end;
+    }
+
+        .pagination .page-link {
+            border-radius: 0;
+        }
+</style>
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Nhóm khách hàng</h4>
+        <div class="d-flex align-items-center">
+            <img src="path_to_vietnam_flag.png" alt="VN" class="me-2" style="width: 20px;">
+            <select class="form-select me-2" style="width: auto;">
+                <option>VI</option>
+            </select>
+            <input type="text" class="form-control" value="0948327485: 12/07/2024" style="width: auto;">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <div class="search-container" style="flex-grow: 1; margin-right: 10px;">
+                    <input type="text" class="form-control" placeholder="Nhập tên để tìm kiếm">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <button class="btn btn-warning">+ Thêm Mới</button>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>#</th>
+                        <th>TÊN NHÓM KHÁCH LẺ</th>
+                        <th>MÃ ĐĂNG KÝ</th>
+                        <th>VAT</th>
+                        <th>GHI CHÚ</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="7" class="text-center">Không có dữ liệu trong bảng</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span>Số mục mỗi trang</span>
+                    <select class="form-select d-inline-block ms-2" style="width: auto;">
+                        <option>10</option>
+                    </select>
+                </div>
+                <div>
+                    <span>0 trên 0</span>
+                    <ul class="pagination d-inline-flex mb-0 ms-2">
+                        <li class="page-item disabled"><a class="page-link" href="#">&lt;&lt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&gt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&gt;&gt;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

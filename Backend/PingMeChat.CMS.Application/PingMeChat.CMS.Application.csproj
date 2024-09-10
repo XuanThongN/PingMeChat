@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Common\ProfileMapper\**" />
+    <Compile Remove="Feature\Main\**" />
+    <Compile Remove="Feature\Service\SessionServicess\**" />
+    <Compile Remove="Hubs\**" />
+    <EmbeddedResource Remove="Common\ProfileMapper\**" />
+    <EmbeddedResource Remove="Feature\Main\**" />
+    <EmbeddedResource Remove="Feature\Service\SessionServicess\**" />
+    <EmbeddedResource Remove="Hubs\**" />
+    <None Remove="Common\ProfileMapper\**" />
+    <None Remove="Feature\Main\**" />
+    <None Remove="Feature\Service\SessionServicess\**" />
+    <None Remove="Hubs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="AutoWrapper.Core" Version="5.0.0-rc-03" />
+    <PackageReference Include="EPPlus" Version="5.5.0" />
+    <PackageReference Include="LinqKit" Version="1.3.0" />
+    <PackageReference Include="MailKit" Version="3.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MimeKit" Version="3.5.0" />
+    <PackageReference Include="Octokit" Version="5.0.2" />
+    <PackageReference Include="Refit" Version="6.3.2" />
+    <PackageReference Include="RestSharp" Version="108.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.7.0" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.36.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PingMeChat.CMS.Entities\PingMeChat.CMS.Entities.csproj" />
+    <ProjectReference Include="..\PingMeChat.CMS.EntityFrameworkCore\PingMeChat.CMS.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\PingMeChat.Shared\PingMeChat.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

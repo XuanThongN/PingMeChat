@@ -1,0 +1,65 @@
+@using PingMeChat.CMS.Application.Feature.Service.Customers.Dto
+@model CustomerCreateDto
+
+@{
+    ViewData["Title"] = "Tạo mới thông tin khách hàng";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/customer/create.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/customer/create.js" asp-append-version="true"></script>
+    </environment>
+}
+
+@section styles{
+    <link rel="stylesheet" href="~/lb-views/customer/site.css" />
+}
+
+<div class="container-fluid mt-3">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="function-header">
+                <div class="d-flex mb-3">
+                    <a class="btn btn-outline-secondary me-2" href="/customer" >
+                        <i class="fas fa-backward me-1"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+           
+        </div>
+        <div class="card-body">
+            <form id="submitForm">
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="FullName" class="form-label">Tên khách hàng <span class="text-danger">*</span> </label>
+                            <input asp-for="FullName" id="fullNameCustomer" type="text" class="form-control" placeholder="Nhập tên khách hàng">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="PhoneNumber" class="form-label">Số điện thoại<span class="text-danger">*</span> </label>
+                            <input asp-for="PhoneNumber" id="phoneNumberCustomer" type="text" class="form-control" placeholder="Nhập số điện thoại">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="Address" class="form-label">Địa chỉ<span class="text-danger">*</span> </label>
+                            <input asp-for="Address" type="text" class="form-control" placeholder="Nhập địa chỉ">
+                        </div>
+                    </div>
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/Components/Element/SaveComponent.cshtml")
+            </form>
+
+        </div>
+    </div>
+</div>
+
+

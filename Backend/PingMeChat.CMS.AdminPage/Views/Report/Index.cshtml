@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo tổng quan";
+}
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+    .card-body {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem;
+    }
+
+    .icon {
+        font-size: 2.2rem;
+        margin-right: 1.5rem;
+        color: #4a90e2;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 400;
+        color: #333;
+        margin-bottom: 0;
+    }
+
+    h2 {
+        font-weight: 300;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+</style>
+<div class="container">
+    <h2>Báo cáo bán hàng</h2>
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <a href="@Url.Action("Overview", "Report")" class="text-decoration-none">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-chart-area icon"></i>
+                        <h5 class="card-title">Tổng quan</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 mb-3">
+            <a href="#" class="text-decoration-none">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-file-invoice icon"></i>
+                        <h5 class="card-title">Hóa đơn</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <h2>Báo cáo khách hàng</h2>
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <a href=#" class="text-decoration-none">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-user-md icon"></i>
+                        <h5 class="card-title">Công nợ khách hàng</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <h2>Khác</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <a href="#" class="text-decoration-none">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-tasks icon"></i>
+                        <h5 class="card-title">Danh sách tác vụ</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

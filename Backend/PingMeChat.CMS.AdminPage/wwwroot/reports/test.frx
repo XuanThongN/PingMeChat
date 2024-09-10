@@ -1,0 +1,702 @@
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="02/10/2023 20:35:01" ReportInfo.Modified="02/13/2023 12:54:15" ReportInfo.CreatorVersion="2023.1.0.0">
+	<ScriptText>
+		using System;
+		using System.Collections;
+		using System.Collections.Generic;
+		using System.ComponentModel;
+		using System.Windows.Forms;
+		using System.Drawing;
+		using System.Data;
+		using FastReport;
+		using FastReport.Data;
+		using FastReport.Dialog;
+		using FastReport.Barcode;
+		using FastReport.Table;
+		using FastReport.Utils;
+
+		namespace FastReport
+		{
+		public class ReportScript
+		{
+
+		private void Table3_ManualBuild(object sender, EventArgs e)
+		{
+		// get the data source by its name
+
+		DataSourceBase rowData = Report.GetDataSource(&quot;Relation&quot;);
+
+		// initialize it
+
+		rowData.Init();
+
+
+
+		// printing the table header
+
+		Table3.PrintRow(0);
+
+		Table3.PrintColumns();
+
+
+
+		// loop through the data source rows
+
+		while (rowData.HasMoreRows)
+
+		{
+
+		// printing the table row
+
+		Table3.PrintRow(1);
+
+		Table3.PrintColumns();
+
+
+
+		// select the next data row
+
+		rowData.Next();
+
+		}
+		for(int i = rowData.RowCount; i &lt; 12; i++) {
+		Table3.PrintRow(2);
+
+		Table3.PrintColumns();
+		}
+
+		}
+
+
+
+		private void Table6_ManualBuild(object sender, EventArgs e)
+		{
+		// get the data source by its name
+
+		DataSourceBase rowData = Report.GetDataSource(&quot;RelationWife&quot;);
+
+		// initialize it
+
+		rowData.Init();
+
+
+
+		// printing the table header
+
+		Table6.PrintRow(0);
+
+		Table6.PrintColumns();
+
+
+
+		// loop through the data source rows
+
+		while (rowData.HasMoreRows)
+
+		{
+
+		// printing the table row
+
+		Table6.PrintRow(1);
+
+		Table6.PrintColumns();
+
+
+
+		// select the next data row
+
+		rowData.Next();
+
+		}
+
+
+
+		for(int i = rowData.RowCount; i &lt; 12; i++) {
+		Table6.PrintRow(2);
+
+		Table6.PrintColumns();
+		}
+		}
+
+		private void Table1_ManualBuild(object sender, EventArgs e)
+		{
+		// get the data source by its name
+		DataSourceBase rowData = Report.GetDataSource(&quot;TrainingAndFostering&quot;);
+		// initialize it
+
+		rowData.Init();
+		// printing the table header
+		Table1.PrintRow(0);
+		Table1.PrintColumns();
+
+		// loop through the data source rows
+		while (rowData.HasMoreRows)
+		{
+		// printing the table row
+		Table1.PrintRow(1);
+		Table1.PrintColumns();
+
+		// select the next data row
+		rowData.Next();
+		}
+
+
+		for(int i = rowData.RowCount; i &lt; 8; i++) {
+		Table1.PrintRow(2);
+
+		Table1.PrintColumns();
+		}
+
+
+
+		}
+
+
+
+		private void Table2_ManualBuild(object sender, EventArgs e)
+		{
+		// get the data source by its name
+		DataSourceBase rowData = Report.GetDataSource(&quot;SummarizingOfWork&quot;);
+		// initialize it
+
+		rowData.Init();
+		// printing the table header
+		Table2.PrintRow(0);
+		Table2.PrintColumns();
+
+		// loop through the data source rows
+		while (rowData.HasMoreRows)
+		{
+		// printing the table row
+		Table2.PrintRow(1);
+		Table2.PrintColumns();
+
+		// select the next data row
+		rowData.Next();
+		}
+
+
+
+		for(int i = rowData.RowCount; i &lt; 20; i++) {
+		Table2.PrintRow(2);
+
+		Table2.PrintColumns();
+		}
+
+
+		}
+
+		private void Table5_ManualBuild(object sender, EventArgs e)
+		{
+		// get the data source by its name
+		DataSourceBase rowData = Report.GetDataSource(&quot;EvolutionOfSalary&quot;);
+		// initialize it
+
+		rowData.Init();
+		// printing the table header
+		Table5.PrintColumn(0);
+		Table5.PrintRows();
+
+		// loop through the data source rows
+		while (rowData.HasMoreRows)
+		{
+		// printing the table row
+		Table5.PrintColumn(1);
+		Table5.PrintRows();
+
+		// select the next data row
+		rowData.Next();
+		}
+
+
+
+		for(int i = rowData.RowCount; i &lt; 9; i++) {
+		Table5.PrintColumn(2);
+
+		Table5.PrintRows();
+		}
+		}
+		}
+		}
+	</ScriptText>
+	<Dictionary>
+		<BusinessObjectDataSource Name="AspNetUser" ReferenceName="AspNetUser" DataType="null" Enabled="true">
+			<Column Name="FirstName" DataType="System.String"/>
+			<Column Name="LastName" DataType="System.String"/>
+			<Column Name="AvatarURL" DataType="System.String"/>
+			<Column Name="Ward" DataType="System.String"/>
+			<Column Name="District" DataType="System.String"/>
+			<Column Name="Province" DataType="System.String"/>
+			<Column Name="Address" DataType="System.String"/>
+			<Column Name="CoverURL" DataType="System.String"/>
+			<Column Name="Gender" DataType="System.String"/>
+			<Column Name="DateTime" DataType="System.DateTime"/>
+			<Column Name="Birthday" DataType="System.DateTime"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="UserInformation" ReferenceName="UserInformation" DataType="null" Enabled="true">
+			<Column Name="TonGiao" DataType="System.String"/>
+			<Column Name="DanToc" DataType="System.String"/>
+			<Column Name="NoiDangKyHoKhauThuongTru" DataType="System.String"/>
+			<Column Name="NoiOHienTai" DataType="System.String"/>
+			<Column Name="NgheNghiepTruocKhiDuocTuyenDung" DataType="System.String"/>
+			<Column Name="NgayTuyenDung" DataType="System.DateTime"/>
+			<Column Name="CoQuanTuyenDung" DataType="System.String"/>
+			<Column Name="CongViecChinhDuocGiao" DataType="System.String"/>
+			<Column Name="NgachCongChuc" DataType="System.String"/>
+			<Column Name="MaNgach" DataType="System.String"/>
+			<Column Name="BacLuong" DataType="System.String"/>
+			<Column Name="HeSo" DataType="System.String"/>
+			<Column Name="NgayHuongLuong" DataType="System.DateTime"/>
+			<Column Name="PhuCapChucVu" DataType="System.String"/>
+			<Column Name="PhuCapKhac" DataType="System.String"/>
+			<Column Name="TrinhDoGiaoDucPhoThong" DataType="System.String"/>
+			<Column Name="TrinhDoChuyenMonCaoNhat" DataType="System.String"/>
+			<Column Name="TinhTrangSucKhoe" DataType="System.String"/>
+			<Column Name="QuanLyNhaNuoc" DataType="System.String"/>
+			<Column Name="NgoaiNgu" DataType="System.String"/>
+			<Column Name="TinHoc" DataType="System.String"/>
+			<Column Name="NgayVaoDang" DataType="System.DateTime"/>
+			<Column Name="NgayChinhThucVaoDang" DataType="System.DateTime"/>
+			<Column Name="NgayThamGiaToChucChinhTriXaHoi" DataType="System.DateTime"/>
+			<Column Name="NgayNhapNgu" DataType="System.DateTime"/>
+			<Column Name="NgayXuatNgu" DataType="System.DateTime"/>
+			<Column Name="QuanHamCaoNhat" DataType="System.String"/>
+			<Column Name="DanhHieuPhongTangCaoNhat" DataType="System.String"/>
+			<Column Name="SoTruong" DataType="System.String"/>
+			<Column Name="KhenThuong" DataType="System.String"/>
+			<Column Name="KyLuat" DataType="System.String"/>
+			<Column Name="TrinhTrangSucKhoe" DataType="System.String"/>
+			<Column Name="ChieuCao" DataType="System.String"/>
+			<Column Name="CanNang" DataType="System.String"/>
+			<Column Name="NhomMau" DataType="System.String"/>
+			<Column Name="HangThuongBinh" DataType="System.String"/>
+			<Column Name="LaConGiaDinhChinhSach" DataType="System.String"/>
+			<Column Name="CCCD" DataType="System.String"/>
+			<Column Name="NgayCapCCCD" DataType="System.DateTime"/>
+			<Column Name="NoiCap" DataType="System.String"/>
+			<Column Name="SoBaoHiemXaHoi" DataType="System.String"/>
+			<Column Name="NhanXetDanhGiaDonViQuanLy" DataType="System.String"/>
+			<Column Name="Signature" DataType="System.String"/>
+			<Column Name="SignatureOfOrgan" DataType="System.String"/>
+			<Column Name="PersonalHistoryFeatureId" DataType="System.String"/>
+			<Column Name="ChucVu" DataType="System.String"/>
+			<Column Name="LyLuanChinhTri" DataType="System.String"/>
+			<Column Name="QuocTich" DataType="System.String"/>
+			<Column Name="NoiSinh" DataType="System.String"/>
+			<Column Name="QueQuan" DataType="System.String"/>
+			<Column Name="TenDayDu" DataType="System.String"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="Relation" ReferenceName="Relation" DataType="null" Enabled="true">
+			<Column Name="NameRelation" DataType="System.String"/>
+			<Column Name="NameOfPeople" DataType="System.String"/>
+			<Column Name="DateOfBirth" DataType="System.String"/>
+			<Column Name="Description" DataType="System.String"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="RelationWife" ReferenceName="RelationWife" DataType="null" Enabled="true">
+			<Column Name="NameRelation" DataType="System.String"/>
+			<Column Name="NameOfPeople" DataType="System.String"/>
+			<Column Name="DateOfBirth" DataType="System.String"/>
+			<Column Name="Description" DataType="System.String"/>
+
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="PersonalHistoryFeature" ReferenceName="PersonalHistoryFeature" DataType="null" Enabled="true">
+			<Column Name="JailDescription" DataType="System.String"/>
+			<Column Name="GroupDescription" DataType="System.String"/>
+			<Column Name="ForeignRelativesDescription" DataType="System.String"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="TrainingAndFostering" ReferenceName="TrainingAndFostering" DataType="null" Enabled="true">
+			<Column Name="NameSchool" DataType="System.String"/>
+			<Column Name="Major" DataType="System.String"/>
+			<Column Name="StartDate" DataType="System.String"/>
+			<Column Name="EndDate" DataType="System.String"/>
+			<Column Name="FormOfTraining" DataType="System.String"/>
+			<Column Name="LevelType" DataType="System.String"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="SummarizingOfWork" ReferenceName="SummarizingOfWork" DataType="null" Enabled="true">
+			<Column Name="StartDate" DataType="System.String"/>
+			<Column Name="EndDate" DataType="System.String"/>
+			<Column Name="Description" DataType="System.String"/>
+		</BusinessObjectDataSource>
+		<BusinessObjectDataSource Name="EvolutionOfSalary" ReferenceName="EvolutionOfSalary" DataType="null" Enabled="true">
+			<Column Name="DateTime" DataType="System.String"/>
+			<Column Name="CodeLevel" DataType="System.String"/>
+			<Column Name="CoefficientsSalary" DataType="System.String"/>
+		</BusinessObjectDataSource>
+	</Dictionary>
+	<ReportPage Name="Page1" Watermark.Font="Arial, 60pt">
+		<ReportTitleBand Name="ReportTitle1" Width="718.2" Height="37.8">
+			<TextObject Name="Text1" Left="226.8" Top="9.45" Width="491.4" Height="18.9" Text="Mẫu HS02-VC/BNV ban hành kèm theo Thông tư số 07/2019/TT-BNV ngày 01/6/2019 của Bộ trưởng Bộ Nội vụ" Font="Arial, 7pt"/>
+		</ReportTitleBand>
+		<PageHeaderBand Name="PageHeader1" Top="41.8" Width="718.2" Height="37.8">
+			<TextObject Name="Text2" Width="179.55" Height="18.9" Text="Cơ quan quản lý viên chức" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text241" Left="171.99" Width="236.25" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text242" Left="415.8" Width="122.85" Height="18.9" Text="Số hiệu viên chức" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text243" Left="534.87" Width="189" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text244" Top="18.9" Width="179.55" Height="18.9" Text="Đơn vị sử dụng viên chức" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text245" Left="166.32" Top="18.9" Width="557.55" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+		</PageHeaderBand>
+		<DataBand Name="Data1" Top="83.6" Width="718.2" Height="916.65" DataSource="UserInformation">
+			<ShapeObject Name="Shape1" Width="132.3" Height="179.55"/>
+			<TextObject Name="Text3" Left="217.35" Top="9.45" Width="387.45" Height="37.8" Text="SƠ YẾU LÝ LỊCH VIÊN CHỨC" HorzAlign="Center" Font="Times New Roman, 16pt, style=Bold"/>
+			<TextObject Name="Text5" Top="198.45" Width="85.05" Height="18.9" Text="6) Dân tộc: " Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text6" Top="226.8" Width="226.8" Height="18.9" Text="8) Nơi đăng ký hộ khẩu thường trú:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text7" Left="217.35" Top="245.7" Width="368.55" Height="18.9" Text="(Số nhà, đường phố, thành phố: xóm, thôn, xã, huyện, tỉnh)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text8" Top="264.6" Width="122.85" Height="18.9" Text="9) Nơi ở hiện nay:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text9" Left="217.35" Top="283.5" Width="368.55" Height="18.9" Text="(Số nhà, đường phố, thành phố: xóm, thôn, xã, huyện, tỉnh)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text10" Top="302.4" Width="245.7" Height="18.9" Anchor="Top, Bottom, Right" CanGrow="true" CanShrink="true" CanBreak="false" Text="10) Nghề nghiệp khi được tuyển dụng:" HorzAlign="Justify" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text11" Top="330.75" Width="141.75" Height="18.9" Anchor="Left, Right" CanGrow="true" CanShrink="true" CanBreak="false" Text="11) Ngày tuyển dụng: " AutoWidth="true" WordWrap="false" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text13" Left="217.35" Top="378" Width="368.55" Height="18.9" Text="(Về chính quyền hoặc Đảng, đoàn thể)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text14" Top="396.9" Width="255.15" Height="18.9" Text="12.2- Chức danh (chức vụ) kiêm nhiệm:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text15" Left="217.35" Top="415.8" Width="368.55" Height="18.9" Text="(Về chính quyền hoặc Đảng, đoàn thể)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text16" Top="434.7" Width="207.9" Height="18.9" Text="13) Công việc chính được giao:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text17" Top="463.05" Width="245.7" Height="18.9" Text="14) Chức danh nghề nghiệp viên chức:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text18" Top="491.4" Width="85.05" Height="18.9" Text="Bậc lương:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text19" Top="519.75" Width="217.35" Height="18.9" Text="15.1-Trình độ giáo dục phổ thông" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text20" Left="207.9" Top="519.75" Width="207.9" Height="18.9" Text="(đã tốt nghiệp lớp mấy/thuộc hệ nào):" VertAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text22" Top="548.1" Width="236.25" Height="18.9" Text="15.2-Trình độ chuyên môn cao nhất:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text23" Left="217.35" Top="567" Width="415.8" Height="18.9" Text="(TSKH, TS, Th.s, cử nhân, kỹ sư, cao đẳng, trung cấp, sơ cấp, chuyên ngành)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text24" Top="585.9" Width="151.2" Height="18.9" Text="15.3-Lý luận chính trị:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text25" Top="604.8" Width="311.85" Height="18.9" Text="(Cử nhân, cao cấp, trung cấp, sơ cấp)" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text26" Left="311.85" Top="604.8" Width="406.35" Height="18.9" Text="(Chuyên viên cao cấp, chuyên viên chính, chuyên viên, cán sự.)" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text27" Top="623.7" Width="255.15" Height="18.9" Text="16) Ngày vào Đảng Cộng sản Việt Nam:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text28" Top="652.05" Width="283.5" Height="18.9" Text="17) Ngày tham gia tổ chức  chính trị - xã hội:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text29" Left="217.35" Top="670.95" Width="415.8" Height="18.9" Text="(Ngày tham gia tổ chức: Đoàn, Hội, …. và  làm việc gì trong tổ chức đó)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text30" Top="689.85" Width="132.3" Height="18.9" Text="18) Ngày nhập ngũ:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text31" Top="718.2" Width="274.05" Height="18.9" Text="19.1- Danh hiệu được phong tặng cao nhất:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text32" Left="141.75" Top="737.1" Width="491.4" Height="18.9" Text="(Anh hùng lao động, anh hùng lực lượng vũ trang: nhà giáo, thầy thuốc, nghệ sĩ nhân dân ưu tú,…)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text33" Top="756" Width="160.65" Height="18.9" Text="20) Sở trường công tác:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text41" Top="784.35" Width="122.85" Height="18.9" Text="21) Khen thưởng:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text42" Left="359.1" Top="803.25" Width="330.75" Height="18.9" Text="(Về đảng, chính quyền, đoàn thể hình thức cao nhất, năm nào?)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text43" Left="122.85" Top="803.25" Width="170.1" Height="18.9" Text="(Hình thức cao nhất, năm nào?)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text44" Top="822.15" Width="160.65" Height="18.9" Text="23) Tình trạng sức khoẻ:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text45" Top="850.5" Width="170.1" Height="18.9" Text="24) Là thương binh hạng:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text46" Top="888.3" Width="189" Height="18.9" Text="25) Số chứng minh nhân dân:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text47" Left="359.1" Top="869.4" Width="359.1" Height="18.9" Text="(Con thương binh, con liệt sĩ, ngườ nhiễm chất độc da cam, Dioxin)" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text48" Left="141.75" Top="47.25" Width="718.2" Height="18.9" CanGrow="true" Text="1) Họ và tên khai sinh (viết chữ in hoa):" AutoWidth="true" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text49" Left="141.75" Top="75.6" Width="718.2" Height="18.9" Text="2) Tên gọi khác:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text50" Left="141.75" Top="103.95" Width="718.2" Height="18.9" Text="3) Sinh ngày:" Font="Times New Roman, 11pt">
+				<Formats>
+					<DateFormat/>
+					<GeneralFormat/>
+				</Formats>
+			</TextObject>
+			<TextObject Name="Text51" Left="141.75" Top="132.3" Width="160.65" Height="18.9" Text="4) Nơi sinh: Xã/Phường:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text99" Left="415.8" Top="47.25" Width="207.9" Height="18.9" Text="[UserInformation.TenDayDu]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text100" Left="283.5" Top="103.95" Width="94.5" Height="18.9" Text="[AspNetUser.Birthday]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text101" Left="595.35" Top="103.95" Width="94.5" Height="18.9" Text="[AspNetUser.Gender]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text106" Left="292.95" Top="160.65" Width="56.7" Height="18.9" Text="[AspNetUser.Ward]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text107" Left="434.7" Top="160.65" Width="85.05" Height="18.9" Text="[AspNetUser.District]" HorzAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text108" Left="614.25" Top="160.65" Width="103.95" Height="18.9" Text="[AspNetUser.Province]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text109" Left="151.2" Top="198.45" Width="94.5" Height="18.9" Text="[UserInformation.DanToc]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text110" Left="538.65" Top="198.45" Width="94.5" Height="18.9" Text="[UserInformation.TonGiao]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text111" Left="217.35" Top="226.8" Width="387.45" Height="18.9" Text="[UserInformation.NoiDangKyHoKhauThuongTru]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text112" Left="245.7" Top="264.6" Width="330.75" Height="18.9" Text="[UserInformation.NoiOHienTai]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text113" Left="255.15" Top="302.4" Width="387.45" Height="18.9" Text="[UserInformation.NgheNghiepTruocKhiDuocTuyenDung]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text114" Left="132.3" Top="330.75" Width="189" Height="18.9" Text="[UserInformation.NgayTuyenDung]" Format="Date" Format.Format="d" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text115" Left="463.05" Top="330.75" Width="255.15" Height="18.9" Text="[UserInformation.CoQuanTuyenDung]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text116" Top="359.1" Width="283.5" Height="18.9" Text="12.1- Chức danh (chức vụ) công tác hiện tại:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text118" Left="387.45" Top="47.25" Width="330.75" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text119" Left="245.7" Top="75.6" Width="472.5" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text120" Left="576.45" Top="103.95" Width="141.75" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text121" Left="226.8" Top="103.95" Width="217.35" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text122" Left="444.15" Top="103.95" Width="141.75" Height="18.9" Text=". Giới tính(nam, nữ):" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text123" Left="75.6" Top="198.45" Width="255.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text124" Left="330.75" Top="198.45" Width="85.05" Height="18.9" Text="7) Tôn giáo: " Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text125" Left="406.35" Top="198.45" Width="311.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text126" Left="217.35" Top="226.8" Width="500.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text127" Left="113.4" Top="264.6" Width="604.8" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text128" Left="236.25" Top="302.4" Width="481.95" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text129" Left="132.3" Top="330.75" Width="189" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text130" Left="321.3" Top="330.75" Width="141.75" Height="18.9" Anchor="Left, Right" CanGrow="true" CanShrink="true" CanBreak="false" Text="Cơ quan, đơn vị tuyển dụng:" AutoWidth="true" WordWrap="false" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text131" Left="463.05" Top="330.75" Width="255.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text132" Left="274.05" Top="359.1" Width="444.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text133" Left="245.7" Top="396.9" Width="472.5" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text134" Left="198.45" Top="434.7" Width="519.75" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text135" Left="198.45" Top="434.7" Width="519.75" Height="18.9" Text="[UserInformation.CongViecChinhDuocGiao]" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text136" Left="236.25" Top="463.05" Width="236.25" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text137" Left="472.5" Top="463.05" Width="245.7" Height="18.9" Text="Mã số:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text138" Left="519.75" Top="463.05" Width="198.45" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text139" Left="75.6" Top="491.4" Width="56.7" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text140" Left="132.3" Top="491.4" Width="56.7" Height="18.9" Text="Hệ số:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text141" Left="179.55" Top="491.4" Width="37.8" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text142" Left="217.35" Top="491.4" Width="94.5" Height="18.9" Text="Ngày hưởng:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text143" Left="368.55" Top="491.4" Width="132.3" Height="18.9" Text="Phụ cấp chức danh:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text144" Left="548.1" Top="491.4" Width="103.95" Height="18.9" Text="Phụ cấp khác:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text145" Left="302.4" Top="491.4" Width="66.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text146" Left="491.4" Top="491.4" Width="56.7" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text147" Left="633.15" Top="491.4" Width="85.05" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text148" Left="396.9" Top="519.75" Width="321.3" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text149" Left="217.35" Top="548.1" Width="500.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text150" Left="141.75" Top="585.9" Width="170.1" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text151" Left="311.85" Top="585.9" Width="160.65" Height="18.9" Text="15.4-Quản lý nhà nước:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text152" Left="463.05" Top="585.9" Width="255.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text153" Left="245.7" Top="623.7" Width="189" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text154" Left="434.7" Top="623.7" Width="122.85" Height="18.9" Text="Ngày chính thức:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text155" Left="538.65" Top="623.7" Width="179.55" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text156" Left="274.05" Top="652.05" Width="444.15" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text157" Left="122.85" Top="689.85" Width="122.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text158" Left="245.7" Top="689.85" Width="113.4" Height="18.9" Text="Ngày xuất ngũ:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text159" Left="463.05" Top="689.85" Width="132.3" Height="18.9" Text="Quân hàm cao nhất:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text160" Left="340.2" Top="689.85" Width="122.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text161" Left="585.9" Top="689.85" Width="132.3" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text162" Left="264.6" Top="718.2" Width="453.6" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text163" Left="141.75" Top="756" Width="576.45" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text164" Left="113.4" Top="784.35" Width="207.9" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text165" Left="321.3" Top="784.35" Width="85.05" Height="18.9" Text="22) Kỷ luật:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text166" Left="396.9" Top="784.35" Width="321.3" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text167" Left="151.2" Top="822.15" Width="94.5" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text168" Left="245.7" Top="822.15" Width="75.6" Height="18.9" Text="Chiều cao:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text169" Left="406.35" Top="822.15" Width="75.6" Height="18.9" Text="Cân nặng:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text170" Left="567" Top="822.15" Width="85.05" Height="18.9" Text="Nhóm máu:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text171" Left="311.85" Top="822.15" Width="94.5" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text172" Left="472.5" Top="822.15" Width="94.5" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="kg" HorzAlign="Right" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text173" Left="642.6" Top="822.15" Width="75.6" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text174" Left="160.65" Top="850.5" Width="198.45" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text175" Left="359.1" Top="850.5" Width="170.1" Height="18.9" Text=", Là con gia đình chính sách:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text176" Left="500.85" Top="850.5" Width="217.35" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text177" Left="179.55" Top="888.3" Width="132.3" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text178" Left="311.85" Top="888.3" Width="75.6" Height="18.9" Text="Ngày cấp:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text179" Left="500.85" Top="888.3" Width="103.95" Height="18.9" Text="26)Số BHXH:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text180" Left="378" Top="888.3" Width="122.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text181" Left="595.35" Top="888.3" Width="122.85" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text182" Left="66.15" Top="491.4" Width="113.4" Height="18.9" Text="[UserInformation.BacLuong]" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text183" Left="179.55" Top="491.4" Width="113.4" Height="18.9" Text="[UserInformation.HeSo]" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text184" Left="302.4" Top="491.4" Width="122.85" Height="18.9" Text="[UserInformation.NgayHuongLuong]" Format="Date" Format.Format="d" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text185" Left="491.4" Top="491.4" Width="151.2" Height="18.9" Text="[UserInformation.PhuCapChucVu]" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text186" Left="642.6" Top="491.4" Width="132.3" Height="18.9" Text="[UserInformation.PhuCapKhac]" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text187" Left="396.9" Top="519.75" Width="321.3" Height="18.9" Text="[UserInformation.TrinhDoGiaoDucPhoThong]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text188" Left="189" Top="548.1" Width="529.2" Height="18.9" Text="[UserInformation.TrinhDoChuyenMonCaoNhat]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text189" Left="141.75" Top="585.9" Width="170.1" Height="18.9" Text="[UserInformation.LyLuanChinhTri]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text190" Left="463.05" Top="585.9" Width="255.15" Height="18.9" Text="[UserInformation.QuanLyNhaNuoc]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text191" Left="245.7" Top="623.7" Width="189" Height="18.9" Text="[UserInformation.NgayVaoDang]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text192" Left="538.65" Top="623.7" Width="179.55" Height="18.9" Text="[UserInformation.NgayChinhThucVaoDang]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text193" Left="274.05" Top="652.05" Width="444.15" Height="18.9" Text="[UserInformation.NgayThamGiaToChucChinhTriXaHoi]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text194" Left="122.85" Top="689.85" Width="122.85" Height="18.9" Text="[UserInformation.NgayNhapNgu]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text195" Left="340.2" Top="689.85" Width="122.85" Height="18.9" Text="[UserInformation.NgayXuatNgu]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text196" Left="585.9" Top="689.85" Width="132.3" Height="18.9" Text="[UserInformation.QuanHamCaoNhat]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text197" Left="264.6" Top="718.2" Width="453.6" Height="18.9" Text="[UserInformation.DanhHieuPhongTangCaoNhat]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text198" Left="141.75" Top="756" Width="576.45" Height="18.9" Text="[UserInformation.SoTruong]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text199" Left="113.4" Top="784.35" Width="207.9" Height="18.9" Text="[UserInformation.KhenThuong]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text200" Left="396.9" Top="784.35" Width="321.3" Height="18.9" Text="[UserInformation.KyLuat]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text201" Left="151.2" Top="822.15" Width="94.5" Height="18.9" Text="[UserInformation.TrinhTrangSucKhoe]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text202" Left="311.85" Top="822.15" Width="94.5" Height="18.9" Text="[UserInformation.ChieuCao]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text203" Left="472.5" Top="822.15" Width="75.6" Height="18.9" Text="[UserInformation.CanNang]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text204" Left="642.6" Top="822.15" Width="75.6" Height="18.9" Text="[UserInformation.NhomMau]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text205" Left="160.65" Top="850.5" Width="198.45" Height="18.9" Text="[UserInformation.HangThuongBinh]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text206" Left="500.85" Top="850.5" Width="217.35" Height="18.9" Text="[UserInformation.CCCD]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text207" Left="179.55" Top="888.3" Width="132.3" Height="18.9" Text="[UserInformation.CCCD]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text208" Left="378" Top="888.3" Width="122.85" Height="18.9" Text="[UserInformation.NgayCapCCCD]" Format="Date" Format.Format="d" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text209" Left="595.35" Top="888.3" Width="122.85" Height="18.9" Text="[UserInformation.SoBaoHiemXaHoi]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text210" Left="292.95" Top="132.3" Width="56.7" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text211" Left="349.65" Top="132.3" Width="94.5" Height="18.9" Text="Huyện/Quận:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text212" Left="510.3" Top="132.3" Width="113.4" Height="18.9" Text="Tỉnh/Thành phố:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text213" Left="434.7" Top="132.3" Width="75.6" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text214" Left="614.25" Top="132.3" Width="103.95" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text215" Left="141.75" Top="160.65" Width="160.65" Height="18.9" Text="4) Nơi sinh: Xã/Phường:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text217" Left="349.65" Top="160.65" Width="94.5" Height="18.9" Text="Huyện/Quận:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text218" Left="434.7" Top="160.65" Width="75.6" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text219" Left="510.3" Top="160.65" Width="113.4" Height="18.9" Text="Tỉnh/Thành phố:" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text220" Left="614.25" Top="160.65" Width="103.95" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text221" Left="292.95" Top="132.3" Width="56.7" Height="18.9" Text="[AspNetUser.Ward]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text222" Left="434.7" Top="132.3" Width="85.05" Height="18.9" Text="[AspNetUser.District]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text223" Left="614.25" Top="132.3" Width="103.95" Height="18.9" Text="[AspNetUser.Province]" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+			<TextObject Name="Text224" Left="292.95" Top="160.65" Width="56.7" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" HorzAlign="Center" Font="Times New Roman, 11pt"/>
+		</DataBand>
+	</ReportPage>
+	<ReportPage Name="Page2" Watermark.Font="Arial, 60pt">
+		<ReportTitleBand Name="ReportTitle2" Width="718.2" Height="28.35">
+			<TextObject Name="Text53" Left="226.8" Top="9.45" Width="491.4" Height="18.9" Text="Mẫu HS02-VC/BNV ban hành kèm theo Thông tư số 07/2019/TT-BNV ngày 01/6/2019 của Bộ trưởng Bộ Nội vụ" Font="Arial, 7pt"/>
+		</ReportTitleBand>
+		<PageHeaderBand Name="PageHeader2" Top="31.02" Width="718.2" Height="340.2">
+			<TextObject Name="Text54" Left="9.45" Width="708.75" Height="18.9" Text="27) ĐÀO TẠO,  BỒI DƯỠNG VỀ CHUYÊN MÔN NGHIỆP VỤ, LÝ LUẬN CHÍNH TRỊ,  NGOẠI NGỮ, TIN HỌC" Font="Times New Roman, 10pt, style=Bold"/>
+			<TableObject Name="Table1" Top="18.9" Width="718.2" Height="94.5" Border.Lines="All" ManualBuildEvent="Table1_ManualBuild">
+				<TableColumn Name="Column1" Width="162.54"/>
+				<TableColumn Name="Column2" Width="257.04"/>
+				<TableColumn Name="Column3" Width="124.74"/>
+				<TableColumn Name="Column4" Width="77.49"/>
+				<TableColumn Name="Column5" Width="96.39"/>
+				<TableRow Name="Row1" Height="37.8">
+					<TableCell Name="Cell1" Border.Lines="All" Text="Tên trường" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+					<TableCell Name="Cell2" Border.Lines="All" Text="Chuyên ngành đào tạo, bồi dưỡng" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+					<TableCell Name="Cell3" Border.Lines="All" Text="Từ tháng, năm đến tháng, năm" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+					<TableCell Name="Cell4" Border.Lines="All" Text="Hình thức đào tạo" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+					<TableCell Name="Cell5" Border.Lines="All" Text="Văn bằng, chứng chỉ" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row2" Height="28.35">
+					<TableCell Name="Cell6" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[TrainingAndFostering.NameSchool]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell7" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[TrainingAndFostering.Major]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell8" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[TrainingAndFostering.StartDate] - [TrainingAndFostering.EndDate] " Font="Arial, 10pt">
+						<Formats>
+							<DateFormat/>
+							<GeneralFormat/>
+						</Formats>
+					</TableCell>
+					<TableCell Name="Cell9" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[TrainingAndFostering.FormOfTraining]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell10" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[TrainingAndFostering.LevelType]" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row3" Height="28.35">
+					<TableCell Name="Cell11" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell12" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell13" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell14" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell15" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+			</TableObject>
+			<TextObject Name="Text55" Left="28.35" Top="283.5" Width="680.4" Height="56.7" Text="Ghi chú: &#13;&#10;	- Hình thức đào tạo: Chính quy, tại chức, chuyên tu, từ xa, liên thông, bồi dưỡng.&#13;&#10;	- Văn bẳng, chứng chỉ: TSKH, TS, chuyên khoa II, Ths, chuyên khoa I, đại học, cao đẳng, trung cấp, sơ cấp, chứng chỉ,...&#13;&#10;" VertAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+		</PageHeaderBand>
+		<DataBand Name="Data2" Top="373.88" Width="718.2" Height="623.7">
+			<TableObject Name="Table2" Top="94.5" Width="718.19" Height="94.5" Border.Lines="Right, Top, Bottom" Border.BottomLine.Style="Dot" ManualBuildEvent="Table2_ManualBuild">
+				<TableColumn Name="Column6" Width="137.02"/>
+				<TableColumn Name="Column7" Width="581.17"/>
+				<TableRow Name="Row6" Height="37.8">
+					<TableCell Name="Cell26" Border.Lines="Left, Right, Bottom" Text="Từ tháng, năm đến tháng, năm" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell27" Border.Lines="Right, Bottom" Text="Chức danh, chức vụ, đơn vị công tác (đảng, chính quyền, đoàn thể, tổ chức xã hội) kể cả thời gian được đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, …" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+				</TableRow>
+				<TableRow Name="Row7" Height="28.35">
+					<TableCell Name="Cell31" Border.Lines="Left, Right, Bottom" Border.BottomLine.Style="Dot" Text="[SummarizingOfWork.StartDate] - [SummarizingOfWork.EndDate]" Font="Arial, 10pt">
+						<Formats>
+							<DateFormat/>
+							<GeneralFormat/>
+						</Formats>
+					</TableCell>
+					<TableCell Name="Cell32" Border.Lines="Bottom" Border.BottomLine.Style="Dot" Text="[SummarizingOfWork.Description]" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row8" Height="28.35">
+					<TableCell Name="Cell36" Border.Lines="Left, Right, Bottom" Font="Arial, 10pt"/>
+					<TableCell Name="Cell37" Border.Lines="Left, Right, Bottom" Font="Arial, 10pt"/>
+				</TableRow>
+			</TableObject>
+			<TextObject Name="Text56" Top="66.15" Width="718.2" Height="18.9" Text="28) TÓM TẮT QUÁ TRÌNH CÔNG TÁC" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+		</DataBand>
+	</ReportPage>
+	<ReportPage Name="Page3" Watermark.Font="Arial, 60pt">
+		<ReportTitleBand Name="ReportTitle3" Width="718.2" Height="28.35">
+			<TextObject Name="Text57" Left="226.8" Top="9.45" Width="491.4" Height="18.9" Text="Mẫu HS02-VC/BNV ban hành kèm theo Thông tư số 07/2019/TT-BNV ngày 01/6/2019 của Bộ trưởng Bộ Nội vụ" Font="Arial, 7pt"/>
+		</ReportTitleBand>
+		<PageHeaderBand Name="PageHeader3" Top="32.35" Width="718.2" Height="255.15">
+			<TextObject Name="Text58" Width="708.75" Height="18.9" Text="29) ĐẶC ĐIỂM LỊCH SỬ BẢN THÂN" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TextObject Name="Text59" Top="28.35" Width="207.9" Height="18.9" Text="	- Khai rõ: bị bắt, bị tù" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text60" Left="189" Top="28.35" Width="302.4" Height="18.9" Text="(từ ngày tháng năm nào đến ngày tháng năm nào, ở đâu?)" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text61" Left="472.5" Top="28.35" Width="207.9" Height="18.9" Text="đã khai báo cho ai, những vấn " HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text62" Top="47.25" Width="283.5" Height="18.9" Text="đề gì? Bản thân có làm việc trong chế độ cũ " HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text63" Left="274.05" Top="47.25" Width="378" Height="18.9" Text="(cơ quan, đơn vị nào, địa điểm, chức danh, chức vụ, thời gian làm việc…):" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text65" Top="113.4" Width="595.35" Height="18.9" Text="	- Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài " HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text66" Left="576.45" Top="113.4" Width="103.95" Height="18.9" Text="(làm gì, tổ chức " HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text67" Left="-9.45" Top="132.3" Width="151.2" Height="18.9" Text="nào, đặt trụ sở ở đâu ..?):" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text69" Top="198.45" Width="160.65" Height="18.9" Text="	- Có thân nhân" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text70" Left="141.75" Top="198.45" Width="415.8" Height="18.9" Text="(Cha, Mẹ, Vợ, Chồng, con, anh chị em ruột) ở nước ngoài (làm gì, địa chỉ …)?" HorzAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text235" Top="66.15" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[PersonalHistoryFeature.JailDescription]" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text236" Top="85.05" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text237" Top="151.2" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[PersonalHistoryFeature.GroupDescription]" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text238" Top="170.1" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text239" Top="217.35" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[PersonalHistoryFeature.ForeignRelativesDescription]" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text240" Top="236.25" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+		</PageHeaderBand>
+		<DataBand Name="Data3" Top="291.5" Width="718.2" Height="378">
+			<TextObject Name="Text77" Top="18.9" Width="708.75" Height="18.9" Text="30) QUAN HỆ GIA ĐÌNH" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TableObject Name="Table3" Top="75.6" Width="718.2" Height="75.6" Border.Lines="All" BeforePrintEvent="Table3_BeforePrint" ManualBuildEvent="Table3_ManualBuild">
+				<TableColumn Name="Column8"/>
+				<TableColumn Name="Column9" Width="132.3"/>
+				<TableColumn Name="Column10"/>
+				<TableColumn Name="Column11" Width="453.6"/>
+				<TableRow Name="Row30" Height="37.8">
+					<TableCell Name="Cell136" Border.Lines="Left, Bottom" Text="Mối quan hệ&#13;&#10;" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell137" Border.Lines="Left, Bottom" Text="Họ và tên" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell138" Border.Lines="Left, Bottom" Text="Năm sinh" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell139" Border.Lines="Left, Bottom" Text="Quê quán, nghề nghiệp, chức danh, chức vụ, đơn vị công tác, học tập, nơi ở (trong, ngoài nước); thành viên các tổ chức chính trị - xã hội …?)" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+				</TableRow>
+				<TableRow Name="Row31">
+					<TableCell Name="Cell141" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[Relation.NameRelation]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell142" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[Relation.NameOfPeople]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell143" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[Relation.DateOfBirth]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell144" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[Relation.Description]" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row32">
+					<TableCell Name="Cell146" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell147" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell148" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell149" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+			</TableObject>
+			<TextObject Name="Text78" Top="47.25" Width="718.2" Height="18.9" Text="a) Về bản thân: Cha, Mẹ, Vợ (hoặc chồng), các con, anh chị em ruột" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+		</DataBand>
+		<DataBand Name="Data5" Top="673.5" Width="718.2" Height="132.3">
+			<TextObject Name="Text225" Top="9.45" Width="718.2" Height="18.9" Text="b) Về bên vợ (hoặc chồng): Cha, Mẹ, anh chị em ruột" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TableObject Name="Table6" Top="37.8" Width="718.2" Height="75.6" Border.Lines="All" ManualBuildEvent="Table6_ManualBuild">
+				<TableColumn Name="Column29"/>
+				<TableColumn Name="Column30" Width="132.3"/>
+				<TableColumn Name="Column31"/>
+				<TableColumn Name="Column32" Width="453.6"/>
+				<TableRow Name="Row60" Height="37.8">
+					<TableCell Name="Cell318" Border.Lines="Left, Bottom" Text="Mối quan hệ&#13;&#10;" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell319" Border.Lines="Left, Bottom" Text="Họ và tên" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell320" Border.Lines="Left, Bottom" Text="Năm sinh" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+					<TableCell Name="Cell321" Border.Lines="Left, Bottom" Text="Quê quán, nghề nghiệp, chức danh, chức vụ, đơn vị công tác, học tập, nơi ở (trong, ngoài nước); thành viên các tổ chức chính trị - xã hội …?)" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+				</TableRow>
+				<TableRow Name="Row61">
+					<TableCell Name="Cell322" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[RelationWife.NameRelation]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell323" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[RelationWife.NameOfPeople]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell324" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[RelationWife.DateOfBirth]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell325" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Text="[RelationWife.Description]" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row62">
+					<TableCell Name="Cell326" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell327" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell328" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell329" Border.Lines="Right, Bottom" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+			</TableObject>
+		</DataBand>
+	</ReportPage>
+	<ReportPage Name="Page4" Watermark.Font="Arial, 60pt">
+		<ReportTitleBand Name="ReportTitle4" Width="718.2" Height="28.35">
+			<TextObject Name="Text80" Left="226.8" Top="9.45" Width="491.4" Height="18.9" Text="Mẫu HS02-VC/BNV ban hành kèm theo Thông tư số 07/2019/TT-BNV ngày 01/6/2019 của Bộ trưởng Bộ Nội vụ" Font="Arial, 7pt"/>
+		</ReportTitleBand>
+		<PageHeaderBand Name="PageHeader4" Top="31.02" Width="718.2" Height="132.3">
+			<TextObject Name="Text81" Top="9.45" Width="718.2" Height="18.9" Text="31) DIỄN BIẾN QUÁ TRÌNH LƯƠNG CỦA VIÊN CHỨC" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TableObject Name="Table5" Top="47.25" Width="226.8" Height="75.6" Border.Lines="All" ManualBuildEvent="Table5_ManualBuild">
+				<TableColumn Name="Column16" Width="94.5"/>
+				<TableColumn Name="Column17" AutoSize="true"/>
+				<TableColumn Name="Column18"/>
+				<TableRow Name="Row56">
+					<TableCell Name="Cell244" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="Tháng/năm" Font="Arial, 10pt"/>
+					<TableCell Name="Cell245" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="[EvolutionOfSalary.DateTime]"  Font="Arial, 10pt"/>
+					<TableCell Name="Cell246" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row57">
+					<TableCell Name="Cell249" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="Mã số" Font="Arial, 10pt"/>
+					<TableCell Name="Cell250" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="[EvolutionOfSalary.CodeLevel]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell251" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row58">
+					<TableCell Name="Cell254" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="Bậc lương" Font="Arial, 10pt"/>
+					<TableCell Name="Cell255" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+					<TableCell Name="Cell256" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+				<TableRow Name="Row59">
+					<TableCell Name="Cell259" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="Hệ số lương" Font="Arial, 10pt"/>
+					<TableCell Name="Cell260" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Text="[EvolutionOfSalary.CoefficientsSalary]" Font="Arial, 10pt"/>
+					<TableCell Name="Cell261" Border.Lines="Right, Bottom" Border.RightLine.Style="Dot" Border.BottomLine.Style="Dot" Font="Arial, 10pt"/>
+				</TableRow>
+			</TableObject>
+		</PageHeaderBand>
+		<DataBand Name="Data4" Top="165.98" Width="718.2" Height="425.25">
+			<TextObject Name="Text82" Top="18.9" Width="718.2" Height="18.9" Text="32) NHẬN XÉT, ĐÁNH GIÁ CỦA ĐƠN VỊ SỬ DỤNG VIÊN CHỨC" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TextObject Name="Text93" Left="28.35" Top="245.7" Width="189" Height="18.9" Text="Người khai" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TextObject Name="Text94" Left="28.35" Top="264.6" Width="189" Height="37.8" Text="Tôi xin cam đoan những lời &#13;&#10;khai trên đây là đúng sự thật&#13;&#10;" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text95" Left="37.8" Top="292.95" Width="179.55" Height="18.9" Text="(Ký tên, ghi rõ họ tên)" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text96" Left="425.25" Top="245.7" Width="255.15" Height="18.9" Text="…………, Ngày…….tháng………năm 20……" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Italic"/>
+			<TextObject Name="Text97" Left="425.25" Top="264.6" Width="255.15" Height="18.9" Text="Thủ trưởng đơn vị sử dụng viên chức" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 11pt, style=Bold"/>
+			<TextObject Name="Text98" Left="425.25" Top="283.5" Width="255.15" Height="18.9" Text="(Ký tên, đóng dấu)" HorzAlign="Center" VertAlign="Center" Font="Times New Roman, 9pt, style=Italic"/>
+			<TextObject Name="Text226" Top="47.25" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text227" Top="66.15" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text228" Top="85.05" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text229" Top="103.95" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text230" Top="122.85" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text231" Top="141.75" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text232" Top="160.65" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text233" Top="179.55" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+			<TextObject Name="Text234" Top="198.45" Width="718.2" Height="13.99" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 11pt"/>
+		</DataBand>
+	</ReportPage>
+</Report>

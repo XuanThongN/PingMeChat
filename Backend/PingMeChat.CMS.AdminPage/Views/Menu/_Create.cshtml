@@ -1,0 +1,69 @@
+@using PingMeChat.CMS.Application.Feature.Service.Menus.Dto
+@model MenuCreateDto
+@*Modal để thêm mới loại bàn*@
+<div class="modal" id="CreateModal" tabindex="-1" aria-labelledby="CreateModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="">Thêm mới quyền</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="CreateForm">
+
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="Title" class="form-label">Tên quyền <span class="text-danger">*</span> </label>
+                                <input asp-for="Title" type="text" class="form-control" >
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="Url" class="form-label">Điều hướng </label>
+                                <input asp-for="Url" type="text" class="form-control" >
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="Icon" class="form-label">Icon <span class="text-danger">*</span> </label>
+                                <input asp-for="Icon" type="text" class="form-control" >
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="BidaTableStatus" class="form-label">Thuộc quyền</label>
+
+                                <select name="ParentId" id="hierarchicalSelect" class="form-control form-control-sm select2">
+                                    @*<option selected value="">--Tất cả--</option>*@
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="SortOrder" class="form-label">Thứ tự sắp xếp </label>
+                                <input asp-for="SortOrder" type="number" min="1" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3 d-flex align-items-center h-100 ">
+                                <label for="IsActive" class="form-label mb-0">Trạng thái</label>
+                                <input asp-for="IsActive" type="checkbox" checked >
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label for="mainCheckbox" class="form-label">Danh mục quyền</label>
+                                <input type="checkbox" id="mainCheckbox" >
+                            </div>
+                        </div>
+                        <div id="checkboxTree" class="checkbox-tree hidden"></div>
+                    </div>
+                    @await Html.PartialAsync("~/Views/Shared/Components/Element/SaveComponent.cshtml")
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Quản lý tồn kho";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/inventory/index.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/inventory/index.js" asp-append-version="true"></script>
+    </environment>
+}
+<div class="container-fluid mt-4">
+    <div class="card">
+
+        <div class="card-header">
+            <div class="function-header">
+                <div class="d-flex mb-3">
+                    <button class="btn btn-outline-secondary me-2 " onclick="location.href='@Url.Action("Create","InventoryImport")'"> <i class="fas fa-plus-circle me-1"></i>Tạo Phiếu nhập</button>
+                    <button class="btn btn-outline-secondary me-2 " onclick="location.href='@Url.Action("Create","InventoryExport")'"> <i class="fas fa-plus-circle me-1"></i>Tạo Phiếu xuất</button>
+                </div>
+            </div>
+            <form id="form-filter">
+                @await Html.PartialAsync("/Views/Inventory/Index.AdvancedSearch.cshtml")
+
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="inventory-table" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            @*<th></th>*@
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Giá nhập</th>
+                            <th>Giá bán</th>
+                            <th>Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @*Modal hiển thị chi tiết Inventory*@
+    <div class="modal fade" id="ViewDetailInventoryModal" tabindex="-1" aria-labelledby="ViewDetailBidaTableTypeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+        </div>
+    </div>
+</div>

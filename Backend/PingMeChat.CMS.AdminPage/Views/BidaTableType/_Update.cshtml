@@ -1,0 +1,36 @@
+@using PingMeChat.CMS.Application.Feature.Service.BidaTables.Dto;
+@model BidaTableTypeDto
+<div class="modal-content">
+    <!-- Modal Header -->
+    <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="bidaTableTypeModalLabel">Cập nhật</h5>
+        <button type="button" class="close text-white" data-bs-dismiss="modal" aria-bs-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <!-- Modal Body -->
+    <div class="modal-body">
+        <form id="bidaTableTypeForm">
+            <div class="form-group col-md-12 d-none">
+                <label asp-for="Id">ID</label>
+                <input asp-for="Id" class="form-control" readonly hidden />
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-12">
+                    <label asp-for="Name">Tên loại bàn</label>
+                    <input asp-for="Name" class="form-control" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-12">
+                    <label asp-for="Price">Giá</label>
+                    <input type="text" asp-for="Price" class="form-control money-input" data-raw-value="@Model.Price" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+        @await Html.PartialAsync("~/Views/Shared/Components/Element/SaveAndCancel.cshtml")
+    </div>
+</div>

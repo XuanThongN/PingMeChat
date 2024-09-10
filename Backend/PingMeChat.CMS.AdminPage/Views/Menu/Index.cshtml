@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Danh sách quyền";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/menu/index.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/menu/index.js" asp-append-version="true"></script>
+    </environment>
+}
+@section styles{
+    <link rel="stylesheet" href="~/lb-views/menu/site.css" />
+}
+
+
+<div class="container-fluid mt-3">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="function-header">
+                <div class="d-flex mb-3">
+                    <button class="btn btn-outline-secondary bg-primary me-2" data-bs-target="#CreateModal" data-bs-toggle="modal"> <i class="fas fa-plus-circle me-1"></i>Tạo mới</button>
+                </div>
+            </div>
+            <form id="form-filter">
+                @await Html.PartialAsync("/Views/Menu/Index.CustomSearch.cshtml")
+                @await Html.PartialAsync("/Views/Menu/Index.AdvancedSearch.cshtml")
+
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Tên danh mục quyền</th>
+                            <th>Icon</th>
+                            <th>Điều hướng</th>
+                            <th>Loại menu</th>
+                            <th>Thứ tự</th>
+                            <th>Trạng thái</th>
+                            <th>Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menuTable">
+                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            @*Modal tạo mới BidaTableType*@
+            @await Html.PartialAsync("/Views/Menu/_Create.cshtml", null)
+
+        </div>
+    </div>
+</div>
+

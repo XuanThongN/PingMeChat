@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Danh sách sản phẩm, dịch vụ";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/product/index.js" asp-append-version="true"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/product/index.js" asp-append-version="true"></script>
+    </environment>
+}
+<div class="container-fluid mt-3">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="function-header">
+                <div class="d-flex mb-3">
+                    <button class="btn btn-outline-primary me-2" data-bs-target="#CreateProductModal" data-bs-toggle="modal">
+                        <i class="fas fa-plus-circle me-1"></i>Tạo mới</button>
+                </div>
+            </div>
+            <form id="form-filter" class="d-block">
+                @*@await Html.PartialAsync("/Views/Product/Index.CustomSearch.cshtml")*@
+                @await Html.PartialAsync("/Views/Product/Index.AdvancedSearch.cshtml")
+
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="Product-table" class="table table-striped table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã sản phẩm</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá nhập</th>
+                            <th>Giá bán</th>
+                            <th>Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- DataTables sẽ tự động điền dữ liệu vào đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @*Modal tạo mới Product*@
+    @await Html.PartialAsync("/Views/Product/_Create.cshtml", null)
+    @*Modal hiển thị chi tiết Product*@
+    <div class="modal fade" id="ViewDetailProductModal" tabindex="-1" aria-labelledby="ViewDetailProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+        </div>
+    </div>
+
+    @*Modal cập nhật Product*@
+    <div class="modal fade" id="UpdateProductModal" tabindex="-1" aria-labelledby="UpdateProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+    @*Modal xoá Product*@
+    @await Html.PartialAsync("/Views/Product/_Delete.cshtml", null)
+</div>
+
+

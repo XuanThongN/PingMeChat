@@ -1,0 +1,13 @@
+{
+  "solution": {
+    "path": "PingMeChat.CMS.AdminPage\\PingMeChat.CMS.AdminPage.sln",
+    "projects": [
+      "..\\PingMeChat.CMS.Api\\PingMeChat.CMS.Api.csproj",
+      "..\\PingMeChat.CMS.Application\\PingMeChat.CMS.Application.csproj",
+      "..\\PingMeChat.CMS.Entities\\PingMeChat.CMS.Entities.csproj",
+      "..\\PingMeChat.CMS.EntityFrameworkCore\\PingMeChat.CMS.EntityFrameworkCore.csproj",
+      "..\\PingMeChat.Shared\\PingMeChat.Shared.csproj",
+      "PingMeChat.CMS.AdminPage.csproj"
+    ]
+  }
+}

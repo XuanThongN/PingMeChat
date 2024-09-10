@@ -1,0 +1,34 @@
+@using PingMeChat.CMS.Entities.Feature
+
+
+
+<div class="advanced-search mt-3">
+    <div class="row g-3">
+        <div class="col-6 row mt-3">
+            <div class="col-6 form-group mb-1">
+                <label for="startDate">Từ ngày</label>
+                <div class="input-group">
+                    <input type="date" id="startDate" name="startTime" class="form-control form-control-sm d-inline-block w-auto">
+                </div>
+            </div>
+            <div class="col-6 form-group mb-1">
+                <label for="endDate">Đến ngày</label>
+                <div class="input-group">
+                    <input type="date" id="endDate" name="endTime" class="form-control form-control-sm d-inline-block w-auto">
+                </div>
+            </div>
+            <div id="dateError" class="text-danger mb-2"></div>
+        </div>
+        <div class="col-6">
+            <div class="form-group position-relative">
+                <label for="dateRange" class="date-range-label">Trạng thái</label>
+                <div class="input-group">
+                    <select name="InventoryType" class="form-control form-control-sm date-range-input" asp-items="Html.GetEnumSelectList<InventoryType>()">
+                        <option selected value="">--Tất cả--</option>
+                    </select>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+﻿<div class="modal fade" id="DeleteCustomerModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Xác nhận Xoá</h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="form-group col-md-12 d-none">
+                    <input data-delete-id="" class="form-control" readonly hidden />
+                </div>
+                Bạn có muốn xoá Khách hàng này không?
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary px-2 py-1" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-danger px-2 py-1 delete-button" id="confirmDeleteButton">Xoá</button>
+            </div>
+        </div>
+    </div>
+</div>

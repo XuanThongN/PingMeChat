@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" TextQuality="Regular" ReportInfo.Name="Simple List" ReportInfo.Author="Fast Reports Inc" ReportInfo.Description="Demonstrates a simple list report. To create it:&#13;&#10;- go to &quot;Data&quot; menu and select &quot;Choose Report Data...&quot; item to select a datasource;&#13;&#10;- go to &quot;Report|Configure Bands...&quot; menu to create the band structure;&#13;&#10;- return to the report page, doubleclick the data band to show its editor;&#13;&#10;- choose the datasource;&#13;&#10;- drag data from the Data Dictionary window to the band." ReportInfo.Created="01/17/2008 03:05:57" ReportInfo.Modified="08/21/2023 09:38:36" ReportInfo.CreatorVersion="2023.1.7.0">
+  <Dictionary>
+    <MsSqlDataConnection Name="Connection" ConnectionString="rijcmlqAFHGp6KQj27H4qUwAIR20hSnyrpNtgmeY+I5zyTmYE0HuZfX1hs9fAqnt4DRtzHmPraXuZey74HB3uxjNu0tornmBqXIcWxdyOuhpFf4Tp+3ww3J5zs72q+wgtHzVyg3ccfLq4Aj65xOcNcdpqx7IvKNdD0capYUW50LAQ9g7TgIpjAfJXPDFzzzIDVCJOSeyTtdIkO/0PnHoJp1ACuAIw==">
+      <TableDataSource Name="BIA_DXCBD" DataType="System.Int32" Enabled="true" TableName="BIA_DXCBD">
+        <Column Name="Id" DataType="System.String"/>
+        <Column Name="DomicileRegistration" DataType="System.String"/>
+        <Column Name="AcademicYearCourse" DataType="System.String"/>
+        <Column Name="CourseType" DataType="System.Int32"/>
+        <Column Name="AcademicYear" DataType="System.String"/>
+        <Column Name="SemesterFrom" DataType="System.String"/>
+        <Column Name="SemesterTo" DataType="System.String"/>
+        <Column Name="StudentName" DataType="System.String"/>
+        <Column Name="StudentCode" DataType="System.String"/>
+        <Column Name="Birthday" DataType="System.DateTime"/>
+        <Column Name="Birthplace" DataType="System.String"/>
+        <Column Name="PhoneNumber" DataType="System.String"/>
+        <Column Name="Email" DataType="System.String"/>
+        <Column Name="BelongToClass" DataType="System.String"/>
+        <Column Name="BelongToMajor" DataType="System.String"/>
+        <Column Name="BelongToFaculty" DataType="System.String"/>
+        <Column Name="EducationalSystem" DataType="System.Int32"/>
+        <Column Name="Reason" DataType="System.String"/>
+        <Column Name="DateOSubmission" DataType="System.DateTime"/>
+        <Column Name="StatusProcessing" DataType="System.Int32"/>
+        <Column Name="Signature" DataType="System.String"/>
+        <Column Name="CreatedDate" DataType="System.DateTime"/>
+        <Column Name="CreatedBy" DataType="System.String"/>
+        <Column Name="UpdatedDate" DataType="System.DateTime"/>
+        <Column Name="UpdatedBy" DataType="System.String"/>
+        <Column Name="IsDeleted" DataType="System.Boolean" BindableControl="CheckBox"/>
+        <Column Name="DeletedDate" DataType="System.DateTime"/>
+        <Column Name="DeletedBy" DataType="System.String"/>
+        <Column Name="FormTypeId" DataType="System.String"/>
+      </TableDataSource>
+    </MsSqlDataConnection>
+    <TableDataSource Name="Employees" ReferenceName="NorthWind.Employees" DataType="System.Int32" Enabled="true">
+      <Column Name="EmployeeID" DataType="System.Int32"/>
+      <Column Name="LastName" DataType="System.String"/>
+      <Column Name="FirstName" DataType="System.String"/>
+      <Column Name="Title" DataType="System.String"/>
+      <Column Name="TitleOfCourtesy" DataType="System.String"/>
+      <Column Name="BirthDate" DataType="System.DateTime"/>
+      <Column Name="HireDate" DataType="System.DateTime"/>
+      <Column Name="Address" DataType="System.String"/>
+      <Column Name="City" DataType="System.String"/>
+      <Column Name="Region" DataType="System.String"/>
+      <Column Name="PostalCode" DataType="System.String"/>
+      <Column Name="Country" DataType="System.String"/>
+      <Column Name="HomePhone" DataType="System.String"/>
+      <Column Name="Extension" DataType="System.String"/>
+      <Column Name="Photo" DataType="System.Byte[]" BindableControl="Picture"/>
+      <Column Name="Notes" DataType="System.String"/>
+      <Column Name="ReportsTo" DataType="System.Int32"/>
+    </TableDataSource>
+    <TableDataSource Name="Categories" ReferenceName="NorthWind.Categories" DataType="System.Int32" Enabled="true">
+      <Column Name="CategoryID" DataType="System.Int32"/>
+      <Column Name="CategoryName" DataType="System.String"/>
+      <Column Name="Description" DataType="System.String"/>
+      <Column Name="Picture" DataType="System.Byte[]" BindableControl="Picture"/>
+    </TableDataSource>
+    <TableDataSource Name="Customers" ReferenceName="NorthWind.Customers" DataType="System.Int32" Enabled="true">
+      <Column Name="CustomerID" DataType="System.String"/>
+      <Column Name="CompanyName" DataType="System.String"/>
+      <Column Name="ContactName" DataType="System.String"/>
+      <Column Name="ContactTitle" DataType="System.String"/>
+      <Column Name="Address" DataType="System.String"/>
+      <Column Name="City" DataType="System.String"/>
+      <Column Name="Region" DataType="System.String"/>
+      <Column Name="PostalCode" DataType="System.String"/>
+      <Column Name="Country" DataType="System.String"/>
+      <Column Name="Phone" DataType="System.String"/>
+      <Column Name="Fax" DataType="System.String"/>
+    </TableDataSource>
+    <TableDataSource Name="Order Details" ReferenceName="NorthWind.Order Details" DataType="System.Int32" Enabled="true">
+      <Column Name="OrderID" DataType="System.Int32"/>
+      <Column Name="ProductID" DataType="System.Int32"/>
+      <Column Name="UnitPrice" DataType="System.Decimal"/>
+      <Column Name="Quantity" DataType="System.Int16"/>
+      <Column Name="Discount" DataType="System.Single"/>
+    </TableDataSource>
+    <TableDataSource Name="Orders" ReferenceName="NorthWind.Orders" DataType="System.Int32" Enabled="true">
+      <Column Name="OrderID" DataType="System.Int32"/>
+      <Column Name="CustomerID" DataType="System.String"/>
+      <Column Name="EmployeeID" DataType="System.Int32"/>
+      <Column Name="OrderDate" DataType="System.DateTime"/>
+      <Column Name="RequiredDate" DataType="System.DateTime"/>
+      <Column Name="ShippedDate" DataType="System.DateTime"/>
+      <Column Name="ShipVia" DataType="System.Int32"/>
+      <Column Name="Freight" DataType="System.Decimal"/>
+      <Column Name="ShipName" DataType="System.String"/>
+      <Column Name="ShipAddress" DataType="System.String"/>
+      <Column Name="ShipCity" DataType="System.String"/>
+      <Column Name="ShipRegion" DataType="System.String"/>
+      <Column Name="ShipPostalCode" DataType="System.String"/>
+      <Column Name="ShipCountry" DataType="System.String"/>
+      <Column Name="Latitude" DataType="System.Double"/>
+      <Column Name="Longitude" DataType="System.Double"/>
+    </TableDataSource>
+    <TableDataSource Name="Products" ReferenceName="NorthWind.Products" DataType="System.Int32" Enabled="true">
+      <Column Name="ProductID" DataType="System.Int32"/>
+      <Column Name="ProductName" DataType="System.String"/>
+      <Column Name="SupplierID" DataType="System.Int32"/>
+      <Column Name="CategoryID" DataType="System.Int32"/>
+      <Column Name="QuantityPerUnit" DataType="System.String"/>
+      <Column Name="UnitPrice" DataType="System.Decimal"/>
+      <Column Name="UnitsInStock" DataType="System.Int16"/>
+      <Column Name="UnitsOnOrder" DataType="System.Int16"/>
+      <Column Name="ReorderLevel" DataType="System.Int16"/>
+      <Column Name="Discontinued" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="EAN13" DataType="System.String"/>
+    </TableDataSource>
+    <TableDataSource Name="Shippers" ReferenceName="NorthWind.Shippers" DataType="System.Int32" Enabled="true">
+      <Column Name="ShipperID" DataType="System.Int32"/>
+      <Column Name="CompanyName" DataType="System.String"/>
+      <Column Name="Phone" DataType="System.String"/>
+    </TableDataSource>
+    <TableDataSource Name="Suppliers" ReferenceName="NorthWind.Suppliers" DataType="System.Int32" Enabled="true">
+      <Column Name="SupplierID" DataType="System.Int32"/>
+      <Column Name="CompanyName" DataType="System.String"/>
+      <Column Name="ContactName" DataType="System.String"/>
+      <Column Name="ContactTitle" DataType="System.String"/>
+      <Column Name="Address" DataType="System.String"/>
+      <Column Name="City" DataType="System.String"/>
+      <Column Name="Region" DataType="System.String"/>
+      <Column Name="PostalCode" DataType="System.String"/>
+      <Column Name="Country" DataType="System.String"/>
+      <Column Name="Phone" DataType="System.String"/>
+      <Column Name="Fax" DataType="System.String"/>
+      <Column Name="HomePage" DataType="System.String"/>
+    </TableDataSource>
+    <TableDataSource Name="MatrixDemo" ReferenceName="NorthWind.MatrixDemo" DataType="System.Int32" Enabled="true">
+      <Column Name="Name" DataType="System.String"/>
+      <Column Name="Year" DataType="System.Int32"/>
+      <Column Name="Month" DataType="System.Int32"/>
+      <Column Name="ItemsSold" DataType="System.Int32"/>
+      <Column Name="Revenue" DataType="System.Decimal"/>
+    </TableDataSource>
+    <TableDataSource Name="Unicode" ReferenceName="NorthWind.Unicode" DataType="System.Int32" Enabled="true">
+      <Column Name="Name" DataType="System.String"/>
+      <Column Name="UnicodeName" DataType="System.String"/>
+      <Column Name="Text" DataType="System.String"/>
+      <Column Name="Rtl" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="Active" DataType="System.Boolean" BindableControl="CheckBox"/>
+    </TableDataSource>
+    <BusinessObjectDataSource Name="Categories BusinessObject" ReferenceName="Categories BusinessObject" DataType="System.Collections.Generic.List`1[[DemoNew.DemoModel.Model+Category, Demo, Version=2023.1.7.0, Culture=neutral, PublicKeyToken=null]]" Enabled="true">
+      <Column Name="Name" DataType="System.String"/>
+      <Column Name="Description" DataType="System.String"/>
+      <BusinessObjectDataSource Name="Products1" Alias="Products" Enabled="false" DataType="System.Collections.Generic.List`1[[DemoNew.DemoModel.Model+Product, Demo, Version=2023.1.7.0, Culture=neutral, PublicKeyToken=null]]" PropName="Products"/>
+    </BusinessObjectDataSource>
+  </Dictionary>
+  <ReportPage Name="Page2" RawPaperSize="9" LeftMargin="20" RightMargin="20" Guides="548.1,538.64996,538.64996,548.1,538.64996" Watermark.Font="Arial, 60pt">
+    <ReportTitleBand Name="ReportTitle2" Width="642.6" Height="37.8">
+      <ContainerObject Name="Container1" Width="642.6" Height="37.8" Border.Lines="Bottom">
+        <TextObject Name="Text1" Top="18.9" Width="189" Height="18.9" Text="05.01-BM/CTSV/BIA" Font="Times New Roman, 13pt"/>
+      </ContainerObject>
+    </ReportTitleBand>
+    <PageHeaderBand Name="PageHeader2" Top="41.8" Width="642.6" Height="236.25">
+      <TextObject Name="Text7" Top="18.9" Width="642.6" Height="18.9" Text="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM &#13;&#10;&#13;&#10;" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text8" Left="113.4" Top="103.95" Width="491.4" Height="37.8" Text="ĐƠN XIN CÔNG NHẬN TỐT NGHIỆP NĂM " HorzAlign="Center" Font="Times New Roman, 16pt, style=Bold"/>
+      <TextObject Name="Text9" Left="132.3" Top="160.65" Width="510.3" Height="18.9" Text="Kính gửi:  TRƯỜNG ĐẠI HỌC PHÚ XUÂN" Font="Times New Roman, 13pt, style=Bold"/>
+      <PictureObject Name="Picture1" Top="75.6" Width="113.4" Height="151.2" Image=""/>
+      <TextObject Name="Text83" Top="37.8" Width="642.6" Height="18.9" Text="Độc lập - Tự do - Hạnh phúc" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text84" Left="226.8" Top="47.25" Width="189" Height="18.9" Border.Lines="Bottom" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text85" Left="576.45" Top="103.95" Width="66.15" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+    </PageHeaderBand>
+    <DataBand Name="Data2" Top="282.05" Width="642.6" Height="699.3" Border.Lines="Bottom">
+      <TextObject Name="Text10" Top="9.45" Width="160.65" Height="18.9" Text="Họ và tên sinh viên" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text11" Top="47.25" Width="94.5" Height="18.9" Text="Ngày sinh:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text12" Left="264.6" Top="47.25" Width="94.5" Height="18.9" Text="Nơi sinh:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text14" Left="85.05" Top="47.25" Width="179.55" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text15" Left="340.2" Top="47.25" Width="302.4" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text16" Top="160.65" Width="151.2" Height="18.9" Text="Là sinh viên: Khóa" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text17" Top="198.45" Width="283.5" Height="18.9" Text="Chưa được công nhận tốt nghiệp khóa" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text18" Left="141.75" Top="160.65" Width="103.95" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text22" Left="245.7" Top="160.65" Width="75.6" Height="18.9" Text="Ngành" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text24" Top="85.05" Width="132.3" Height="18.9" Text="Địa chỉ liên lạc:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text25" Left="444.15" Top="160.65" Width="66.15" Height="18.9" Text=" Khoa:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text27" Left="500.85" Top="160.65" Width="141.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text63" Left="132.3" Top="9.45" Width="103.95" Height="18.9" Text="(viết in hoa):" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text64" Left="236.25" Top="9.45" Width="406.35" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text69" Left="434.7" Top="198.45" Width="75.6" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text86" Left="122.85" Top="85.05" Width="519.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text87" Top="122.85" Width="94.5" Height="18.9" Text="Điện thoại:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text88" Left="85.05" Top="122.85" Width="557.55" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text89" Left="302.4" Top="160.65" Width="141.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text90" Left="274.05" Top="198.45" Width="94.5" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text91" Left="387.45" Top="198.45" Width="56.7" Height="18.9" Text="năm" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text92" Left="510.3" Top="198.45" Width="132.3" Height="18.9" Text="Lý do:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text93" Top="236.25" Width="160.65" Height="18.9" Text="- Thiếu chuyên môn:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text94" Top="264.6" Width="141.75" Height="18.9" Text="- Thiếu chứng chỉ:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text95" Top="292.95" Width="113.4" Height="18.9" Text="- Lý do khác:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text96" Left="151.2" Top="236.25" Width="491.4" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text97" Left="132.3" Top="264.6" Width="510.3" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text98" Left="103.95" Top="292.95" Width="538.65" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text99" Top="330.75" Width="642.6" Height="18.9" Text="Nay tôi đã hoàn thành các điều kiện để xét công nhận tốt nghiệp, cụ thể sau:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text100" Top="349.65" Width="642.6" Height="85.05" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text49" Top="453.6" Width="642.6" Height="47.25" Text="Căn cứ quy chế đào tạo, tôi viết đơn này kính đề nghị Ban Giám hiệu chấp thuận cho tôi được xét công nhận tốt nghiệp tổ chức vào đợt " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text101" Left="321.3" Top="472.5" Width="132.3" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text102" Left="453.6" Top="472.5" Width="47.25" Height="18.9" Text="năm" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text103" Left="500.85" Top="472.5" Width="103.95" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text104" Top="500.85" Width="642.6" Height="18.9" Text="Tôi xin cam đoan thực hiện đúng các quy chế đào tạo." Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text105" Top="529.2" Width="642.6" Height="18.9" Text="Kính mong nhà trường quan tâm giúp đỡ." Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text106" Top="557.55" Width="642.6" Height="18.9" Text="Trân trọng" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text51" Left="321.3" Top="595.35" Width="321.3" Height="18.9" Text="Sinh viên ký tên" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text53" Left="321.3" Top="576.45" Width="132.3" Height="18.9" Text="Huế," HorzAlign="Right" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text56" Left="453.6" Top="576.45" Width="189" Height="18.9" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text107" Left="321.3" Top="642.6" Width="321.3" Height="18.9" Font="Times New Roman, 13pt"/>
+    </DataBand>
+    <PageFooterBand Name="PageFooter2" Top="985.35" Width="642.6" Height="66.15">
+      <TextObject Name="Text108" Width="94.5" Height="18.9" Text="Ghi chú:" Font="Times New Roman, 13pt, style=Bold, Italic, Underline"/>
+      <TextObject Name="Text109" Top="18.9" Width="642.6" Height="18.9" Text="-   Ghi chính xác họ tên, ngày sinh, nơi sinh trong hồ sơ gốc." Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text110" Top="37.8" Width="330.75" Height="18.9" Text="-   Nộp tại Phòng Đào tạo: đợt 1 trước ngày" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text111" Left="311.85" Top="37.8" Width="113.4" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text112" Left="425.25" Top="37.8" Width="141.75" Height="18.9" Text="đợt 2 trước ngày" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text113" Left="548.1" Top="37.8" Width="94.5" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Font="Times New Roman, 13pt"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>

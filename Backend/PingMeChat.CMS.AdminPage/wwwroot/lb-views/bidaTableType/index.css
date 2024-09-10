@@ -1,0 +1,78 @@
+﻿
+.nav-tabs .nav-link {
+    color: #000;
+}
+
+    .nav-tabs .nav-link.active {
+        font-weight: bold;
+        border-bottom: 2px solid #0d6efd;
+    }
+
+
+
+/*time*/
+.date-range-input {
+    cursor: pointer;
+}
+
+.date-range-modal {
+    max-width: 400px;
+}
+
+.date-range-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.selected-range {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/*lable ininput - thẻ lable nằm trên-giữa input-border*/
+.form-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.date-range-label {
+    position: absolute;
+    top: -0.5rem;
+    left: 0.75rem;
+    padding: 0 0.25rem;
+    background-color: white;
+    font-size: 0.8rem;
+    color: #6c757d;
+    z-index: 99;
+    transition: all 0.2s ease-in-out;
+}
+
+.input-group {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+    .input-group:focus-within {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .input-group .form-control {
+        border: none;
+        box-shadow: none !important;
+    }
+
+        .input-group .form-control:focus {
+            outline: none;
+        }
+
+    .input-group .btn {
+        border: none;
+        border-left: 1px solid #ced4da;
+    }
+
+        .input-group .btn:focus {
+            box-shadow: none;
+        }

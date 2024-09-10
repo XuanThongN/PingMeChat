@@ -1,0 +1,67 @@
+﻿html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/*form*/
+.form-menu {
+    display: flex;
+    align-items: center;
+}
+
+.form-menu:before {
+    content: "";
+    width: 0.5em;
+    margin-right: 0.7rem;
+    border-bottom: 1px dashed rgba(11,12,15,.15);
+}
+
+.form-menu:after {
+    content: "";
+    margin-left: 0.7em;
+    flex: 1 1 auto;
+    border-bottom: 1px dashed rgba(11,12,15,.15);
+}
+/*end form*/
+
+.select2-results__option {
+    padding: 6px;
+}
+
+    .select2-results__option .service-name {
+        float: left;
+    }
+
+    .select2-results__option .service-quantity {
+        float: right;
+    }
+
+
+/* Chỉnh kích thước font chữ cho phần đã chọn của Select2 */
+#createModal .select2-container .select2-selection--single {
+    font-size: 0.875rem; /* Kích thước font chữ bạn muốn */
+}
+
+/* Chỉnh kích thước font chữ cho phần danh sách thả xuống của Select2 */
+#createModal .select2-container .select2-dropdown {
+    font-size: 0.875rem; /* Kích thước font chữ bạn muốn */
+}
+
+/* Nếu cần điều chỉnh cả phần tìm kiếm trong dropdown */
+#createModal .select2-container .select2-search--dropdown .select2-search__field {
+    font-size: 0.875rem; /* Kích thước font chữ bạn muốn */
+}

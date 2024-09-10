@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Created="07/15/2024 22:08:24" ReportInfo.Modified="07/15/2024 23:47:59" ReportInfo.CreatorVersion="2024.2.13.0">
+  <ScriptText>using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using FastReport;
+using FastReport.Data;
+using FastReport.Dialog;
+using FastReport.Barcode;
+using FastReport.Table;
+using FastReport.Utils;
+
+namespace FastReport
+{
+  
+  public class ReportScript
+  {
+    public string FormatDiscount(decimal? discount, int? discountPercent)
+    {
+      if (discount &gt; 0)
+      {
+        // Định dạng discount thành tiền tệ Việt Nam
+        return string.Format(&quot;{0:C0}&quot;, discount.Value).Replace(&quot;$&quot;, &quot;&quot;) + &quot; ₫&quot;;
+      }
+    
+      if (discountPercent &gt; 0)
+      {
+        // Hiển thị discountPercent dưới dạng phần trăm
+        return discountPercent.Value.ToString() + &quot;%&quot;;
+      }
+    
+      return &quot;&quot;;
+    }
+    public string FormatCurrency(decimal value)
+    {
+      return string.Format(&quot;{0:N0}&quot;, value) + &quot; ₫&quot;;
+    }
+    public string FormatDate(DateTime date)
+    {
+      return date.ToString(&quot;dd/MM/yyyy HH:mm&quot;);
+    }
+    public string GetCurrentDateTime()
+    {
+      return DateTime.Now.ToString(&quot;dd/MM/yyyy HH:mm:ss&quot;);
+    }
+
+
+
+    public static string CalculateTimeDifference(DateTime startTime, DateTime endTime)
+    {
+      // Tính toán khoảng thời gian
+      TimeSpan timeDifference = endTime - startTime;
+
+      // Lấy số giờ và số phút
+      int hours = (int)timeDifference.TotalHours;
+      int minutes = timeDifference.Minutes;
+
+      // Tạo chuỗi kết quả
+      string result = &quot;&quot;;
+
+      // Thêm giờ nếu có
+      if (hours &gt; 0)
+      {
+        result += $&quot;{hours} giờ &quot;;
+      }
+
+      // Thêm phút nếu có
+      if (minutes &gt; 0 || (hours == 0 &amp;&amp; minutes == 0))
+      {
+        result += $&quot;{minutes} phút&quot;;
+      }
+
+      // Cắt khoảng trắng ở cuối nếu có
+      return result.Trim();
+    }
+
+
+
+
+  }
+  
+}
+</ScriptText>
+  <Dictionary>
+    <BusinessObjectDataSource Name="HoaDonDto" ReferenceName="HoaDonDto" DataType="System.Int32" Enabled="true">
+      <Column Name="Code" DataType="System.String"/>
+      <Column Name="BidaTableCode" DataType="System.String"/>
+      <Column Name="OrderDate" DataType="System.DateTime"/>
+      <Column Name="TotalAmount" DataType="System.Decimal"/>
+      <Column Name="Discount" DataType="System.Decimal"/>
+      <Column Name="DiscountPercent" DataType="System.Int32"/>
+      <Column Name="Tax" DataType="System.Decimal"/>
+      <Column Name="PaymentMethod" DataType="System.Int32"/>
+      <Column Name="PaymentMethodName" DataType="System.String"/>
+      <Column Name="Status" DataType="System.Int32"/>
+      <Column Name="StatusName" DataType="System.String"/>
+      <Column Name="DiscountType" DataType="System.Int32"/>
+      <Column Name="DiscountTypeName" DataType="System.String"/>
+      <Column Name="Description" DataType="System.String"/>
+      <Column Name="StaffName" DataType="System.String"/>
+      <Column Name="StartTime" DataType="System.DateTime"/>
+      <Column Name="EndTime" DataType="System.DateTime"/>
+      <BusinessObjectDataSource Name="OrderDetails" DataType="System.Int32" Enabled="true">
+        <Column Name="Quantity" DataType="System.Int32"/>
+        <Column Name="UnitPrice" DataType="System.Decimal"/>
+        <Column Name="SubTotal" DataType="System.Decimal"/>
+        <Column Name="ProductName" DataType="System.String"/>
+      </BusinessObjectDataSource>
+      <Column Name="Id" DataType="System.String"/>
+      <Column Name="CreatedDate" DataType="System.DateTime"/>
+      <Column Name="CreatedDateString" DataType="System.String"/>
+      <Column Name="CreatedBy" DataType="System.String"/>
+      <Column Name="UpdatedDate" DataType="System.DateTime"/>
+      <Column Name="UpdatedDateString" DataType="System.String"/>
+      <Column Name="UpdatedBy" DataType="System.String"/>
+    </BusinessObjectDataSource>
+  </Dictionary>
+  <ReportPage Name="Page1" PaperWidth="215.9" PaperHeight="190.5" Watermark.Font="Arial, 60pt" LastPageSource="15" FirstPageSource="15">
+    <ReportTitleBand Name="ReportTitle1" Width="740.5" Height="103.95" Guides="37.8">
+      <TextObject Name="Text1" Left="217.35" Top="18.9" Width="245.7" Height="28.35" Text="THẾ GIỚI BILLIARD" HorzAlign="Center" VertAlign="Center" Font="Arial, 14pt, style=Bold"/>
+      <TextObject Name="Text4" Left="198.45" Top="56.7" Width="311.85" Height="18.9" Text="TT. Hoàn Lão, Tỉnh Quảng Bình" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text2" Left="18.9" Top="56.7" Width="141.75" Height="18.9" Text="Địa chỉ: " VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text3" Left="18.9" Top="85.05" Width="141.75" Height="18.9" Text="Điện thoại:" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text5" Left="198.45" Top="85.05" Width="141.75" Height="18.9" Text="090 989 999" VertAlign="Center" Font="Arial, 12pt"/>
+    </ReportTitleBand>
+    <PageHeaderBand Name="PageHeader1" Top="107.95" Width="740.5" Height="244.25" Guides="47.25">
+      <TextObject Name="Text6" Left="236.25" Top="4" Width="245.7" Height="28.35" Text="HOÁ ĐƠN THANH TOÁN" HorzAlign="Center" VertAlign="Center" Font="Arial, 14pt, style=Bold"/>
+      <TextObject Name="Text14" Left="236.25" Top="22.9" Width="245.7" Height="28.35" Text="[HoaDonDto.Code]" HorzAlign="Center" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text8" Left="255.15" Top="51.25" Width="103.95" Height="18.9" Text="Bàn số" HorzAlign="Right" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text9" Left="359.1" Top="51.25" Width="122.85" Height="18.9" Text="[HoaDonDto.BidaTableCode]" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text16" Left="18.9" Top="74.15" Width="132.3" Height="18.9" Text="Ngày giờ:" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text27" Left="179.55" Top="74.15" Width="500.85" Height="18.9" Text="[GetCurrentDateTime()]" Format="Date" Format.Format="d" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text10" Left="18.9" Top="102.5" Width="132.3" Height="18.9" Text="Bắt đầu:" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text12" Left="179.55" Top="102.5" Width="500.85" Height="18.9" Text="[FormatDate([HoaDonDto.StartTime])]" Format="Date" Format.Format="d" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text13" Left="179.55" Top="121.4" Width="500.85" Height="18.9" Text="[FormatDate([HoaDonDto.EndTime])]" Format="Date" Format.Format="d" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text11" Left="18.9" Top="121.4" Width="132.3" Height="18.9" Text="Kết thúc:" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text15" Left="18.9" Top="149.75" Width="132.3" Height="18.9" Text="Thời gian chơi:" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text26" Left="179.55" Top="149.75" Width="500.85" Height="18.9" Text="[CalculateTimeDifference([HoaDonDto.StartTime],[HoaDonDto.EndTime])]" Format="Date" Format.Format="d" VertAlign="Center" Font="Arial, 12pt"/>
+      <TextObject Name="Text17" Left="18.9" Top="178.1" Width="132.3" Height="18.9" Text="Tiền bàn:" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TextObject Name="Text20" Left="179.55" Top="178.1" Width="198.45" Height="18.9" Text="[String.Format(&quot;{0:N0} ₫&quot;, [HoaDonDto.BidaTableAmount])]" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TextObject Name="Text21" Left="396.9" Top="178.1" Width="94.5" Height="18.9" Text="Giảm giá: " VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TextObject Name="Text25" Left="491.4" Top="178.1" Width="94.5" Height="18.9" Text="[FormatDiscount([HoaDonDto.Discount],[HoaDonDto.DiscountPercent])]&#13;&#10;" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TableObject Name="Table1" Left="18.9" Top="225.35" Width="672.82" Height="18.9" Border.Lines="All" GrowToBottom="true" RepeatHeaders="false">
+        <TableColumn Name="Column1" Width="210.73"/>
+        <TableColumn Name="Column2" Width="59.53"/>
+        <TableColumn Name="Column3" Width="172.93"/>
+        <TableColumn Name="Column4" Width="229.63"/>
+        <TableRow Name="Row2">
+          <TableCell Name="Cell6" Border.Lines="All" Text="Tên dịch vụ" HorzAlign="Center" Font="Arial, 10pt, style=Bold"/>
+          <TableCell Name="Cell7" Border.Lines="All" Text="SL" HorzAlign="Center" Font="Arial, 10pt, style=Bold"/>
+          <TableCell Name="Cell8" Border.Lines="All" Text="Đơn giá" HorzAlign="Center" Font="Arial, 10pt, style=Bold"/>
+          <TableCell Name="Cell9" Border.Lines="All" Text="Thành tiền" HorzAlign="Right" Font="Arial, 10pt, style=Bold"/>
+        </TableRow>
+      </TableObject>
+    </PageHeaderBand>
+    <DataBand Name="Data1" Top="356.2" Width="740.5" Height="18.9" PrintOn="FirstPage" DataSource="OrderDetails">
+      <TableObject Name="Table2" Left="18.9" Width="670.95" Height="18.9">
+        <TableColumn Name="Column5" Width="207.9"/>
+        <TableColumn Name="Column6"/>
+        <TableColumn Name="Column7" Width="170.1"/>
+        <TableColumn Name="Column8" Width="226.8"/>
+        <TableRow Name="Row3">
+          <TableCell Name="Cell10" Text="[HoaDonDto.OrderDetails.ProductName]" Font="Arial, 10pt"/>
+          <TableCell Name="Cell11" Text="[HoaDonDto.OrderDetails.Quantity]" HorzAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell12" Text="[HoaDonDto.OrderDetails.UnitPrice]" HorzAlign="Right" Font="Arial, 10pt"/>
+          <TableCell Name="Cell13" Text="[HoaDonDto.OrderDetails.SubTotal]" HorzAlign="Right" Font="Arial, 10pt"/>
+        </TableRow>
+      </TableObject>
+    </DataBand>
+    <PageFooterBand Name="PageFooter1" Top="379.1" Width="740.5" Height="151.2">
+      <TextObject Name="Text24" Left="75.6" Top="97.05" Width="491.4" Height="18.9" Text="Cám ơn Quý Khách - Hẹn gặp lại. Thank you!" HorzAlign="Center" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TextObject Name="Text23" Left="387.45" Top="45.8" Width="302.4" Height="18.9" Text="[String.Format(&quot;{0:N0} ₫&quot;, [HoaDonDto.TotalAmount])]" HorzAlign="Right" VertAlign="Center" Font="Arial, 14pt, style=Bold" TextFill.Color="Red"/>
+      <TextObject Name="Text22" Left="255.15" Top="45.8" Width="132.3" Height="18.9" Text="Tổng tiền:" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+      <TextObject Name="Text28" Left="18.9" Top="8" Width="132.3" Height="18.9" Text="Tổng tiền dịch vụ:" VertAlign="Center" Font="Arial, 11pt"/>
+      <TextObject Name="Text29" Left="387.45" Top="8" Width="302.4" Height="18.9" Text="[String.Format(&quot;{0:N0} ₫&quot;, [HoaDonDto.TotalServiceAmount])]" HorzAlign="Right" VertAlign="Center" Font="Arial, 12pt, style=Bold"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>

@@ -1,0 +1,39 @@
+﻿
+/*site specifics*/
+.site-loader-color 
+{
+    color: #000000 !important;
+    font-size: 50px !important;
+}
+
+.site-datatable-button-container{
+    margin-left: 10px;
+}
+
+.button-create{
+
+}
+
+.blue-color {
+    color: blue;
+}
+
+.green-color {
+    color: green;
+}
+
+.teal-color {
+    color: teal;
+}
+
+.yellow-color {
+    color: yellow;
+}
+
+.red-color {
+    color: red;
+}
+
+.carro-color {
+    color: rgba(23, 155, 149, 1);
+}

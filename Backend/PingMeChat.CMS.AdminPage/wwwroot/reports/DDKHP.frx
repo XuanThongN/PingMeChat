@@ -1,0 +1,257 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" TextQuality="Regular" ReportInfo.Name="Simple List" ReportInfo.Author="Fast Reports Inc" ReportInfo.Description="Demonstrates a simple list report. To create it:&#13;&#10;- go to &quot;Data&quot; menu and select &quot;Choose Report Data...&quot; item to select a datasource;&#13;&#10;- go to &quot;Report|Configure Bands...&quot; menu to create the band structure;&#13;&#10;- return to the report page, doubleclick the data band to show its editor;&#13;&#10;- choose the datasource;&#13;&#10;- drag data from the Data Dictionary window to the band." ReportInfo.Created="01/17/2008 03:05:57" ReportInfo.Modified="08/24/2023 08:34:47" ReportInfo.CreatorVersion="2023.1.7.0">
+  <ScriptText>using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Data;
+using FastReport;
+using FastReport.Data;
+using FastReport.Dialog;
+using FastReport.Barcode;
+using FastReport.Table;
+using FastReport.Utils;
+
+namespace FastReport
+{
+  public class ReportScript
+  {
+
+    private void Table1_ManualBuild(object sender, EventArgs e)
+    {
+      // lấy dữ liệu từ nguồn dữ liệu có tên &quot;BIA_DDKHPDetails&quot;. rowData sẽ đại diện cho nguồn dữ liệu này.
+      DataSourceBase rowData = Report.GetDataSource(&quot;BIA_DDKHPDetails&quot;);
+
+	  // khởi tạo nguồn dữ liệu rowData để sẵn sàng cho việc truy cập
+	  rowData.Init();
+	  // Đây là bước in dòng tiêu đề của bảng
+	  Table1.PrintRow(0);
+	  Table1.PrintColumns();
+
+
+	  // lặp qua từng dòng của nguồn dữ liệu (rowData) và thực hiện in dòng và cột của bảng con Table1.
+	  while (rowData.HasMoreRows)
+	  {
+
+	  Table1.PrintRow(1);
+	  Table1.PrintColumns();
+
+
+	  // Chọn dòng dữ liệu tiếp theo
+	  rowData.Next();
+	  }
+
+	  // printing the table footer
+	  for(int i = rowData.RowCount; i &lt; 7; i++) {
+	  Table1.PrintRow(2);
+
+	  Table1.PrintColumns();
+	  }
+
+	  }
+	}
+}
+  </ScriptText>
+  <Dictionary>
+    <BusinessObjectDataSource Name="BIA_DDKHP" ReferenceName="BIA_DDKHP" DataType="null" Enabled="true">
+      <Column Name="Semester" DataType="System.Int32"/>
+      <Column Name="schoolYear" DataType="System.String"/>
+      <Column Name="CredisHours" DataType="System.Int32"/>
+      <Column Name="StudentName" DataType="System.String"/>
+      <Column Name="StudentCode" DataType="System.String"/>
+      <Column Name="Birthday" DataType="System.DateTime"/>
+      <Column Name="Birthplace" DataType="System.String"/>
+      <Column Name="PhoneNumber" DataType="System.String"/>
+      <Column Name="Email" DataType="System.String"/>
+      <Column Name="BelongToClass" DataType="System.String"/>
+      <Column Name="BelongToMajor" DataType="System.String"/>
+      <Column Name="BelongToFaculty" DataType="System.String"/>
+      <Column Name="AcademicYearCourse" DataType="System.String"/>
+      <Column Name="SemesterString" DataType="System.String"/>
+      <Column Name="SchoolYear" DataType="System.String"/>
+      <Column Name="EducationalSystem" DataType="System.Int32"/>
+      <Column Name="Reason" DataType="System.String"/>
+      <Column Name="DateOSubmission" DataType="System.DateTime"/>
+      <Column Name="StatusProcessing" DataType="System.Int32"/>
+      <Column Name="TotalCredisHours" DataType="System.Int32"/>
+      <Column Name="Signature" DataType="System.String"/>
+      <Column Name="DateOSubmissionString" DataType="System.String"/>
+      <Column Name="DDKHPadditionalInformation" DataType="System.Int32"/>
+      <Column Name="DDKHPadditionalInformation01" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="DDKHPadditionalInformation02" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="DDKHPadditionalInformation03" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="DDKHPadditionalInformation04" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="DDKHPadditionalInformation05" DataType="System.Boolean" BindableControl="CheckBox"/>
+      <Column Name="CredisHours02" DataType="System.String"/>
+      <Column Name="CredisHours03" DataType="System.String"/>
+      <Column Name="CredisHours04" DataType="System.String"/>
+      <Column Name="CredisHours05" DataType="System.String"/>
+    </BusinessObjectDataSource>
+    <BusinessObjectDataSource Name="BIA_DDKHPDetails" ReferenceName="BIA_DDKHPDetails" DataType="null" Enabled="true">
+      <Column Name="Code" DataType="System.String"/>
+      <Column Name="CredisHours" DataType="System.String"/>
+      <Column Name="Name" DataType="System.String"/>
+      <Column Name="CreditHours" DataType="System.String"/>
+      <Column Name="ClassroomLearning" DataType="System.String"/>
+      <Column Name="AcademicTerm" DataType="System.String"/>
+      <Column Name="Note" DataType="System.String"/>
+    </BusinessObjectDataSource>
+  </Dictionary>
+  <ReportPage Name="Page2" RawPaperSize="9" LeftMargin="20" RightMargin="20" Guides="548.1,538.64996,538.64996,548.1,538.64996" Watermark.Font="Arial, 60pt">
+    <ReportTitleBand Name="ReportTitle2" Width="642.6" Height="28.35">
+      <ContainerObject Name="Container1" Width="642.6" Height="28.35" Border.Lines="Bottom">
+        <TextObject Name="Text2" Left="472.5" Top="9.45" Width="170.1" Height="18.9" Text="Lần ban hành/sửa đổi: 1/0" HorzAlign="Right" Font="Times New Roman, 13pt"/>
+        <TextObject Name="Text1" Top="9.45" Width="189" Height="18.9" Text="03.43-BM/CTSV/BIA" Font="Times New Roman, 13pt"/>
+      </ContainerObject>
+    </ReportTitleBand>
+    <PageHeaderBand Name="PageHeader2" Top="32.35" Width="642.6" Height="151.2">
+      <TextObject Name="Text7" Left="255.15" Top="9.45" Width="387.45" Height="66.15" Text="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM &#13;&#10;Độc lập - Tự do - Hạnh phúc&#13;&#10;" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text8" Top="75.6" Width="642.6" Height="37.8" Text="ĐƠN ĐĂNG KÝ HỌC PHẦN" HorzAlign="Center" Font="Times New Roman, 18pt, style=Bold"/>
+      <TextObject Name="Text9" Top="113.4" Width="642.6" Height="18.9" Text="Kính gửi:   - Giảng viên cố vấn học tập" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text59" Top="9.45" Width="255.15" Height="18.9" Text="BỘ GIÁO DỤC VÀ ĐÀO TẠO" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text60" Left="-18.9" Top="28.35" Width="292.95" Height="18.9" Text="TRƯỜNG ĐẠI HỌC PHÚ XUÂN" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text61" Left="37.8" Top="37.8" Width="179.55" Height="18.9" Border.Lines="Bottom" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text62" Left="359.1" Top="37.8" Width="179.55" Height="18.9" Border.Lines="Bottom" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text83" Top="132.3" Width="642.6" Height="18.9" Text="- Phòng đào tạo" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+    </PageHeaderBand>
+    <DataBand Name="Data2" Top="187.55" Width="642.6" Height="727.65">
+      <TextObject Name="Text10" Top="9.45" Width="94.5" Height="18.9" Text="Tôi tên là:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text11" Top="47.25" Width="75.6" Height="18.9" Text="Học lớp:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text12" Left="245.7" Top="47.25" Width="56.7" Height="18.9" Text="Khóa: " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text14" Left="66.15" Top="47.25" Width="179.55" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.BelongToClass]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text15" Left="292.95" Top="47.25" Width="122.85" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.AcademicYearCourse]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text25" Left="415.8" Top="47.25" Width="66.15" Height="18.9" Text=" Khoa:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text27" Left="472.5" Top="47.25" Width="170.1" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.BelongToFaculty]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text64" Left="85.05" Top="9.45" Width="170.1" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.StudentName]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text65" Left="415.8" Top="9.45" Width="103.95" Height="18.9" Text="Điện thoại: " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text66" Left="500.85" Top="9.45" Width="141.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.PhoneNumber]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text84" Left="255.15" Top="9.45" Width="66.15" Height="18.9" Text="Mã SV:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text85" Left="311.85" Top="9.45" Width="103.95" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.StudentCode]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text81" Top="85.05" Width="642.6" Height="28.35" Text="Tôi viết đơn này kính đề nghị Phòng Đào tạo cho phép đăng ký học phần học kỳ" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text86" Left="567" Top="85.05" Width="75.6" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.SemesterString]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text87" Top="113.4" Width="85.05" Height="18.9" Text="năm học " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text88" Left="75.6" Top="113.4" Width="132.3" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.SchoolYear]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text89" Left="207.9" Top="113.4" Width="434.7" Height="18.9" Text="gồm các học phần sau:" Font="Times New Roman, 13pt"/>
+      <TableObject Name="Table1" Top="141.75" Width="642.6" Height="284.45" Border.Lines="All" ManualBuildEvent="Table1_ManualBuild">
+        <TableColumn Name="Column1" Width="39.69"/>
+        <TableColumn Name="Column2" Width="96.39"/>
+        <TableColumn Name="Column3" Width="153.09"/>
+        <TableColumn Name="Column4" Width="68.04"/>
+        <TableColumn Name="Column5" Width="115.29"/>
+        <TableColumn Name="Column6" Width="75.6"/>
+        <TableColumn Name="Column7" Width="94.5"/>
+        <TableRow Name="Row1" Height="33.55">
+          <TableCell Name="Cell1" Border.Lines="All" Text="STT" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell2" Border.Lines="All" Text="Mã HP" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell3" Border.Lines="All" Text="Tên học phần" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell4" Border.Lines="All" Text="Số tín chỉ" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell5" Border.Lines="All" Text="Đăng ký học với lớp" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell21" Border.Lines="All" Text="Khóa" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell22" Border.Lines="All" Text="Ghi chú" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row2" Height="33.55">
+          <TableCell Name="Cell6" Border.Lines="All" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell7" Border.Lines="All" Text="[BIA_DDKHPDetails.Code]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell8" Border.Lines="All" Text="[BIA_DDKHPDetails.Name]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell9" Border.Lines="All" Text="[BIA_DDKHPDetails.CreditHours]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell10" Border.Lines="All" Text="[BIA_DDKHPDetails.ClassroomLearning]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell23" Border.Lines="All" Text="[BIA_DDKHPDetails.AcademicTerm]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+          <TableCell Name="Cell24" Border.Lines="All" Text="[BIA_DDKHPDetails.Note]" HorzAlign="Center" VertAlign="Center" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row3" Height="37.8">
+          <TableCell Name="Cell25" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell26" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell27" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell28" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell29" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell30" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell31" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row4" Height="37.8">
+          <TableCell Name="Cell32" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell33" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell34" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell35" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell36" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell37" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell38" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row5" Height="37.8">
+          <TableCell Name="Cell39" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell40" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell41" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell42" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell43" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell44" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell45" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row6" Height="37.8">
+          <TableCell Name="Cell46" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell47" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell48" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell49" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell50" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell51" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell52" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row7" Height="37.8">
+          <TableCell Name="Cell53" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell54" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell55" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell56" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell57" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell58" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell59" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+        <TableRow Name="Row8" Height="28.35">
+          <TableCell Name="Cell60" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell61" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell62" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell63" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell64" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell65" Border.Lines="All" Font="Arial, 10pt"/>
+          <TableCell Name="Cell66" Border.Lines="All" Font="Arial, 10pt"/>
+        </TableRow>
+      </TableObject>
+      <TextObject Name="Text90" Top="481.95" Width="132.3" Height="18.9" Text="Lý do đăng ký" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text91" Left="113.4" Top="481.95" Width="529.2" Height="18.9" Text="( đánh dấu X vào lý do đăng ký):" Font="Times New Roman, 11pt, style=Italic"/>
+      <CheckBoxObject Name="CheckBox1" Left="18.9" Top="510.3" Width="18.9" Height="18.9" Border.Lines="All" DataColumn="BIA_DDKHP.DDKHPadditionalInformation01"/>
+      <CheckBoxObject Name="CheckBox2" Left="18.9" Top="548.1" Width="18.9" Height="18.9" Border.Lines="All" DataColumn="BIA_DDKHP.DDKHPadditionalInformation02"/>
+      <TextObject Name="Text92" Left="56.7" Top="510.3" Width="132.3" Height="18.9" Text="Đăng ký lần đầu" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text93" Left="170.1" Top="510.3" Width="529.2" Height="18.9" Text="( do không đăng ký được trên hệ thống đào tạo):" Font="Times New Roman, 11pt, style=Italic"/>
+      <TextObject Name="Text94" Left="56.7" Top="548.1" Width="132.3" Height="18.9" Text="Đăng ký bổ sung" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text95" Left="179.55" Top="548.1" Width="529.2" Height="18.9" Text="( do không đăng ký đủ số tín chỉ tối thiểu quy định ở mỗi học kỳ):" Font="Times New Roman, 11pt, style=Italic"/>
+      <TextObject Name="Text96" Left="18.9" Top="576.45" Width="444.15" Height="18.9" Text="Tổng số tín chỉ đã đăng ký thành công trên hệ thống đào tạo: " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text97" Left="444.15" Top="576.45" Width="94.5" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.CredisHours02]" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text98" Left="538.65" Top="576.45" Width="103.95" Height="18.9" Text="tín chỉ" Font="Times New Roman, 13pt"/>
+      <CheckBoxObject Name="CheckBox3" Left="18.9" Top="604.8" Width="18.9" Height="18.9" Border.Lines="All" DataColumn="BIA_DDKHP.DDKHPadditionalInformation03"/>
+      <TextObject Name="Text99" Left="56.7" Top="604.8" Width="415.8" Height="18.9" Text="Đăng ký học lại: Tổng số tín chỉ đã đăng ký học chính là" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text100" Left="453.6" Top="604.8" Width="94.5" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.CredisHours03]" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text101" Left="585.9" Top="680.4" Width="56.7" Height="18.9" Text="tín chỉ" Font="Times New Roman, 13pt"/>
+      <CheckBoxObject Name="CheckBox4" Left="18.9" Top="642.6" Width="18.9" Height="18.9" Border.Lines="All" DataColumn="BIA_DDKHP.DDKHPadditionalInformation04"/>
+      <TextObject Name="Text102" Left="56.7" Top="642.6" Width="434.7" Height="18.9" Text="Đăng ký học vượt: Tổng số tín chỉ đã đăng ký học chính là" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text103" Left="472.5" Top="642.6" Width="94.5" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.CredisHours04]" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <CheckBoxObject Name="CheckBox5" Left="18.9" Top="680.4" Width="18.9" Height="18.9" Border.Lines="All" DataColumn="BIA_DDKHP.DDKHPadditionalInformation05"/>
+      <TextObject Name="Text104" Left="56.7" Top="680.4" Width="481.95" Height="18.9" Text="Đăng ký cải thiện điểm: Tổng số tín chỉ đã đăng ký học chính là" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text105" Left="510.3" Top="680.4" Width="75.6" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DDKHP.CredisHours05]" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text106" Top="708.75" Width="642.6" Height="18.9" Text="Vậy đề nghị Phòng Đào Tạo bố trí cho tôi được đăng ký các học phần trên." Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text111" Left="548.1" Top="604.8" Width="94.5" Height="18.9" Text="tín chỉ" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text112" Left="567" Top="642.6" Width="75.6" Height="18.9" Text="tín chỉ" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text113" Top="444.15" Width="207.9" Height="18.9" Text="Tổng số tín chỉ đăng ký: " Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text114" Left="189" Top="444.15" Width="170.1" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" HorzAlign="Center" Text="[BIA_DDKHP.TotalCredisHours]" Font="Times New Roman, 13pt"/>
+    </DataBand>
+    <PageFooterBand Name="PageFooter2" Top="919.2" Width="642.6" Height="122.85">
+      <TextObject Name="Text50" Width="189" Height="18.9" Text="Phòng Đào Tạo" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text51" Left="434.7" Top="18.9" Width="217.35" Height="18.9" Text="Người làm đơn" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text52" Left="453.6" Top="37.8" Width="189" Height="18.9" Text=" (Ký và ghi rõ họ tên)" HorzAlign="Center" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text57" Left="453.6" Top="103.95" Width="189" Height="18.9" Text="[BIA_DDKHP.StudentName]" HorzAlign="Center" Font="Times New Roman, 13pt"/>
+      <PictureObject Name="Picture1" Left="481.95" Top="56.7" Width="94.5" Height="46.15" ImageLocation="[BIA_DDKHP.Signature]" DataColumn="BIA_DDKHP.Signature"/>
+      <TextObject Name="Text107" Left="189" Width="217.35" Height="18.9" Text="Ý kiến của GV CVHT" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text108" Left="189" Top="18.9" Width="245.7" Height="18.9" Text=" ( về gốc độ chuyên môn ghi rõ ý kiến)" HorzAlign="Center" Font="Times New Roman, 11pt, style=Italic"/>
+      <TextObject Name="Text109" Left="425.25" Width="85.05" Height="18.9" Text="Huế," HorzAlign="Right" Font="Arial, 11pt, style=Italic"/>
+      <TextObject Name="Text110" Left="510.3" Width="132.3" Height="18.9" Text="[BIA_DDKHP.DateOSubmissionString]" Font="Arial, 11pt, style=Italic"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>

@@ -1,0 +1,72 @@
+﻿@using PingMeChat.CMS.Application.Feature.Service.Roles.Dto
+@model RoleDto
+
+
+@await Html.PartialAsync("~/Views/Shared/Form/_ModalHeader.cshtml", new FormHeaderViewModel($"Thông tin tiết về nhóm quyền {Model.Name}", false, false))
+<section class="content">
+    <div class="container-fluid">
+        <input asp-for="Id" type="hidden" />
+        <div class="card-header border-bottom-0 pb-0 px-3">
+
+            @await Html.PartialAsync("~/Views/Shared/Form/_ModalFooterWithCancel.cshtml")
+
+            <div class="d-flex justify-content-end">
+                <div class="choose-option">
+                    <a href="#titleRole" class="font-weight-normal category-link">Thông tin vai trò</a>
+                    <span>|</span>
+                    <a href="#titleContent" class="font-weight-normal category-link">Chi tiết quyền</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body overflow-auto py-2 ">
+            <div class="information-title">
+                <a name="titleRole" class="information-general">Thông tin vai trò</a>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="Name">Tên nhóm quyền</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="Name" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Ngày tạo</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="CreatedDateString" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Tạo bởi</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="CreatedBy" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Ngày cập nhật</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="UpdatedDateString" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Cập nhật bởi</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="UpdatedBy" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="information-title">
+                <a name="titleContent" class="information-general">Chi tiết quyền</a>
+            </div>
+        </div>
+    </div>
+</section>

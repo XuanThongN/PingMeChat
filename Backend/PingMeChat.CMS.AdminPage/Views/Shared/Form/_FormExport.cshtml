@@ -1,0 +1,15 @@
+﻿@model FormUploadFileModel
+
+
+@*<div id="dropzone">*@
+<form action="@Model.Url" class="dropzone" id="dropzoneForm">
+    <div class="dz-message needsclick">
+        <div class="btn-group">
+            <span class="btn btn-sm btn-success col fileinput-button">
+                <i class="fas fa-upload"></i>
+                <span>@Model.Title</span>
+            </span>
+        </div>
+    </div>
+</form>
+@*</div>*@

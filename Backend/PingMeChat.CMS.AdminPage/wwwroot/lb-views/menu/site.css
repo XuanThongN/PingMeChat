@@ -1,0 +1,102 @@
+﻿.table th, .table td {
+    vertical-align: middle;
+}
+
+.icon-settings::before {
+    content: "\f013";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+.menu-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+    .menu-icon.green {
+        background-color: #28a745;
+        border-radius: 50%;
+    }
+
+    .menu-icon.blue {
+        background-color: #007bff;
+        border-radius: 50%;
+    }
+
+.status-icon {
+    font-size: 1.2rem;
+}
+
+.action-icon {
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.toggle-icon {
+    cursor: pointer;
+    margin-right: 5px;
+    width: 15px;
+    display: inline-block;
+    text-align: center;
+}
+
+
+.child-row {
+    display: none;
+}
+
+.title-container {
+    display: flex;
+    align-items: center;
+}
+
+input#IsActive {
+    width: 15px;
+    height: 15px;
+    transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    margin: 10px;
+}
+
+/*// phục vụ modal create*/
+input#IsActive {
+    width: 15px;
+    height: 15px;
+    transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    margin: 10px;
+}
+input#mainCheckbox {
+    width: 15px;
+    height: 15px;
+    transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    margin: 10px;
+}
+
+
+.checkbox-tree {
+    margin-left: 20px;
+}
+
+    .checkbox-tree ul {
+        list-style-type: none;
+        padding-left: 20px;
+    }
+
+    .checkbox-tree li {
+        margin: 5px 0;
+    }
+
+.toggle-icon {
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+

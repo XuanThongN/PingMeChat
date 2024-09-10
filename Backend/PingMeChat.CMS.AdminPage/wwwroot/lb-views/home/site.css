@@ -1,0 +1,232 @@
+﻿.position-relative-custom {
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.position-relative-custom .overlay {
+    opacity: 1;
+}
+
+.overlay i {
+    font-size: 3rem;
+    color: #ffc107; /* Màu warning của Bootstrap */
+}
+
+/*modal*/
+body {
+    background-color: #f8f9fa;
+    padding-bottom: 60px;
+}
+
+.feature-item {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+    .feature-item:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .feature-item i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .feature-item span {
+        display: block;
+        font-size: 0.9rem;
+    }
+
+.table {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-borderless td {
+    border: none;
+}
+
+footer {
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+    footer i {
+        margin-right: 5px;
+    }
+
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: none;
+}
+
+.list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+.table-responsive {
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+}
+
+.quantity-input {
+    width: 60px;
+}
+
+.remove-service {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/*header*/
+body {
+    font-family: Arial, sans-serif;
+}
+
+.status-btn {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+    .status-btn.playing {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+    }
+
+    .status-btn.reserved {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: #fff;
+    }
+
+    .status-btn.paid {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+    }
+
+    .status-btn.available {
+        background-color: #20c997;
+        border-color: #20c997;
+        color: #fff;
+    }
+
+    .status-btn.maintenance {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: #fff;
+    }
+
+
+#infoCustomer, #searchResults {
+    display: none;
+    margin-top: 20px;
+}
+
+#customerList {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    cursor: pointer;
+}
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+.bg-maintenance {
+    background-color: #fd7e14;
+}
+
+    .bg-maintenance:hover {
+        background-color: #fd7e14;
+    }
+
+
+/*Tạo viền và các lỗ cho bàn*/
+.billiard-table {
+    position: relative;
+    border-radius: 15px; /* Bo góc nhẹ */
+    border: 20px solid #8b5a2b; /* Đường viền của card */
+}
+
+.billiard-hole {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #000; /* Màu đen cho lỗ */
+    border-radius: 50%;
+}
+
+.hole-tl {
+    top: -15px;
+    left: -15px;
+}
+
+.hole-tr {
+    top: -15px;
+    right: -15px;
+}
+
+.hole-bl {
+    bottom: -15px;
+    left: -15px;
+}
+
+.hole-br {
+    bottom: -15px;
+    right: -15px;
+}
+.hole-tm {
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top-left-radius: 100px;
+    border-top-right-radius: 100px;
+    height: 20px;
+}
+.hole-bm {
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-left-radius: 100px;
+    height: 18px;
+    border-bottom-right-radius: 100px;
+}
+
+/*Mặc định ẩn chi tiết của lịch sử hoá đơn ở Home*/
+#order-history .details {
+    display: none;
+}

@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Danh sách phiếu nhập hàng";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/inventoryImport/index.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/inventoryImport/index.js" asp-append-version="true"></script>
+    </environment>
+}
+<div class="container-fluid mt-4">
+    <div class="card">
+
+        <div class="card-header">
+            <div class="function-header">
+                <div class="d-flex mb-3">
+                    <button class="btn btn-warning me-2" id="btn-filter"> <i class="fas fa-search me-1 "></i>Bộ lọc</button>
+                    <button class="btn btn-outline-secondary bg-primary me-2 " onclick="location.href='@Url.Action("Create")'"> <i class="fas fa-plus-circle me-1"></i>Tạo mới</button>
+                </div>
+            </div>
+            <form id="form-filter">
+                @await Html.PartialAsync("/Views/InventoryImport/Index.CustomSearch.cshtml")
+                @await Html.PartialAsync("/Views/InventoryImport/Index.AdvancedSearch.cshtml")
+
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="inventoryImport-table" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th></th>
+                            <th>Mã phiếu</th>
+                            <th>Người tạo</th>
+                            <th>Ngày tạo</th>
+                            <th>Bên giao</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @*Modal hiển thị chi tiết Phiếu nhập kho*@
+    <div class="modal fade" id="ViewDetailInventoryImportModal" tabindex="-1" aria-labelledby="ViewDetailBidaTableTypeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+        </div>
+    </div>
+</div>

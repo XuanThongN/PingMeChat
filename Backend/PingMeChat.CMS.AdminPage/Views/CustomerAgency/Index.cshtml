@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Nhóm nhà cung cấp";
+}
+
+
+<style>
+    .form-control, .form-select, .btn {
+        border-radius: 0;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .table th {
+        font-weight: normal;
+    }
+
+    .pagination {
+        justify-content: flex-end;
+    }
+
+        .pagination .page-link {
+            border-radius: 0;
+        }
+
+    .form-switch .form-check-input {
+        width: 3em;
+    }
+</style>
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Nhà cung cấp</h4>
+        <div class="d-flex align-items-center">
+            <img src="path_to_vietnam_flag.png" alt="VN" class="me-2" style="width: 20px;">
+            <select class="form-select me-2" style="width: auto;">
+                <option>VI</option>
+            </select>
+            <input type="text" class="form-control" value="0948327485: 12/07/2024" style="width: auto;">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="supplierGroup" class="form-label">Nhóm đối tác/nhà cung cấp</label>
+                    <select id="supplierGroup" class="form-select">
+                        <option>Tất cả</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="searchName" class="form-label">Tìm Kiếm Theo Tên</label>
+                    <div class="search-container">
+                        <input type="text" id="searchName" class="form-control" placeholder="Nhập tên để tìm kiếm">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng Thái</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="statusSwitch" checked>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-secondary me-2">Nhập xuất Excel</button>
+                    <button class="btn btn-warning">+ Thêm Mới</button>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>#</th>
+                        <th>TÊN</th>
+                        <th>TÊN NHÓM</th>
+                        <th>TỔNG ĐÃ MUA</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" class="text-center">Không có dữ liệu trong bảng</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span>Số mục mỗi trang</span>
+                    <select class="form-select d-inline-block ms-2" style="width: auto;">
+                        <option>10</option>
+                    </select>
+                </div>
+                <div>
+                    <span>0 trên 0</span>
+                    <ul class="pagination d-inline-flex mb-0 ms-2">
+                        <li class="page-item disabled"><a class="page-link" href="#">&lt;&lt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&gt;</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#">&gt;&gt;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

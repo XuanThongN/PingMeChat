@@ -1,0 +1,417 @@
+@using PingMeChat.CMS.Application.Common
+@using  System.Security.Claims;
+@model IEnumerable<SidebarMenu>
+<style>
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    .modal-header {
+        padding-bottom: 0;
+    }
+
+    .modal-title {
+        font-weight: bold;
+    }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    .btn-primary, .btn-secondary {
+        border-radius: 5px;
+        padding: 10px 20px;
+    }
+</style>
+
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a href="/Home" class="brand-link">
+            <img src="~/images/logo-full.jfif" alt="PingMeChat Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+            @*<img src="~/images/logo01.png" alt="PingMeChat Logo" class="brand-image img-circle elevation-3" style="opacity: .8">*@
+            <span class="brand-text font-weight-light text-uppercase">CLUB KAKA</span>
+        </a>
+
+        <!-- sidebar: style can be found in sidebar.less -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <!-- Sidebar user panel -->
+            <!-- search form (Optional) -->
+            @*<form action="#" method="get" class="sidebar-form">
+            <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search...">
+            <span class="input-group-btn">
+            <button type="submit" name="search" id="search-btn" class="btn btn-flat">
+            <i class="fa fa-search"></i>
+            </button>
+            </span>
+            </div>
+            </form>*@
+            <!-- /.search form -->
+            <!-- Sidebar Menu -->
+
+            <nav class="mt-2">
+                <ul id="dynamicSidebar" class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
+                    <li class="nav-item has-treeview user-panel py-2 mb-3">
+                        <a href="#" class="nav-link" id="userToggle">
+                            <img src="~/images/avata/avatar5.png" class="nav-icon rounded-circle" alt="User Image" width="30" height="30">
+                            <p>
+                                @User.Identity.Name
+                                <i class="right fa fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview" id="userMenu" style="display: none;">
+                            <li class="nav-item" data-bs-toggle="modal" data-bs-target="#verifyAccountModal">
+                                <a href="#" class="nav-link">
+                                    <i class="fa fa-user nav-icon"></i>
+                                    <p>Thiết lập tài khoản</p>
+                                </a>
+                            </li>
+                            @* <li class="nav-item">
+                            <a href="#" class="nav-link">
+                            <i class="fa fa-sign-out-alt nav-icon"></i>
+                            <p>Đăng xuất</p>
+                            </a>
+                            </li>*@
+                        </ul>
+                    </li>
+                    <!-- Dynamic menu items will be inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+</aside>
+
+
+<!-- Modal Xác thực tài khoản -->
+<div class="modal fade" id="verifyAccountModal" tabindex="-1" aria-labelledby="verifyAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title w-100 text-center" id="verifyAccountModalLabel">Xác thực tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="verifyAccountForm">
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu *</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <div class="d-flex justify-content-center mt-4">
+                        <button type="button" class="btn btn-primary me-2" id="verifyAccountBtn">Xác nhận</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal Cập nhật tài khoản -->
+<div class="modal fade" id="updateAccountModal" tabindex="-1" aria-labelledby="updateAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title w-100 text-center" id="updateAccountModalLabel">Cập nhật tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateAccountForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="FullName" class="form-label">Tên đầy đủ <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="FullName" required>
+                            </div>
+                          
+                            <div class="mb-3">
+                                <label for="PhoneNumber" class="form-label">Số điện thoại  <span class="text-danger">*</span> </label>
+                                <input type="tel" class="form-control" id="PhoneNumber">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email  <span class="text-danger">*</span> </label>
+                                <input type="email" class="form-control" value="@User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value" id="email" disabled>
+                            </div>
+                           @* <div class="mb-3">
+                                <label for="address" class="form-label">Địa chỉ</label>
+                                <input type="text" class="form-control" id="address">
+                            </div>*@
+                           @* <div class="mb-3">
+                                <label for="referralCode" class="form-label">Mã giới thiệu</label>
+                                <input type="text" class="form-control" id="referralCode">
+                            </div>
+                            <div class="mb-3">
+                                <label for="language" class="form-label">Ngôn ngữ</label>
+                                <select class="form-select" id="language">
+                                    <option value="VI">VI</option>
+                                    <option value="EN">EN</option>
+                                </select>
+                            </div>*@
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Đăng nhập dùng tài khoản  <span class="text-danger">*</span> </label>
+                                <input type="email" class="form-control" value="@User.Identity.Name" id="email" disabled>
+
+                            </div>
+                            <div class="mb-3">
+                                <label for="NewPassword" class="form-label">Mật khẩu mới  <span class="text-danger">*</span> </label>
+                                <input type="password" class="form-control" id="NewPassword" placeholder="Phải có ít nhất 8 ký tự">
+                            </div>
+                           @* <div class="mb-3">
+                                <label for="ConfirmPassword" class="form-label">Xác nhận mật khẩu  <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="ConfirmPassword" placeholder="Phải có ít nhất 8 ký tự">
+                            </div>*@
+                          @*  <div class="mb-3">
+                                <label class="form-label d-block">Đăng nhập dùng mã PIN</label>
+                                <div class="form-control bg-light mb-2">0948327485</div>
+                                <input type="password" class="form-control" id="pin" placeholder="Phải có ít nhất 4 ký tự">
+                            </div>*@
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center mt-4">
+                        <button type="button" class="btn btn-primary me-2" id="updateAccountBtn">Cập nhật</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // lấy thông tin người dùng
+        var url = "/Account/GetMe";
+        LoadingOverlay.show();
+        callAPI(url, "GET", null,
+            function (response) {
+                LoadingOverlay.hide();
+                if (response.statusCode !== 200) {
+                    toastError(response.message);
+                    return;
+                }
+                var data = response.result;
+                $('#FullName').val(data.fullName);
+                $('#PhoneNumber').val(data.phoneNumber);
+            }, function (xhr, status, error) {
+                LoadingOverlay.hide();
+                toastError("Lỗi: " + error);
+            });
+            
+        
+        //xác nhận mật khẩu
+        var oldPassword = "";
+        $('#verifyAccountBtn').on('click', function () {
+            oldPassword = document.getElementById("password").value;
+            var url = "/Account/VerifyPassword";
+            var jsonData = JSON.stringify({ Password: oldPassword });
+
+            LoadingOverlay.show();
+            submitForm(url, jsonData,
+                function (response) {
+                    LoadingOverlay.hide();
+                    if (response.statusCode !== 200){
+                        toastError(response.message);
+                        return
+                    }
+                    $('#verifyAccountModal').modal('hide');
+                    
+                    // show modal hiện thị thông tin tài khoản
+                    $('#updateAccountModal').modal('show');
+                  
+                }, function (xhr, status, error) {
+                    LoadingOverlay.hide();
+                    toastError("Đã xảy ra lỗi. Vui lòng thử lại.");
+                }
+            );
+        });
+
+        // update thông tin tài khoản
+        $('#updateAccountBtn').on('click', function () {
+            if (validateForm()) {
+                var fullName = document.getElementById("FullName").value;
+                var phoneNumber = document.getElementById("PhoneNumber").value;
+                var newPassword = document.getElementById("NewPassword").value;
+                //var confirmPassword = document.getElementById("ConfirmPassword").value;
+                var url = "/Account/UpdateAccountInfo";
+                //var jsonData = JSON.stringify({ FullName: fullName, PhoneNumber: phoneNumber, NewPassword: newPassword, OldPassword: oldPassword });
+                var jsonData = JSON.stringify({ FullName: fullName, PhoneNumber: phoneNumber, NewPassword: newPassword });
+
+                LoadingOverlay.show();
+                submitForm(url, jsonData,
+                    function (response) {
+                        LoadingOverlay.hide();
+                        if (response.statusCode !== 200) {
+                            toastError(response.message);
+                            return
+                        }
+                        $('#updateAccountModal').modal('hide');
+                        toastSuccess("Cập nhật thông tin tài khoản thành công.");
+                    }, function (xhr, status, error) {
+                        LoadingOverlay.hide();
+                        toastError("Đã xảy ra lỗi. Vui lòng thử lại.");
+                    }
+                );
+            }
+           
+        });
+
+        // LẤY MENU CỦA NGƯỜI DÙNG
+        var url = "/Menu/GetMenusByCurrentId";
+        callAPI(url, "GET", null,
+            function (response) {
+                LoadingOverlay.hide();
+                if (response.statusCode !== 200) {
+                    toastError(response.message);
+                    return;
+                }
+                var menuData = response.result;
+                console.log("menuData", menuData)
+                renderSidebarMenu(menuData);
+            }, function (xhr, status, error) {
+                LoadingOverlay.hide();
+                toastError("Lỗi: " + error);
+            });
+
+        function renderSidebarMenu(menuData) {
+            const sidebarElement = document.getElementById('dynamicSidebar');
+
+            // Sắp xếp menu theo sortOrder
+            menuData.sort((a, b) => a.sortOrder - b.sortOrder);
+
+            // Tạo một map để lưu trữ các mục menu theo id
+            const menuMap = new Map(menuData.map(item => [item.id, { ...item, children: [] }]));
+
+            // Xây dựng cấu trúc cây
+            menuData.forEach(item => {
+                if (item.parentId) {
+                    const parent = menuMap.get(item.parentId);
+                    if (parent) {
+                        parent.children.push(menuMap.get(item.id));
+                    }
+                }
+            });
+
+            // Render các mục menu gốc (không có parentId)
+            menuData.filter(item => !item.parentId).forEach(menu => {
+                const menuItem = createMenuItem(menuMap.get(menu.id));
+                sidebarElement.appendChild(menuItem);
+            });
+        }
+
+        function createMenuItem(menu) {
+            if (!menu.isActive) return null;
+
+            const li = document.createElement('li');
+
+            if (!menu.menuType) { // Link
+                li.className = 'nav-item';
+                li.innerHTML = `
+                <a href="${menu.url}" class="nav-link ${isActive(menu.url)}">
+                    <i class="${menu.icon} nav-icon"></i>
+                    <p>${menu.title}</p>
+                </a>
+            `;
+            } else { // Tree
+                const isActiveTree = menu.children.some(child => isActive(child.url));
+                li.className = `nav-item has-treeview ${isActiveTree ? 'menu-open' : ''}`;
+                li.innerHTML = `
+                <a href="#" class="nav-link ${isActiveTree ? 'active' : ''}">
+                    <i class="nav-icon ${menu.icon}"></i>
+                    <p>
+                        ${menu.title}
+                        <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    ${menu.children.map(subMenu => `
+                        <li class="nav-item">
+                            <a href="${subMenu.url}" class="nav-link ${isActive(subMenu.url)}">
+                                <i class="${subMenu.icon} nav-icon"></i>
+                                <p>${subMenu.title}</p>
+                            </a>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            }
+
+            return li;
+        }
+
+        function isActive(url) {
+            return window.location.pathname === url ? 'active' : '';
+        }
+        // Tạo hàm để validate form
+        function validateForm() {
+            let isValid = true;
+
+            // Validate mã bàn
+            isValid = validateField($('#PhoneNumber'), {
+                required: true,
+                phone: true
+            }) && isValid;
+
+            // Validate loại bàn
+            isValid = validateField($('#FullName'), {
+                required: true
+            }) && isValid;
+
+            // validate password
+            // Kiểm tra password
+            isValid = validateField($('#NewPassword'), {
+                required: true,
+                minLength: 8,
+                maxLength: 50,
+                password: true
+                // Thêm các quy tắc khác cho mật khẩu nếu cần
+            }) && isValid;
+
+            ////  Kiểm tra confirmPassword
+            //isValid = validateField($('#ConfirmPassword'), {
+            //    required: true,
+            //    matchPassword: '#NewPassword'
+            //}) && isValid;
+
+
+            //// Lấy giá trị của mật khẩu mới
+            //const newPasswordValue = $('#NewPassword').val().trim();
+
+            //// Chỉ validate mật khẩu nếu người dùng đã nhập
+            //if (newPasswordValue !== '') {
+            //    // Validate mật khẩu mới
+            //    isValid = validateField($('#NewPassword'), {
+            //        minLength: 8  // Ví dụ: yêu cầu độ dài tối thiểu 8 ký tự
+            //    }) && isValid;
+
+            //    // Validate xác nhận mật khẩu
+            //    isValid = validateField($('#ConfirmPassword'), {
+            //        matchPassword: '#NewPassword'
+            //    }) && isValid;
+            //} else {
+            //    // Xóa thông báo lỗi nếu có
+            //    $('#NewPassword, #ConfirmPassword').next('.error-message').remove();
+            //}
+
+            return isValid;
+        }
+
+        
+        function submitForm(url, jsonData, successCallback, errorCallback) {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: jsonData,
+                success: successCallback,
+                error: errorCallback
+            });
+        }
+    });
+</script>

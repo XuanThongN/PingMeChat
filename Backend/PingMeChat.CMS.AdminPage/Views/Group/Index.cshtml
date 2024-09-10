@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Danh sách nhóm người dùng";
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lb-views/group/index.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/lb-views/group/index.js" asp-append-version="true"></script>
+    </environment>
+}
+@section styles{
+    <link rel="stylesheet" href="~/lb-views/group/site.css" />
+}
+<div class="container-fluid mt-3">
+
+    <div class="card">
+        <div class="card-header">
+            @await Html.PartialAsync("/Views/Role/Index.AdvancedHeader.cshtml")
+            <form id="form-filter">
+                @*@await Html.PartialAsync("/Views/BidaTableType/Index.CustomSearch.cshtml")*@
+                @await Html.PartialAsync("/Views/Group/Index.AdvancedSearch.cshtml")
+
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tableId" class="table table-striped table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-center">STT</th>
+                            <th class="text-center"></th>
+                            <th class="text-center">Tên nhóm</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Ngày tạo</th>
+                            <th class="text-center">Người tạo</th>
+                            <th class="text-center">Ngày cập nhật</th>
+                            <th class="text-center">Người cập nhật</th>
+                            <th class="text-center">Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- DataTables sẽ tự động điền dữ liệu vào đây -->
+                    </tbody>
+                </table>
+            </div>
+            @*Modal tạo mới BidaTableType*@
+            @await Html.PartialAsync("/Views/Group/_Create.cshtml", null)
+            @*Modal hiển thị chi tiết BidaTableType*@
+            <div class="modal fade" id="ViewDetailBidaTableTypeModal" tabindex="-1" aria-labelledby="ViewDetailBidaTableTypeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                </div>
+            </div>
+
+            @*Modal cập nhật BidaTableType*@
+            <div class="modal fade" id="UpdateBidaTableTypeModal" tabindex="-1" aria-labelledby="UpdateBidaTableTypeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content"></div>
+                </div>
+            </div>
+
+            @*Modal xoá BidaTableType*@
+            @await Html.PartialAsync("/Views/BidaTableType/_Delete.cshtml", null)
+
+
+        </div>
+    </div>
+</div>
+
+

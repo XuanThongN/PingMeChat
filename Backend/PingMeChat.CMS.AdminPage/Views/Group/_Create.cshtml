@@ -1,0 +1,57 @@
+﻿@*Modal để thêm mới loại bàn*@
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="mb-0 text-white">Thêm mới nhóm người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                   
+                    <div class="row mb-3">
+                       @* <div class="col-md-6">
+                            <label for="maNhom" class="form-label">Mã nhóm<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="maNhom" required>
+                        </div>*@
+                        <div class="col-md-6">
+                            <label for="tenNhom" class="form-label">Tên nhóm<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="groupName" name="groupName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="trangThai" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Không hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label  class="form-label">Vai trò</label>
+                            <select name="roleIds" class="form-select select2" id="roleId" multiple>
+                                
+                            </select>
+                          
+                        </div>
+                        <div class="col-md-6">
+                            <label for="nguoiDung" class="form-label">Người dùng</label>
+                            <select name="userIds" class="form-select select2" id="userId" multiple>
+                            </select>
+                            
+                        </div>
+                    </div>
+                   
+                    <div class="mb-3">
+                        <label for="moTa" class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="description" id="moTa" rows="3"></textarea>
+                    </div>
+
+                    @await Html.PartialAsync("~/Views/Shared/Components/Element/SaveComponent.cshtml")
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+

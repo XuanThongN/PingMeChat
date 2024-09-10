@@ -1,0 +1,226 @@
+﻿<style>
+    .card {
+        margin-bottom: 20px;
+    }
+
+    .dropdown-menu {
+        min-width: 200px;
+    }
+</style>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <select class="form-select" id="filterSelect">
+                <option selected>Ngày hạch toán</option>
+                <!-- Thêm các tùy chọn khác -->
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" value="01/07/2024 - 01/07/2024">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select">
+                <option selected>Không</option>
+                <!-- Thêm các tùy chọn khác -->
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select">
+                <option selected>Tiền mặt, Chuyển khoản</option>
+                <!-- Thêm các tùy chọn khác -->
+            </select>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12 text-end">
+            <button class="btn btn-warning">Xem</button>
+            <button class="btn btn-warning">Xuất dữ liệu</button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Thêm Mới
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addReceiptModal">Thêm phiếu thu</a></li>
+                    <li><a class="dropdown-item" href="#">Thêm phiếu chi</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">TỒN ĐẦU</h5>
+                    <p class="card-text">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">TỔNG THU</h5>
+                    <p class="card-text text-success">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">TỔNG CHI</h5>
+                    <p class="card-text text-danger">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">TỒN CUỐI</h5>
+                    <p class="card-text">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-warning mt-3">Bỏ lọc phiếu thu chi</button>
+
+    <div class="mt-4">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Tất cả (0)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Chờ xác nhận (0)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Đã xác nhận (0)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Đã hủy (0)</a>
+            </li>
+        </ul>
+    </div>
+
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>NGÀY NHẬN TIỀN</th>
+                <th>NGÀY HẠCH TOÁN</th>
+                <th>MÃ PHIẾU</th>
+                <th>TÊN SỐ QUỸ</th>
+                <th>NHÓM</th>
+                <th>THU</th>
+                <th>CHI</th>
+                <th>TRẠNG THÁI</th>
+                <th>XÁC NHẬN</th>
+                <th>GHI CHÚ</th>
+                <th>THAO TÁC</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="12" class="text-center">Không có dữ liệu trong bảng</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <select class="form-select" style="width: 80px;">
+                <option selected>10</option>
+                <option>20</option>
+                <option>50</option>
+            </select>
+        </div>
+        <div class="col-md-6 text-end">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-end">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm phiếu thu -->
+<div class="modal fade" id="addReceiptModal" tabindex="-1" aria-labelledby="addReceiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addReceiptModalLabel">Thêm phiếu thu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="amount" class="form-label">Số tiền *</label>
+                            <input type="number" class="form-control" id="amount" value="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="receiveDate" class="form-label">Ngày nhận tiền</label>
+                            <input type="datetime-local" class="form-control" id="receiveDate" value="2024-07-01T13:58:44">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fundType" class="form-label">Quỹ tiền</label>
+                            <select class="form-select" id="fundType">
+                                <option selected>Tiền mặt</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="group" class="form-label">Nhóm *</label>
+                            <select class="form-select" id="group">
+                                <option selected>-- Chọn nhóm --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="payer" class="form-label">Nhóm người chi</label>
+                            <select class="form-select" id="payer">
+                                <option selected>Chọn nhóm người chi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="payerPerson" class="form-label">Người chi</label>
+                            <select class="form-select" id="payerPerson">
+                                <option selected>Chọn người chi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="accountingDate" class="form-label">Ngày hạch toán *</label>
+                        <input type="date" class="form-control" id="accountingDate" value="2024-07-01">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="calculateInProfit">
+                        <label class="form-check-label" for="calculateInProfit">
+                            Tính vào chi phí để tính lãi lỗ
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="note" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>
+                <button type="button" class="btn btn-primary">Lưu</button>
+                <button type="button" class="btn btn-warning">Lưu và Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

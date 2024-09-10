@@ -1,0 +1,6 @@
+﻿<div class="row">
+    <div class="col d-flex justify-content-start align-items-top my-3 ps-0">
+        @await Html.PartialAsync("/Views/Shared/Form/_FormHeader.cshtml", new FormHeaderViewModel(ViewData["Title"].ToString(), true, false))
+        @*@await Html.PartialAsync("/Views/Shared/Form/_FormExport.cshtml" , new FormUploadFileModel("/User/UploadFileExcel", "Excel - Danh sách tài khoản"))*@
+    </div>
+</div>

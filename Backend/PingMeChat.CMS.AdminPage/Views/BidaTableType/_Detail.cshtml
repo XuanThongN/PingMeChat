@@ -1,0 +1,54 @@
+@using PingMeChat.CMS.Application.Feature.Service.BidaTables.Dto;
+@model BidaTableTypeDto
+<div class="modal-content">
+    <!-- Modal Header -->
+    <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="bidaTableTypeModalLabel">Chi tiết</h5>
+        <button type="button" class="close text-white" data-bs-dismiss="modal" aria-bs-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <!-- Modal Body -->
+    <div class="modal-body">
+        <form id="bidaTableTypeForm">
+            <div class="form-row">
+                <div class="form-group col-md-6 d-none">
+                    <label asp-for="Id">ID</label>
+                    <input asp-for="Id" class="form-control form-control-sm" readonly hidden />
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="Name">Tên loại bàn</label>
+                    <input asp-for="Name" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="Price">Giá</label>
+                    <input value="@Model.Price.FormatToCurrency()" class="form-control form-control-sm" readonly />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label asp-for="CreatedDateString">Ngày tạo</label>
+                    <input asp-for="CreatedDateString" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="CreatedBy">Tạo bởi</label>
+                    <input asp-for="CreatedBy" class="form-control form-control-sm" readonly />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label asp-for="UpdatedDateString">Ngày cập nhật</label>
+                    <input asp-for="UpdatedDateString" class="form-control form-control-sm" readonly />
+                </div>
+                <div class="form-group col-md-6">
+                    <label asp-for="UpdatedBy">Cập nhật bởi</label>
+                    <input asp-for="UpdatedBy" class="form-control form-control-sm" readonly />
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    </div>
+</div>

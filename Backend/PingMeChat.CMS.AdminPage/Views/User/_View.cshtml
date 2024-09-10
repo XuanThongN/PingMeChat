@@ -1,0 +1,113 @@
+@*﻿@using PingMeChat.CMS.Application.Feature.Service.Users.Dto
+@model UserDto
+
+
+@await Html.PartialAsync("~/Views/Shared/Form/_ModalHeader.cshtml", new FormHeaderViewModel($"Thông tin tiết về tài khoản {Model.UserName}", false, false))
+<section class="content">
+    <div class="container-fluid">
+        <input asp-for="Id" type="hidden" />
+        <div class="card-header border-bottom-0 pb-0 px-3">
+
+            @await Html.PartialAsync("~/Views/Shared/Form/_ModalFooterWithCancel.cshtml")
+
+            <div class="d-flex justify-content-end">
+                <div class="choose-option">
+                    <a href="#titleAccount" class="font-weight-normal category-link">Thông tin tài khoản</a>
+                    <span>|</span>
+                    <a href="#titlePermissions" class="font-weight-normal category-link">Chi tiết quyền</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body overflow-auto py-2 ">
+            <div class="information-title">
+                <a name="titleAccount" class="information-general">Thông tin tài khoản</a>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="Name">Tài khoản</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="UserName" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Email</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="Email" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Ngày đăng ký</label>
+                        <div class="col-sm-10 input-group-sm">
+                            <input asp-for="DateRegistered" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Trạng thái</label>
+                        <div class="col-sm-10 input-group-sm">
+                            @if (!Model.IsLocked)
+                            {
+                                <input value="Hoạt động" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                            }
+                            else
+                            {
+                                <input value="Đã khóa" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                            }
+                        </div>
+                    </div>
+                </div>
+               
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="NgayTao">Tên chủ sở hữu</label>
+                        <div class="col-sm-10 input-group-sm">
+                            @if (Model.FullName == null)
+                            {
+                                <input value="Chưa được cập nhật" class="form-control text-danger" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+
+                            }
+                            else
+                            {
+                                <input asp-for="FullName" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="information-title">
+                <a name="titlePermissions" class="information-general">Chi tiết quyền</a>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-2">
+                    <div class="form-group row mb-0 required">
+                        <label class="col-md col-form-label control-label text-right font-weight-normal custom-label" for="roles">Danh sách quyền</label>
+                        <div class="col-sm-10 input-group-sm">
+                            @if (Model.Roles == null || Model.Roles.Count == 0)
+                            {
+                                <input value="Chưa được cấp quyền" class="form-control text-danger mb-2" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                            }
+
+                            else
+                            {
+                                @foreach (var item in Model.Roles)
+                                {
+
+                                    <input value="@item" class="form-control text-primary mb-2" aria-label="Small" aria-describedby="inputGroup-sizing-sm" disabled>
+                                }
+                            }
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>*@

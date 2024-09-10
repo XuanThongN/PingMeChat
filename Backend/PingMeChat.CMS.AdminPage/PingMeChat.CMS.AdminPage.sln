@@ -1,0 +1,55 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PingMeChat.CMS.AdminPage", "PingMeChat.CMS.AdminPage.csproj", "{F850012E-92BB-4E97-ABBF-CE70FAEC3731}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PingMeChat.CMS.Application", "..\PingMeChat.CMS.Application\PingMeChat.CMS.Application.csproj", "{28DFAD2E-06F7-450A-833D-A5AA2D6A5590}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PingMeChat.CMS.Entities", "..\PingMeChat.CMS.Entities\PingMeChat.CMS.Entities.csproj", "{3B729DBD-FA1F-4462-8244-4A41CD5DB6B8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PingMeChat.CMS.EntityFrameworkCore", "..\PingMeChat.CMS.EntityFrameworkCore\PingMeChat.CMS.EntityFrameworkCore.csproj", "{D3FD1981-5C76-4832-A3A3-F9BC12B944E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PingMeChat.Shared", "..\PingMeChat.Shared\PingMeChat.Shared.csproj", "{32358878-5B1A-44A5-8FF2-9EF4021CEF6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingMeChat.CMS.Api", "..\PingMeChat.CMS.Api\PingMeChat.CMS.Api.csproj", "{73EB765A-96B7-4B00-B49F-A211C7F32D20}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F850012E-92BB-4E97-ABBF-CE70FAEC3731}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F850012E-92BB-4E97-ABBF-CE70FAEC3731}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F850012E-92BB-4E97-ABBF-CE70FAEC3731}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F850012E-92BB-4E97-ABBF-CE70FAEC3731}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28DFAD2E-06F7-450A-833D-A5AA2D6A5590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28DFAD2E-06F7-450A-833D-A5AA2D6A5590}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28DFAD2E-06F7-450A-833D-A5AA2D6A5590}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28DFAD2E-06F7-450A-833D-A5AA2D6A5590}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B729DBD-FA1F-4462-8244-4A41CD5DB6B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B729DBD-FA1F-4462-8244-4A41CD5DB6B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B729DBD-FA1F-4462-8244-4A41CD5DB6B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B729DBD-FA1F-4462-8244-4A41CD5DB6B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3FD1981-5C76-4832-A3A3-F9BC12B944E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3FD1981-5C76-4832-A3A3-F9BC12B944E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3FD1981-5C76-4832-A3A3-F9BC12B944E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3FD1981-5C76-4832-A3A3-F9BC12B944E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32358878-5B1A-44A5-8FF2-9EF4021CEF6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32358878-5B1A-44A5-8FF2-9EF4021CEF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32358878-5B1A-44A5-8FF2-9EF4021CEF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32358878-5B1A-44A5-8FF2-9EF4021CEF6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73EB765A-96B7-4B00-B49F-A211C7F32D20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73EB765A-96B7-4B00-B49F-A211C7F32D20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73EB765A-96B7-4B00-B49F-A211C7F32D20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73EB765A-96B7-4B00-B49F-A211C7F32D20}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD63C441-93F6-422E-82F6-90028DDE1C46}
+	EndGlobalSection
+EndGlobal

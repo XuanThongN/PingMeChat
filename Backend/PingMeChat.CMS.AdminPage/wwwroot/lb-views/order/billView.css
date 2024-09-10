@@ -1,0 +1,152 @@
+﻿@page {
+    size: 100mm auto;
+    margin: 0;
+}
+
+body {
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.bill-wrapper {
+    width: 100mm;
+    background-color: white;
+    padding: 5mm;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 5px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+}
+
+    .button-container button {
+        margin-bottom: 10px;
+        width: 120px;
+    }
+
+.logo {
+    width: 60px;
+    height: 60px;
+    background-color: #90EE90;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 5mm;
+}
+
+    .logo span {
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+    }
+.logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px; /* Tạo khoảng cách giữa logo và nội dung bên dưới */
+}
+
+    .logo img {
+        width: 100px; /* Điều chỉnh kích thước theo ý muốn */
+        height: 100px; /* Đảm bảo chiều cao bằng chiều rộng để tạo hình tròn */
+        border-radius: 50%; /* Tạo hình tròn */
+        object-fit: cover; /* Đảm bảo hình ảnh lấp đầy khu vực tròn mà không bị méo */
+    }
+
+.bill-header {
+    text-align: center; /* Căn giữa nội dung trong bill-header */
+}
+.bill-header {
+    text-align: center;
+    margin-bottom: 5mm;
+}
+
+.bill-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 3mm 0;
+}
+
+.bill-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+    font-size: 12px;
+}
+
+.bill-table {
+    width: 100%;
+    margin-bottom: 5mm;
+    font-size: 12px;
+    border-collapse: collapse;
+}
+
+    .bill-table th, .bill-table td {
+        padding: 2mm;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+.bill-total {
+    text-align: right;
+    font-weight: bold;
+    font-size: 12px;
+    margin-top: 3mm;
+}
+
+.bill-footer {
+    text-align: center;
+    margin-top: 5mm;
+    font-size: 12px;
+    /*border-top: 1px dashed #000;*/
+    padding-top: 3mm;
+}
+
+@media print {
+    body {
+        background-color: white;
+    }
+
+    .container {
+        display: block;
+        padding: 0;
+    }
+
+    .bill-wrapper {
+        width: 100%;
+        box-shadow: none;
+        padding: 5mm;
+        margin: 0;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+
+    .button-container {
+        display: none;
+    }
+}
+.order-section {
+    /*border-bottom: 1px dashed #000;*/
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+
+.bill-grand-total {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+    border-top: 2px solid #000;
+    padding-top: 10px;
+}

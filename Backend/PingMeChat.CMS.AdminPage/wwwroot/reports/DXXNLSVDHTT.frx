@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" TextQuality="Regular" ReportInfo.Name="Simple List" ReportInfo.Author="Fast Reports Inc" ReportInfo.Description="Demonstrates a simple list report. To create it:&#13;&#10;- go to &quot;Data&quot; menu and select &quot;Choose Report Data...&quot; item to select a datasource;&#13;&#10;- go to &quot;Report|Configure Bands...&quot; menu to create the band structure;&#13;&#10;- return to the report page, doubleclick the data band to show its editor;&#13;&#10;- choose the datasource;&#13;&#10;- drag data from the Data Dictionary window to the band." ReportInfo.Created="01/17/2008 03:05:57" ReportInfo.Modified="08/24/2023 10:41:02" ReportInfo.CreatorVersion="2023.1.7.0">
+  <Dictionary>
+    <BusinessObjectDataSource Name="BIA_DXXNLSVDHTT" ReferenceName="BIA_DXXNLSVDHTT" DataType="null" Enabled="true">
+      <Column Name="StudentName" DataType="System.String"/>
+      <Column Name="StudentCode" DataType="System.String"/>
+      <Column Name="BirthdayString" DataType="System.String"/>
+      <Column Name="Birthplace" DataType="System.String"/>
+      <Column Name="DomicileRegistration" DataType="System.String"/>
+      <Column Name="BelongToClass" DataType="System.String"/>
+      <Column Name="AcademicYearCourse" DataType="System.String"/>
+      <Column Name="EducationalSystemName" DataType="System.String"/>
+      <Column Name="Reason" DataType="System.String"/>
+      <Column Name="DateOSubmissionString" DataType="System.String"/>
+      <Column Name="Signature" DataType="System.String"/>
+    </BusinessObjectDataSource>
+  </Dictionary>
+  <ReportPage Name="Page2" RawPaperSize="9" LeftMargin="30" RightMargin="20" Watermark.Font="Arial, 60pt">
+    <ReportTitleBand Name="ReportTitle2" Width="604.8" Height="37.8">
+      <ContainerObject Name="Container1" Width="567" Height="37.8" Border.Lines="Bottom">
+        <TextObject Name="Text2" Left="396.9" Top="18.9" Width="170.1" Height="18.9" Text="Lần ban hành/sửa đổi: 1/0" HorzAlign="Right" Font="Times New Roman, 13pt"/>
+        <TextObject Name="Text1" Top="18.9" Width="189" Height="18.9" Text="04.04-BM/CTSV/BIA" Font="Times New Roman, 13pt"/>
+      </ContainerObject>
+    </ReportTitleBand>
+    <PageHeaderBand Name="PageHeader2" Top="41.8" Width="604.8" Height="179.55">
+      <TextObject Name="Text7" Top="18.9" Width="604.8" Height="47.25" Text="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM &#13;&#10;Độc lập - Tự do - Hạnh phúc&#13;&#10;" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text8" Top="94.5" Width="604.8" Height="37.8" Text="ĐƠN XIN XÁC NHẬN LÀ SINH VIÊN ĐANG HỌC TẠI TRƯỜNG" HorzAlign="Center" Font="Times New Roman, 14pt, style=Bold"/>
+      <TextObject Name="Text9" Top="132.3" Width="604.8" Height="18.9" Text="Kính gửi:  Ban giám hiệu trường Đại học Phú Xuân" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text59" Left="217.35" Top="56.7" Width="66.15" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Font="Times New Roman, 13pt, style=Bold, Italic"/>
+      <TextObject Name="Text60" Left="321.3" Top="56.7" Width="75.6" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Font="Times New Roman, 13pt, style=Bold, Italic"/>
+      <TextObject Name="Text61" Left="283.5" Top="56.7" Width="37.8" Height="18.9" Text="o0o" Font="Times New Roman, 13pt, style=Bold"/>
+    </PageHeaderBand>
+    <DataBand Name="Data2" Top="225.35" Width="604.8" Height="463.05">
+      <TextObject Name="Text10" Top="9.45" Width="94.5" Height="18.9" Text="Tôi tên là:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text11" Top="47.25" Width="94.5" Height="18.9" Text="Ngày sinh:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text12" Top="85.05" Width="94.5" Height="18.9" Text="Nơi sinh:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text13" Left="85.05" Top="9.45" Width="245.7" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.StudentName]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text14" Left="85.05" Top="47.25" Width="519.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.BirthdayString]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text15" Left="85.05" Top="85.05" Width="519.75" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.Birthplace]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text16" Left="330.75" Top="9.45" Width="122.85" Height="18.9" Text="Mã sinh viên:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text17" Top="160.65" Width="132.3" Height="18.9" Text="Là sinh viên lớp:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text18" Left="444.15" Top="9.45" Width="160.65" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.StudentCode]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text19" Left="122.85" Top="160.65" Width="226.8" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.BelongToClass]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text22" Left="349.65" Top="160.65" Width="56.7" Height="18.9" Text="Khóa:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text23" Left="406.35" Top="160.65" Width="198.45" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.AcademicYearCourse]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text24" Top="198.45" Width="94.5" Height="18.9" Text="Hệ đào tạo: " Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text26" Left="85.05" Top="198.45" Width="226.8" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.EducationalSystemName]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text28" Left="311.85" Top="198.45" Width="292.95" Height="18.9" Text="tại Trường Đại học Phú Xuân." Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text30" Top="122.85" Width="170.1" Height="18.9" Text="Hộ khẩu thường trú:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text31" Left="141.75" Top="122.85" Width="463.05" Height="18.9" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.DomicileRegistration]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text34" Top="245.7" Width="604.8" Height="47.25" Text="Tôi làm đơn này kính gửi đến Ban Giám hiệu xác nhận cho tôi là sinh viên đang học tại Trường." Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text46" Top="302.4" Width="604.8" Height="18.9" Text="Lý do:" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text62" Top="330.75" Width="604.8" Height="75.6" Border.Lines="Bottom" Border.Style="Dot" Border.Width="1.5" Text="[BIA_DXXNLSVDHTT.Reason]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text63" Top="434.7" Width="604.8" Height="18.9" Text="Chân thành cảm ơn và kính trân trọng." Font="Times New Roman, 13pt"/>
+    </DataBand>
+    <PageFooterBand Name="PageFooter2" Top="692.4" Width="604.8" Height="264.6">
+      <TextObject Name="Text50" Width="340.2" Height="18.9" Text="XÁC NHẬN CỦA BAN GIÁM HIỆU" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text51" Left="340.2" Top="28.35" Width="264.6" Height="18.9" Text="NGƯỜI VIẾT ĐƠN" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text52" Left="340.2" Top="47.25" Width="264.6" Height="18.9" Text=" (Ký và ghi rõ họ tên)" HorzAlign="Center" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text53" Left="340.2" Width="94.5" Height="18.9" Text="Huế," HorzAlign="Right" Font="Times New Roman, 13pt, style=Italic"/>
+      <TextObject Name="Text56" Left="434.7" Width="170.1" Height="18.9" Text="[BIA_DXXNLSVDHTT.DateOSubmissionString]" Font="Times New Roman, 13pt"/>
+      <TextObject Name="Text57" Left="340.2" Top="151.2" Width="264.6" Height="18.9" Text="[BIA_DXXNLSVDHTT.StudentName]" HorzAlign="Center" Font="Arial, 10pt"/>
+      <TextObject Name="Text64" Top="28.35" Width="340.2" Height="18.9" Text="TUQ. HIỆU TRƯỞNG" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <TextObject Name="Text65" Top="56.7" Width="340.2" Height="18.9" Text="Trưởng Phòng Đào Tạo" HorzAlign="Center" Font="Times New Roman, 13pt, style=Bold"/>
+      <PictureObject Name="Picture1" Top="179.55" Width="217.35" Height="75.6" ImageLocation="D:\Data_Huy\Project\dot-net\BIA-hanhchinh\BIA.CMS.AdminPage\wwwroot\img\BIA_logo.png"/>
+      <PictureObject Name="Picture2" Left="415.8" Top="75.6" Width="113.4" Height="56.7"  ImageLocation="[BIA_DXXNLSVDHTT.Signature]" DataColumn="BIA_DXXNLSVDHTT.Signature"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>

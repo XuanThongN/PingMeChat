@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PingMeChat-Quản lý hành chính</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    @await Html.PartialAsync("_Styles.cshtml")
+    @await RenderSectionAsync("styles", required: false)
+    @await Html.PartialAsync("_Scripts.cshtml")
+</head>
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed text-sm">
+    <div class="wrapper">
+        <!-- Main Header -->
+        @await Component.InvokeAsync("Header")
+        <!-- Left side column. contains the logo and sidebar -->
+        @await Component.InvokeAsync("Sidebar")
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper mt-3 pt-4">
+            <!-- Content Header (Page header) -->
+            <div class="content-header">
+
+                <!-- Main content -->
+                <section class="content mt-3">
+                    <!-- Your Page Content Here -->
+                    @RenderBody()
+                </section>
+                <!-- /.content -->
+            </div>
+        </div>
+        <!-- /.content-wrapper -->
+        <!-- Main Footer -->
+        @await Component.InvokeAsync("Footer")
+        <!-- Control Sidebar -->
+     @*   @await Component.InvokeAsync("ControlSidebar")
+        <!-- /.control-sidebar -->
+
+        <aside class="control-sidebar control-sidebar-dark">
+            <!-- Control sidebar content goes here -->
+        </aside>*@
+
+       @* <div class="chat-icon">
+            <i class="fa fa-comments " aria-hidden="true"></i>
+        </div>*@
+
+       @* <div class="chat-box" style="display:none">
+            <h3>Chat Box</h3>
+            <ul class="chat-messages"></ul>
+            <input type="text" class="chat-input" placeholder="Type your message here">
+        </div>*@
+    </div>
+    <!-- ./wrapper -->
+    @await RenderSectionAsync("scripts", required: false)
+
+    @await Component.InvokeAsync("NToastNotify")
+</body>
+</html>

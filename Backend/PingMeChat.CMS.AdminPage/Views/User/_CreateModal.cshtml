@@ -1,0 +1,88 @@
+﻿<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="mb-0 text-white">Thêm mới người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card-body overflow-auto py-2 ">
+                                <div class="information-title">
+                                    <a name="infoAccount" class="form-menu">Thông tin tài khoản</a>
+                                </div>
+                                <div class="row">
+
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Email<span class="text-danger align-top ">*</span></label>
+                                            <div class="input-group-sm">
+                                                <input name="Email" id="email" class="form-control" type="text" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Tên đăng nhập<span class="text-danger align-top ">*</span></label>
+                                            <div class="input-group-sm">
+                                                <input name="UserName" id="userName" class="form-control" type="text" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Tên chủ sở hữu<span class="text-danger align-top ">*</span></label>
+                                            <div class="input-group-sm">
+                                                <input name="FullName" id="fullName" class="form-control" type="text" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Số điện thoại</label>
+                                            <div class="input-group-sm">
+                                                <input name="PhoneNumber" id="phoneNumber" class="form-control" type="text" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Mật khẩu<span class="text-danger align-top ">*</span></label>
+                                            <div class="input-group-sm">
+                                                <input name="Password" id="passwordUser" class="form-control" type="password" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-group row mb-0 required">
+                                            <label class="col-form-label control-label font-weight-normal">Nhập lại mật khẩu<span class="text-danger align-top ">*</span></label>
+                                            <div class="input-group-sm">
+                                                <input name="ConfirmPassword" id="confirmPassword" class="form-control" type="password" aria-label="Small" aria-describedby="inputGroup-sizing-sm" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <i class="text-info">Mật khẩu có tối thiểu 6 ký tự, có ít nhất 1 ký tự in hoa, số</i>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group row mb-0 ">
+                                            <label class="col-form-label control-label font-weight-normal">Nhóm người dùng</label>
+                                            <select name="groupIds" class="form-select select2" id="groupId" multiple>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Shared/Components/Element/SaveComponent.cshtml")
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
