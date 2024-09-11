@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PingMeChat.CMS.Application.App.IRepositories
 {
-    public interface INotificationRepository : IRepository<Notification>
+    public interface INotificationRepository : IRepository<Notification_V1>
     {
         
     }

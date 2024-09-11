@@ -202,7 +202,8 @@ namespace PingMeChat.CMS.AdminPage.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
             else
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+                return RedirectToAction("Home");
+                //return RedirectToAction(nameof(HomeController.Index), "Home");
 
         }
 

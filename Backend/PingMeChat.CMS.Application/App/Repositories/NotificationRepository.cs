@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PingMeChat.CMS.Application.App.Repositories
 {
-    public class NotificationRepository : Repository<Notification> , INotificationRepository
+    public class NotificationRepository : Repository<Notification_V1> , INotificationRepository
     {
         public NotificationRepository(AppDBContext dbContext) : base(dbContext)
         {

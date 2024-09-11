@@ -40,6 +40,7 @@ builder.Services.AddControllers(options =>
 
 
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddDbContext<AppDBContext>(o =>
     o.UseNpgsql(connectionString, b => b.EnableRetryOnFailure()));
 

@@ -1,21 +1,16 @@
 using AutoMapper;
-using PingMeChat.CMS.Application.App.IRepositories;
-using PingMeChat.CMS.Application.Common.Dto;
-using PingMeChat.CMS.Application.Common.Exceptions;
-using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
-using PingMeChat.CMS.Application.Feature.Service.Menus.Dto;
-using PingMeChat.CMS.Application.Feature.Service.Orders.Dto;
-using PingMeChat.CMS.Application.Service.IRepositories;
-using PingMeChat.CMS.Entities;
-using PingMeChat.CMS.Entities.Users;
-using PingMeChat.Shared.Utils;
-using MathNet.Numerics.Statistics.Mcmc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using PingMeChat.CMS.Application.App.IRepositories;
+using PingMeChat.CMS.Application.Common.Exceptions;
+using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
+using PingMeChat.CMS.Application.Service.IRepositories;
+using PingMeChat.CMS.Entities;
+using PingMeChat.CMS.Entities.Users;
+using PingMeChat.Shared.Utils;
 using System.Linq.Expressions;
-using static PingMeChat.Shared.Utils.Message.Error;
 
 namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
 {

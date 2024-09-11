@@ -173,9 +173,14 @@ namespace PingMeChat.Shared.Enum
     }
     public enum FileType
     {
-        ACADEMICTERM = 1,
-        STUDENT = 2,
-        STAFF = 3,
+        [Display(Name = "Ảnh")]
+        Image = 1,
+        [Display(Name = "Văn bản")]
+        Document = 2,
+        [Display(Name = "Video")]
+        Video = 3,
+        [Display(Name = "Âm thanh")]
+        Audio = 4,
 
     }
 

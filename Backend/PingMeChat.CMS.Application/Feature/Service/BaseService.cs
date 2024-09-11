@@ -3,17 +3,10 @@ using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Helpers;
 using PingMeChat.CMS.Application.Common.Pagination;
 using PingMeChat.CMS.Application.Domain.Dto;
-using PingMeChat.CMS.Application.Feature.Service.BidaTables.Dto;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
-using PingMeChat.CMS.Entities.Feature;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PingMeChat.CMS.Application.Feature.Service
 {

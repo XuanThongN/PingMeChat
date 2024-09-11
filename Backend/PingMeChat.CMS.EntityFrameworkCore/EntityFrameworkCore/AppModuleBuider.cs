@@ -1,9 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using PingMeChat.CMS.Entities;
 using PingMeChat.CMS.Entities.Feature;
-using PingMeChat.CMS.Entities.Module;
 using PingMeChat.CMS.Entities.Users;
-using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 using System.Text.Json;
 
 namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
@@ -125,50 +123,6 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
 
             #endregion main
 
-            builder.Entity<Order>(e =>
-            {
-                e.Property(o => o.OrderDetails)
-                    .HasConversion(
-                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
-                        v => !string.IsNullOrEmpty(v) ?
-                            JsonSerializer.Deserialize<List<OrderDetail>>(v, (JsonSerializerOptions)null) : null
-                    )
-                    .HasColumnType("nvarchar(max)");
-            });
-
-            builder.Entity<OrderHistory>(e =>
-            {
-                e.Property(o => o.OrderDetails)
-                    .HasConversion(
-                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
-                        v => !string.IsNullOrEmpty(v) ?
-                            JsonSerializer.Deserialize<List<OrderDetail>>(v, (JsonSerializerOptions)null) : null
-                    )
-                    .HasColumnType("nvarchar(max)");
-            });
-
-            builder.Entity<InventoryImport>(e =>
-            {
-                e.Property(o => o.InventoryDetailsImports)
-                    .HasConversion(
-                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
-                        v => !string.IsNullOrEmpty(v) ?
-                            JsonSerializer.Deserialize<List<InventoryDetailsImport>>(v, (JsonSerializerOptions)null) : null
-                    )
-                    .HasColumnType("nvarchar(max)");
-            });
-
-            builder.Entity<InventoryExport>(e =>
-            {
-                e.Property(o => o.InventoryDetailsExports)
-                    .HasConversion(
-                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
-                        v => !string.IsNullOrEmpty(v) ?
-                            JsonSerializer.Deserialize<List<InventoryDetailsExport>>(v, (JsonSerializerOptions)null) : null
-                    )
-                    .HasColumnType("nvarchar(max)");
-            });
-            
             builder.Entity<Menu>(e =>
             {
                 e.Property(o => o.Access)
@@ -177,7 +131,7 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
                         v => !string.IsNullOrEmpty(v) ?
                             JsonSerializer.Deserialize<List<MvcActionInfo>>(v, (JsonSerializerOptions)null) : null
                     )
-                    .HasColumnType("nvarchar(max)");
+                    .HasColumnType("text");
             });
         }
     }

@@ -16,7 +16,7 @@ namespace PingMeChat.CMS.Entities.Module
         public bool IsError { get; set; }
         public string ErrorMessage { get; set; }
 
-        [Column(TypeName = "nvarchar(MAX)")]
+        //[Column(TypeName = "nvarchar(MAX)")] // This is not supported in PostgreSQL
         public string Exception { get; set; }
     }
 }
