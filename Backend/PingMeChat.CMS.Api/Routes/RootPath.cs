@@ -1,6 +1,6 @@
 namespace PingMeChat.CMS.API.Routes
 {
-    public static class RootPath
+    public static class ApiRoutes
     {
         public static class Auth
         {
@@ -33,27 +33,6 @@ namespace PingMeChat.CMS.API.Routes
                 public const string PaginationRoute = "api/roles/pagination";
                 public const string GetAllActive = "api/roles/get-all-acctive";
             }
-            public static class BidaTable
-            {
-                public const string AddRoute = "api/bida-tables/add";
-                public const string GetAllRoute = "api/bida-tables/get-all";
-                public const string GetByIdRoute = "api/bida-tables/get-by-id/{id}";
-                public const string UpdateRoute = "api/bida-tables/update";
-                public const string DeleteRoute = "api/bida-tables/delete/{id}";
-                public const string PaginationRoute = "api/bida-tables/pagination";
-                public const string GetEmptiesRoute = "api/bida-tables/get-empties";
-                public const string GetTotalWithStatusRoute = "api/bida-tables/get-total-with-status";
-            }
-            public static class PlayProcess
-            {
-                public const string StartPlayRoute = "api/play-process/start-play";
-                public const string PaymentRoute = "api/play-process/payment";
-                public const string DebtRoute = "api/play-process/debt";
-                public const string AddProductSessionRoute = "api/play-process/add-product-session";
-                public const string ChangeTableRoute = "api/play-process/change-table";
-                public const string SplitHourRoute = "api/play-process/split-hour";
-                public const string GetAllProductSessionRoute = "api/play-process/get-all-product-session";
-            }
             
             public static class Menu
             {
@@ -67,6 +46,16 @@ namespace PingMeChat.CMS.API.Routes
                 public const string ChangeStatusRoute = "api/menus/change-status/{id}";
                 public const string UpdateRoute = "api/menus/update";
                 public const string DeleteRoute = "api/menus/delete/{id}";
+            }
+
+            // Chat api routes
+            public static class Chat
+            {
+                public const string GetChatListRoute = "api/chats/get-chat-list";
+                public const string GetChatDetailRoute = "api/chats/get-chat-detail/{id}";
+                public const string CreateChatRoute = "api/chats/create-chat";
+                public const string UpdateChatRoute = "api/chats/update-chat";
+                public const string DeleteChatRoute = "api/chats/delete-chat/{id}";
             }
         }
     }

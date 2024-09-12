@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
 {
-    public partial class initdb : Migration
+    public partial class initDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -219,11 +219,14 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: true),
-                    NotificationType = table.Column<int>(type: "integer", nullable: false),
+                    RecipientId = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    Message = table.Column<string>(type: "text", nullable: true),
+                    SenderId = table.Column<string>(type: "text", nullable: false),
+                    TargetType = table.Column<string>(type: "text", nullable: false),
+                    TargetId = table.Column<string>(type: "text", nullable: false),
+                    Metadata = table.Column<string>(type: "text", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
@@ -236,10 +239,17 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                 {
                     table.PrimaryKey("PK_Notifications", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Notifications_Accounts_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Notifications_Accounts_RecipientId",
+                        column: x => x.RecipientId,
                         principalTable: "Accounts",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Accounts_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -343,7 +353,7 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     ChatId = table.Column<string>(type: "text", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "boolean", nullable: false),
                     JoinAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Settings = table.Column<string>(type: "text", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
@@ -604,14 +614,10 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                 columns: new[] { "Id", "Access", "CreatedBy", "CreatedDate", "DeletedBy", "DeletedDate", "Icon", "IsActive", "IsDeleted", "MenuType", "ParentId", "SortOrder", "Title", "UpdatedBy", "UpdatedDate", "Url" },
                 values: new object[,]
                 {
-                    { "31feb02e-9c05-4930-a914-0af953707dfd", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9537), null, null, "fa fa-home", true, false, false, null, 1, "Bảng điều khiển", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9552), "/home" },
-                    { "ac8f8e58-6e25-4126-aec8-b491e71155da", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9694), null, null, "fab fa-servicestack", true, false, true, null, 9, "Sản phẩm, dịch vụ", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9695), "" },
-                    { "bad6c610-681c-47d4-aec0-6551aa308485", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9679), null, null, "fas fa-people-arrows", true, false, true, null, 7, "Đối tác", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9680), "" },
-                    { "cfcfa81f-53f9-4382-82a3-d753aa88be3f", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9666), null, null, "fas fa-shopping-cart", true, false, true, null, 5, "Bán hàng", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9666), "" },
-                    { "d4e5f6g7-h8i9-4j0k-1l2m-3n4o5p6q7r8s", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9738), null, null, "fas fa-chart-bar", true, false, false, null, 15, "Báo cáo", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9739), "/report" },
-                    { "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9745), null, null, "fa fa-id-card", true, false, true, null, 16, "Quản trị", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9745), "" },
-                    { "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9707), null, null, "fas fa-box", true, false, true, null, 11, "Quản lý kho", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9708), "" },
-                    { "fa6f5f76-2266-4f57-8962-258fc43619dd", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9612), null, null, "fas fa-list-ul", true, false, true, null, 2, "Danh mục", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9613), "" }
+                    { "31feb02e-9c05-4930-a914-0af953707dfd", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(208), null, null, "fa fa-home", true, false, false, null, 1, "Bảng điều khiển", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(221), "/home" },
+                    { "d4e5f6g7-h8i9-4j0k-1l2m-3n4o5p6q7r8s", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(322), null, null, "fas fa-chart-bar", true, false, false, null, 15, "Báo cáo", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(323), "/report" },
+                    { "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(333), null, null, "fa fa-id-card", true, false, true, null, 16, "Quản trị", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(334), "" },
+                    { "fa6f5f76-2266-4f57-8962-258fc43619dd", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(310), null, null, "fas fa-list-ul", true, false, true, null, 2, "Danh mục", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(311), "" }
                 });
 
             migrationBuilder.InsertData(
@@ -619,16 +625,8 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                 columns: new[] { "Id", "Access", "CreatedBy", "CreatedDate", "DeletedBy", "DeletedDate", "Icon", "IsActive", "IsDeleted", "MenuType", "ParentId", "SortOrder", "Title", "UpdatedBy", "UpdatedDate", "Url" },
                 values: new object[,]
                 {
-                    { "336ec1d7-c59b-4c83-a919-53d29b6c003a", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9687), null, null, "fas fa-user-friends", true, false, false, "bad6c610-681c-47d4-aec0-6551aa308485", 8, "Khách hàng", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9687), "/customer" },
-                    { "384c16a4-d389-4fea-b554-e702a333cf60", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9673), null, null, "fab fa-first-order-alt", true, false, false, "cfcfa81f-53f9-4382-82a3-d753aa88be3f", 6, "Hóa đơn", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9673), "/order" },
-                    { "5ae1d36a-df86-4ebf-a51f-1b33922aa633", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9627), null, null, "fas fa-bowling-ball", true, false, false, "fa6f5f76-2266-4f57-8962-258fc43619dd", 4, "Bàn bida", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9628), "/bidatable" },
-                    { "928c2a06-0b95-45b2-8850-24452b13d82a", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9620), null, null, "fas fa-table", true, false, false, "fa6f5f76-2266-4f57-8962-258fc43619dd", 3, "Loại bàn bida", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9621), "/bidatabletype" },
-                    { "a4e8a6f2-9c3d-4e2b-8f1a-5c5e6b7d8e9f", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9713), null, null, "fas fa-warehouse", true, false, false, "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9", 12, "Tồn kho", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9714), "/inventory" },
-                    { "b2c7d8e9-f0a1-4b2c-3d4e-5f6g7h8i9j0k", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9725), null, null, "fas fa-truck-loading", true, false, false, "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9", 13, "Nhập kho", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9726), "/inventoryimport" },
-                    { "c3d4e5f6-g7h8-4i9j-0k1l-2m3n4o5p6q7r", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9732), null, null, "fas fa-truck", true, false, false, "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9", 14, "Xuất kho", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9733), "/inventoryexport" },
-                    { "db942e9c-d34f-4be1-ad5d-a4e1b105f8b9", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9700), null, null, "fab fa-product-hunt", true, false, false, "ac8f8e58-6e25-4126-aec8-b491e71155da", 10, "Sản phẩm", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9701), "/product" },
-                    { "f6g7h8i9-j0k1-4l2m-3n4o-5p6q7r8s9t0u", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9751), null, null, "fas fa-user", true, false, false, "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", 17, "Tài khoản", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9752), "/user" },
-                    { "g7h8i9j0-k1l2-4m3n-4o5p-6q7r8s9t0u1v", null, null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9758), null, null, "fas fa-user-tag", true, false, false, "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", 18, "Phân quyền", null, new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9758), "/role" }
+                    { "f6g7h8i9-j0k1-4l2m-3n4o-5p6q7r8s9t0u", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(344), null, null, "fas fa-user", true, false, false, "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", 17, "Tài khoản", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(348), "/user" },
+                    { "g7h8i9j0-k1l2-4m3n-4o5p-6q7r8s9t0u1v", null, null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(362), null, null, "fas fa-user-tag", true, false, false, "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t", 18, "Phân quyền", null, new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(364), "/role" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -697,9 +695,14 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_UserId",
+                name: "IX_Notifications_RecipientId",
                 table: "Notifications",
-                column: "UserId");
+                column: "RecipientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_SenderId",
+                table: "Notifications",
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_AccountId",

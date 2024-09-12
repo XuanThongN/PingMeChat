@@ -1,8 +1,7 @@
 ﻿using PingMeChat.CMS.Entities.Interfaces;
 using PingMeChat.CMS.Entities.Users;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,20 +11,30 @@ namespace PingMeChat.CMS.Entities.Feature
     // Notification entity
     public class Notification : AuditableBaseEntity
     {
-        public string? UserId { get; set; }
-        public NotificationType NotificationType { get; set; }
+        public string RecipientId { get; set; }
+        public NotificationType Type { get; set; }
         public string Content { get; set; }
         public bool IsRead { get; set; }
-        public string? Message { get; set; }
-        public virtual Account User { get; set; } // Giải thích: Một thông báo chỉ gửi đến một người dùng
+        public string? SenderId { get; set; }
+        public string TargetType { get; set; }
+        public string TargetId { get; set; }
+        public string Metadata { get; set; }
+
+        [ForeignKey("RecipientId")]
+        public virtual Account Recipient { get; set; }
+
+        [ForeignKey("SenderId")]
+        public virtual Account Sender { get; set; }
     }
 
     public enum NotificationType
     {
         Info,
         Warning,
-        Error
+        Error,
+        NewMessage,
+        FriendRequest,
+        SystemNotification
+        // Thêm các loại thông báo khác nếu cần
     }
-
-
 }

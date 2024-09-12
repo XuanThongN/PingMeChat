@@ -25,7 +25,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpGet]
         [TypeFilter(typeof(UserExistsFilter))]
-        [Route(RootPath.Feature.Menu.GetAllByCurrentUserRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetAllByCurrentUserRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllByCurrentUser()
         {
@@ -37,7 +37,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Menu.GetAllTreeRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetAllTreeRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllTree()
         {
@@ -46,7 +46,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Menu.GetControllerByConditionRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetControllerByConditionRoute)]
         [ProducesResponseType(typeof(IEnumerable<MvcControllerInfo>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetControllerByCondition()
         {
@@ -56,7 +56,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.Menu.AddRoute)]
+        [Route(ApiRoutes.Feature.Menu.AddRoute)]
         [ProducesResponseType(typeof(MenuDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> Add([FromBody] MenuCreateDto model)
         {
@@ -71,7 +71,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ServiceFilter(typeof(ModelStateFilter))]
-        [Route(RootPath.Feature.Menu.GetAllRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetAllRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromBody] MenusOptionSearchDto model)
         {
@@ -80,7 +80,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Menu.GetRoleByCurrentUserModuleRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetRoleByCurrentUserModuleRoute)]
         [ServiceFilter(typeof(UserExistsFilter))]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetRoleByCurrentUserModule()
@@ -92,7 +92,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Menu.GetByIdRoute)]
+        [Route(ApiRoutes.Feature.Menu.GetByIdRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(string id)
         {
@@ -106,7 +106,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPut]
         [ServiceFilter(typeof(UserExistsFilter))]
-        [Route(RootPath.Feature.Menu.ChangeStatusRoute)]
+        [Route(ApiRoutes.Feature.Menu.ChangeStatusRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangeStatus(string id)
         {
@@ -123,7 +123,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPut]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.Menu.UpdateRoute)]
+        [Route(ApiRoutes.Feature.Menu.UpdateRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] MenuUpdateDto model)
         {
@@ -137,7 +137,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpDelete]
         [ServiceFilter(typeof(UserExistsFilter))]
-        [Route(RootPath.Feature.Menu.DeleteRoute)]
+        [Route(ApiRoutes.Feature.Menu.DeleteRoute)]
         [ProducesResponseType(typeof(IEnumerable<MenuDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(string id)
         {

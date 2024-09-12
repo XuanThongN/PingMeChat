@@ -1,3 +1,4 @@
+using PingMeChat.CMS.Entities.Feature;
 using PingMeChat.CMS.Entities.Module;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PingMeChat.CMS.Application.App.IRepositories
 {
-    public interface INotificationRepository : IRepository<Notification_V1>
+    public interface INotificationRepository : IRepository<Notification>
     {
         
     }

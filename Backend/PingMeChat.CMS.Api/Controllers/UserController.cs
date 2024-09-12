@@ -23,7 +23,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.User.PaginationRoute)]
+        [Route(ApiRoutes.Feature.User.PaginationRoute)]
         [ProducesResponseType(typeof(ResultDataTable<UserDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Pagination([FromBody] PaginationFilter<UserPaginationFilterDto> model)
         {
@@ -49,7 +49,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.User.AddRoute)]
+        [Route(ApiRoutes.Feature.User.AddRoute)]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
@@ -62,7 +62,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.User.GetAllActive)]
+        [Route(ApiRoutes.Feature.User.GetAllActive)]
         [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllActive()
         {
@@ -71,7 +71,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.User.GetByIdRoute)]
+        [Route(ApiRoutes.Feature.User.GetByIdRoute)]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById([FromQuery] string id)
         {
@@ -85,7 +85,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPut]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.User.UpdateRoute)]
+        [Route(ApiRoutes.Feature.User.UpdateRoute)]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {

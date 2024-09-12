@@ -1,4 +1,5 @@
 using PingMeChat.CMS.Application.App.IRepositories;
+using PingMeChat.CMS.Entities.Feature;
 using PingMeChat.CMS.Entities.Module;
 using PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PingMeChat.CMS.Application.App.Repositories
 {
-    public class NotificationRepository : Repository<Notification_V1> , INotificationRepository
+    public class NotificationRepository : Repository<Notification> , INotificationRepository
     {
         public NotificationRepository(AppDBContext dbContext) : base(dbContext)
         {

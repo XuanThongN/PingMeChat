@@ -23,7 +23,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.Role.PaginationRoute)]
+        [Route(ApiRoutes.Feature.Role.PaginationRoute)]
         [ProducesResponseType(typeof(ResultDataTable<RoleDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Pagination([FromBody] PaginationFilter<RolePaginationFilterDto> model)
         {
@@ -42,7 +42,7 @@ namespace PingMeChat.CMS.Api.Controllers
         
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.Role.AddRoute)]
+        [Route(ApiRoutes.Feature.Role.AddRoute)]
         [ProducesResponseType(typeof(RoleDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] RoleCreateDto dto)
         {
@@ -61,7 +61,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPut]
         [ValidateUserAndModel]
-        [Route(RootPath.Feature.Role.UpdateRoute)]
+        [Route(ApiRoutes.Feature.Role.UpdateRoute)]
         [ProducesResponseType(typeof(RoleDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] RoleUpdateDto dto)
         {
@@ -78,7 +78,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Role.GetByIdRoute)]
+        [Route(ApiRoutes.Feature.Role.GetByIdRoute)]
         [ProducesResponseType(typeof(RoleDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById([FromQuery] string id)
         {
@@ -92,7 +92,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
-        [Route(RootPath.Feature.Role.GetAllActive)]
+        [Route(ApiRoutes.Feature.Role.GetAllActive)]
         [ProducesResponseType(typeof(List<RoleDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllActive()
         {

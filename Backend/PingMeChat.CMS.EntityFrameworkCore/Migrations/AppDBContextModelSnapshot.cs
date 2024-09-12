@@ -400,10 +400,27 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Message")
+                    b.Property<string>("Metadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("NotificationType")
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.Property<string>("UpdatedBy")
@@ -412,12 +429,11 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Notifications");
                 });
@@ -443,15 +459,14 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("JoinAt")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Settings")
                         .HasColumnType("text");
@@ -663,223 +678,59 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                         new
                         {
                             Id = "31feb02e-9c05-4930-a914-0af953707dfd",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9537),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(208),
                             Icon = "fa fa-home",
                             IsActive = true,
                             IsDeleted = false,
                             MenuType = false,
                             SortOrder = 1,
                             Title = "Bảng điều khiển",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9552),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(221),
                             Url = "/home"
                         },
                         new
                         {
                             Id = "fa6f5f76-2266-4f57-8962-258fc43619dd",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9612),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(310),
                             Icon = "fas fa-list-ul",
                             IsActive = true,
                             IsDeleted = false,
                             MenuType = true,
                             SortOrder = 2,
                             Title = "Danh mục",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9613),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(311),
                             Url = ""
-                        },
-                        new
-                        {
-                            Id = "928c2a06-0b95-45b2-8850-24452b13d82a",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9620),
-                            Icon = "fas fa-table",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "fa6f5f76-2266-4f57-8962-258fc43619dd",
-                            SortOrder = 3,
-                            Title = "Loại bàn bida",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9621),
-                            Url = "/bidatabletype"
-                        },
-                        new
-                        {
-                            Id = "5ae1d36a-df86-4ebf-a51f-1b33922aa633",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9627),
-                            Icon = "fas fa-bowling-ball",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "fa6f5f76-2266-4f57-8962-258fc43619dd",
-                            SortOrder = 4,
-                            Title = "Bàn bida",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9628),
-                            Url = "/bidatable"
-                        },
-                        new
-                        {
-                            Id = "cfcfa81f-53f9-4382-82a3-d753aa88be3f",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9666),
-                            Icon = "fas fa-shopping-cart",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = true,
-                            SortOrder = 5,
-                            Title = "Bán hàng",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9666),
-                            Url = ""
-                        },
-                        new
-                        {
-                            Id = "384c16a4-d389-4fea-b554-e702a333cf60",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9673),
-                            Icon = "fab fa-first-order-alt",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "cfcfa81f-53f9-4382-82a3-d753aa88be3f",
-                            SortOrder = 6,
-                            Title = "Hóa đơn",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9673),
-                            Url = "/order"
-                        },
-                        new
-                        {
-                            Id = "bad6c610-681c-47d4-aec0-6551aa308485",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9679),
-                            Icon = "fas fa-people-arrows",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = true,
-                            SortOrder = 7,
-                            Title = "Đối tác",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9680),
-                            Url = ""
-                        },
-                        new
-                        {
-                            Id = "336ec1d7-c59b-4c83-a919-53d29b6c003a",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9687),
-                            Icon = "fas fa-user-friends",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "bad6c610-681c-47d4-aec0-6551aa308485",
-                            SortOrder = 8,
-                            Title = "Khách hàng",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9687),
-                            Url = "/customer"
-                        },
-                        new
-                        {
-                            Id = "ac8f8e58-6e25-4126-aec8-b491e71155da",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9694),
-                            Icon = "fab fa-servicestack",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = true,
-                            SortOrder = 9,
-                            Title = "Sản phẩm, dịch vụ",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9695),
-                            Url = ""
-                        },
-                        new
-                        {
-                            Id = "db942e9c-d34f-4be1-ad5d-a4e1b105f8b9",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9700),
-                            Icon = "fab fa-product-hunt",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "ac8f8e58-6e25-4126-aec8-b491e71155da",
-                            SortOrder = 10,
-                            Title = "Sản phẩm",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9701),
-                            Url = "/product"
-                        },
-                        new
-                        {
-                            Id = "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9707),
-                            Icon = "fas fa-box",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = true,
-                            SortOrder = 11,
-                            Title = "Quản lý kho",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9708),
-                            Url = ""
-                        },
-                        new
-                        {
-                            Id = "a4e8a6f2-9c3d-4e2b-8f1a-5c5e6b7d8e9f",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9713),
-                            Icon = "fas fa-warehouse",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9",
-                            SortOrder = 12,
-                            Title = "Tồn kho",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9714),
-                            Url = "/inventory"
-                        },
-                        new
-                        {
-                            Id = "b2c7d8e9-f0a1-4b2c-3d4e-5f6g7h8i9j0k",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9725),
-                            Icon = "fas fa-truck-loading",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9",
-                            SortOrder = 13,
-                            Title = "Nhập kho",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9726),
-                            Url = "/inventoryimport"
-                        },
-                        new
-                        {
-                            Id = "c3d4e5f6-g7h8-4i9j-0k1l-2m3n4o5p6q7r",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9732),
-                            Icon = "fas fa-truck",
-                            IsActive = true,
-                            IsDeleted = false,
-                            MenuType = false,
-                            ParentId = "f0e8c848-8f6d-4a7b-9b8e-7c7e9f11a7f9",
-                            SortOrder = 14,
-                            Title = "Xuất kho",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9733),
-                            Url = "/inventoryexport"
                         },
                         new
                         {
                             Id = "d4e5f6g7-h8i9-4j0k-1l2m-3n4o5p6q7r8s",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9738),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(322),
                             Icon = "fas fa-chart-bar",
                             IsActive = true,
                             IsDeleted = false,
                             MenuType = false,
                             SortOrder = 15,
                             Title = "Báo cáo",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9739),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(323),
                             Url = "/report"
                         },
                         new
                         {
                             Id = "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9745),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(333),
                             Icon = "fa fa-id-card",
                             IsActive = true,
                             IsDeleted = false,
                             MenuType = true,
                             SortOrder = 16,
                             Title = "Quản trị",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9745),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(334),
                             Url = ""
                         },
                         new
                         {
                             Id = "f6g7h8i9-j0k1-4l2m-3n4o-5p6q7r8s9t0u",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9751),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(344),
                             Icon = "fas fa-user",
                             IsActive = true,
                             IsDeleted = false,
@@ -887,13 +738,13 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                             ParentId = "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t",
                             SortOrder = 17,
                             Title = "Tài khoản",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9752),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(348),
                             Url = "/user"
                         },
                         new
                         {
                             Id = "g7h8i9j0-k1l2-4m3n-4o5p-6q7r8s9t0u1v",
-                            CreatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9758),
+                            CreatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(362),
                             Icon = "fas fa-user-tag",
                             IsActive = true,
                             IsDeleted = false,
@@ -901,7 +752,7 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
                             ParentId = "e5f6g7h8-i9j0-4k1l-2m3n-4o5p6q7r8s9t",
                             SortOrder = 18,
                             Title = "Phân quyền",
-                            UpdatedDate = new DateTime(2024, 9, 11, 17, 15, 49, 544, DateTimeKind.Local).AddTicks(9758),
+                            UpdatedDate = new DateTime(2024, 9, 12, 17, 13, 20, 586, DateTimeKind.Local).AddTicks(364),
                             Url = "/role"
                         });
                 });
@@ -1294,11 +1145,21 @@ namespace PingMeChat.CMS.EntityFrameworkCore.Migrations
 
             modelBuilder.Entity("PingMeChat.CMS.Entities.Feature.Notification", b =>
                 {
-                    b.HasOne("PingMeChat.CMS.Entities.Users.Account", "User")
+                    b.HasOne("PingMeChat.CMS.Entities.Users.Account", "Recipient")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("PingMeChat.CMS.Entities.Users.Account", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("PingMeChat.CMS.Entities.Feature.UserChat", b =>

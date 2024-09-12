@@ -5,11 +5,19 @@ using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.App.Repositories;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth;
 using PingMeChat.CMS.Application.Feature.Indentity.RefreshTokens;
+using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
+using PingMeChat.CMS.Application.Feature.Service.Calls;
+using PingMeChat.CMS.Application.Feature.Service.Chats;
+using PingMeChat.CMS.Application.Feature.Service.Contacts;
 using PingMeChat.CMS.Application.Feature.Service.ErrorLog;
 using PingMeChat.CMS.Application.Feature.Service.Groups;
 using PingMeChat.CMS.Application.Feature.Service.Menus;
+using PingMeChat.CMS.Application.Feature.Service.Messages;
+using PingMeChat.CMS.Application.Feature.Service.MessageStatuses;
 using PingMeChat.CMS.Application.Feature.Service.MvcControllerDiscovery;
+using PingMeChat.CMS.Application.Feature.Service.Notifications;
 using PingMeChat.CMS.Application.Feature.Service.Roles;
+using PingMeChat.CMS.Application.Feature.Service.UserChats;
 using PingMeChat.CMS.Application.Feature.Service.Users;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
@@ -37,6 +45,15 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<IMenuService, MenuService>()
                     .AddScoped<IErrorLogService, ErrorLogService>()
                     .AddScoped<IGroupService, GroupService>()
+                    .AddScoped<IAttachmentService, AttachmentService>()
+                    .AddScoped<ICallParticipantService, CallParticipantService>()
+                    .AddScoped<IUserChatService, UserChatService>()
+                    .AddScoped<ICallService, CallService>()
+                    .AddScoped<IChatService, ChatService>()
+                    .AddScoped<IContactService, ContactService>()
+                    .AddScoped<IMessageService, MessageService>()
+                    .AddScoped<IMessageStatusService, MessageStatusService>()
+                    .AddScoped<INotificationService, NotificationService>()
                     .AddSingleton<IMvcControllerDiscoveryService, MvcControllerDiscoveryService>()
                     .AddSingleton<IUriService>(o =>
                     {
@@ -63,7 +80,17 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<IGroupsRepository, GroupsRepository>()
                     .AddScoped<ILogErrorRepository, LogErrorRepository>()
                     .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
-                    .AddScoped<IUserSessionRepository, UserSessionRepository>();
+                    .AddScoped<IUserSessionRepository, UserSessionRepository>()
+                    .AddScoped<IUserChatRepository, UserChatRepository>()
+                    .AddScoped<ICallRepository, CallRepository>()
+                    .AddScoped<ICallParticipantRepository, CallParticipantRepository>()
+                    .AddScoped<IChatRepository, ChatRepository>()
+                    .AddScoped<IContactRepository, ContactRepository>()
+                    .AddScoped<IMessageRepository, MessageRepository>()
+                    .AddScoped<IMessageStatusRepository, MessageStatusRepository>()
+                    .AddScoped<INotificationRepository, NotificationRepository>()
+                    .AddScoped<IAttachmentRepository, AttachmentRepository>()
+                    ;
         }
     }
 }

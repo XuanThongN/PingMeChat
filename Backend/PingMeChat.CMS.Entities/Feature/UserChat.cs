@@ -14,7 +14,7 @@ namespace PingMeChat.CMS.Entities.Feature
     {
         public string UserId { get; set; }
         public string ChatId { get; set; }
-        public string Role { get; set; }
+        public bool IsAdmin { get; set; } // IsAdmin
         public DateTime JoinAt { get; set; }   
         public string? Settings { get; set; }
         public virtual Chat Chat { get; set; }

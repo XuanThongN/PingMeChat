@@ -22,7 +22,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPost]
-        [Route(RootPath.Auth.LoginRoute)]
+        [Route(ApiRoutes.Auth.LoginRoute)]
         [ProducesResponseType(typeof(TokenDto), StatusCodes.Status200OK)]
         [ServiceFilter(typeof(ModelStateFilter))]
         [AllowAnonymous]
@@ -48,7 +48,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPut]
-        [Route(RootPath.Auth.LockAccountRoute)]
+        [Route(ApiRoutes.Auth.LockAccountRoute)]
         [ServiceFilter(typeof(InfoUserNotFoundFilter))]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<IActionResult> LockAccount(string id)
@@ -64,7 +64,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPut]
-        [Route(RootPath.Auth.UnLockAccountRoute)]
+        [Route(ApiRoutes.Auth.UnLockAccountRoute)]
         [ServiceFilter(typeof(InfoUserNotFoundFilter))]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<IActionResult> UnLockAccount(string id)
@@ -80,7 +80,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPost]
-        [Route(RootPath.Auth.LogoutRoute)]
+        [Route(ApiRoutes.Auth.LogoutRoute)]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
@@ -97,7 +97,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpPost]
         [ValidateUserAndModel]
-        [Route(RootPath.Auth.ChangePasswordRoute)]
+        [Route(ApiRoutes.Auth.ChangePasswordRoute)]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
