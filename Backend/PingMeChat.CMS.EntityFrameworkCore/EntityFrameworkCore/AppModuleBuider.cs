@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PingMeChat.CMS.Entities;
 using PingMeChat.CMS.Entities.Feature;
 using PingMeChat.CMS.Entities.Users;
+using System.Reflection.Emit;
 using System.Text.Json;
 
 namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
@@ -130,6 +131,17 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
                         v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
                         v => !string.IsNullOrEmpty(v) ?
                             JsonSerializer.Deserialize<List<MvcActionInfo>>(v, (JsonSerializerOptions)null) : null
+                    )
+                    .HasColumnType("text");
+            });
+
+            builder.Entity<Message>(e =>
+            {
+                e.Property(o => o.MessageReaders)
+                    .HasConversion(
+                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
+                        v => !string.IsNullOrEmpty(v) ?
+                            JsonSerializer.Deserialize<List<MessageReader>>(v, (JsonSerializerOptions)null) : null
                     )
                     .HasColumnType("text");
             });

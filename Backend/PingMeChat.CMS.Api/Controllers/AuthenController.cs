@@ -22,6 +22,17 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPost]
+        [Route(ApiRoutes.Auth.RegisterRoute)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status201Created)]
+        [ServiceFilter(typeof(ModelStateFilter))]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterDto request)
+        {
+            var result = await _authService.Register(request);
+            return Ok(new ApiResponse(Message.Success.Auth.RegisterCompleted, result, StatusCodes.Status201Created));
+        }
+
+        [HttpPost]
         [Route(ApiRoutes.Auth.LoginRoute)]
         [ProducesResponseType(typeof(TokenDto), StatusCodes.Status200OK)]
         [ServiceFilter(typeof(ModelStateFilter))]
@@ -32,17 +43,17 @@ namespace PingMeChat.CMS.Api.Controllers
             var deviceInfo = GetDetailedDeviceInfo(HttpContext);
             var tokenDto = await _authService.Login(request, deviceInfo, ipAddress);
             // Thêm RefreshToken vào HttpOnly cookie
-            //Response.Cookies.Append("RefreshToken", tokenDto.RefreshToken, new CookieOptions
-            //{
-            //    HttpOnly = true,
-            //    Secure = false, // Sử dụng nếu bạn có HTTPS
-            //   // SameSite = SameSiteMode.Strict, // bảo mật cao nhất cho cookie
-            //                                    //  SameSite = SameSiteMode.None, // Cho phép cross-site access
-            //    SameSite = SameSiteMode.Lax,
-            //    Domain = "localhost", // hoặc domain thực tế
-            //    Path = "/",
-            //    Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(tokenDto.RefreshTokenExpiresMinutes))
-            //});
+            Response.Cookies.Append("RefreshToken", tokenDto.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // Sử dụng nếu bạn có HTTPS
+                                // SameSite = SameSiteMode.Strict, // bảo mật cao nhất cho cookie
+                                //  SameSite = SameSiteMode.None, // Cho phép cross-site access
+                SameSite = SameSiteMode.Lax,
+                Domain = "localhost", // hoặc domain thực tế
+                Path = "/",
+                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(tokenDto.RefreshTokenExpiresMinutes))
+            });
 
             return Ok(new ApiResponse(Message.Success.Auth.LoginCompleted, tokenDto, StatusCodes.Status200OK));
         }
@@ -102,9 +113,9 @@ namespace PingMeChat.CMS.Api.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
             var email = GetEmail();
-          
-           var data =  await _authService.ChangePassword(model, email);
-            if(!data) return BadRequest(new ApiResponse(Message.Error.ChangePasswordFail, null, StatusCodes.Status400BadRequest));
+
+            var data = await _authService.ChangePassword(model, email);
+            if (!data) return BadRequest(new ApiResponse(Message.Error.ChangePasswordFail, null, StatusCodes.Status400BadRequest));
             return Ok(new ApiResponse(Message.Success.Auth.ChangePasswordCompleted, data, 200));
         }
     }

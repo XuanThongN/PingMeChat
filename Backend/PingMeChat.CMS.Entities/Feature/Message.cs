@@ -1,3 +1,4 @@
+﻿using Org.BouncyCastle.Asn1.Mozilla;
 using PingMeChat.CMS.Entities.Interfaces;
 using PingMeChat.CMS.Entities.Users;
 using System;
@@ -10,31 +11,24 @@ using System.Threading.Tasks;
 namespace PingMeChat.CMS.Entities.Feature
 {
     // Message Entity
+
     public class Message : AuditableBaseEntity
     {
-        public Message()
-        {
-            Attachments = new HashSet<Attachment>();
-        }
         public string ChatId { get; set; }
         public string SenderId { get; set; }
-        public string Content { get; set; }
-        public DateTime SentAt { get; set; } 
-        public MessageType MessageType { get; set; }
-
+        public string? Content { get; set; }
+        public DateTime SentAt { get; set; }
+        public virtual List<Attachment> Attachments { get; set; } = new List<Attachment>();
+        public ICollection<MessageReader> MessageReaders { get; set; }  // Danh sách người đọc tin nhắn
         public virtual Chat Chat { get; set; }
         public virtual Account Sender { get; set; }
-        public virtual ICollection<Attachment> Attachments { get; set; }
-
     }
 
-    public enum MessageType
+    public class MessageReader
     {
-        Text,
-        Image,
-        Video,
-        Audio,
-        File
+        public string MessageId { get; set; }
+        public string ReaderId { get; set; }
+        public DateTime ReadAt { get; set; }
     }
 
 

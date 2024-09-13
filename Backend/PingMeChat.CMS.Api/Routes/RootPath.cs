@@ -52,10 +52,13 @@ namespace PingMeChat.CMS.API.Routes
             public static class Chat
             {
                 public const string GetChatListRoute = "api/chats/get-chat-list";
-                public const string GetChatDetailRoute = "api/chats/get-chat-detail/{id}";
+                public const string GetChatDetailRoute = "api/chats/get-chat-detail/{chatId}";
                 public const string CreateChatRoute = "api/chats/create-chat";
                 public const string UpdateChatRoute = "api/chats/update-chat";
                 public const string DeleteChatRoute = "api/chats/delete-chat/{id}";
+                public const string AddUserToChatRoute = "api/chats/add-user-to-chat/{chatId}";
+                public const string RemoveUserFromChatRoute = "api/chats/remove-user-from-chat/{chatId}";
+                public const string SendMessageRoute = "api/chats/send-message/{chatId}";
             }
         }
     }

@@ -71,6 +71,19 @@ namespace PingMeChat.CMS.Application.App.Repositories
             return _dbSet.Remove(entity).Entity;
         }
 
+        public async Task<T> SoftDelete(string id)
+        {
+            var entity = await _dbSet.FindAsync(id);
+            _context.Entry(entity).Property("IsDeleted").CurrentValue = true;
+            return entity;
+        }
+
+        public async Task<T> SoftDelete(T entity)
+        {
+            _context.Entry(entity).Property("IsDeleted").CurrentValue = true;
+            return entity;
+        }
+
         public async Task<T?> Find(Expression<Func<T, bool>> match)
         {
             T? result = await _dbSet.Where(match).FirstOrDefaultAsync();

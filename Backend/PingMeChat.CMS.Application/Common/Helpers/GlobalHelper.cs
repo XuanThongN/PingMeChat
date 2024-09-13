@@ -9,7 +9,7 @@ using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
 using PingMeChat.CMS.Application.Feature.Service.Calls;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Contacts;
-using PingMeChat.CMS.Application.Feature.Service.ErrorLog;
+using PingMeChat.CMS.Application.Feature.Service.ErrorLogs;
 using PingMeChat.CMS.Application.Feature.Service.Groups;
 using PingMeChat.CMS.Application.Feature.Service.Menus;
 using PingMeChat.CMS.Application.Feature.Service.Messages;

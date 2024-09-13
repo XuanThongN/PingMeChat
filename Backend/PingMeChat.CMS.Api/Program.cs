@@ -116,7 +116,7 @@ builder.Services
     {
         options.AddSignalRSwaggerGen();
         options.EnableAnnotations();
-        options.SwaggerDoc("v1", new OpenApiInfo { Title = "Bia-Application API", Version = "v1" });
+        options.SwaggerDoc("v1", new OpenApiInfo { Title = "PingMeChat API", Version = "v1" });
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             In = ParameterLocation.Header,

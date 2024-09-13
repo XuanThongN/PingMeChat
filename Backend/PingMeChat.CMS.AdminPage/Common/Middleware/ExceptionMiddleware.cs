@@ -2,7 +2,7 @@ using AutoWrapper.Exceptions;
 using AutoWrapper.Models;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Exceptions;
-using PingMeChat.CMS.Application.Feature.Service.ErrorLog;
+using PingMeChat.CMS.Application.Feature.Service.ErrorLogs;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.Entities.Module;
 using Microsoft.AspNetCore.Mvc.Controllers;

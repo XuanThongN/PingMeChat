@@ -14,7 +14,7 @@ namespace PingMeChat.CMS.Entities.Feature
     {
         public string MessageId { get; set; }
         public string UserId { get; set; }
-        public bool IsRead { get; set; }
+        public bool IsRead { get; set; } = true;
         public DateTime? ReadAt { get; set; } // Giải thích: Thời gian mà người dùng đã đọc tin nhắn
         public virtual Message Message { get; set; }
         public virtual Account User { get; set; }

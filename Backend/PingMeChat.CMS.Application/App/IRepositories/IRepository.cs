@@ -17,6 +17,8 @@ namespace PingMeChat.CMS.Application.App.IRepositories
         
         Task<T> Delete(T entity);
         Task<T> Delete(string id);
+        Task<T> SoftDelete(T entity);
+        Task<T> SoftDelete(string id);
         Task<IEnumerable<T>> GetAll();
         Task<int> Count(Expression<Func<T, bool>> predicate);
         Task<T?> Find(Expression<Func<T, bool>> match);

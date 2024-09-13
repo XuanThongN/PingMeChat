@@ -177,6 +177,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
                 UserName = model.UserName,
                 Email = model.Email,
                 Password = model.Password.HashPassword(),
+                FullName = model.FullName,
+                PhoneNumber = model.Phone,
                 IsLocked = false,
             };
 

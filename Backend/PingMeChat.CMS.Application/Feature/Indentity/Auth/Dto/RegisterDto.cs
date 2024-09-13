@@ -20,5 +20,13 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto
         [Required]
         [ConfirmPassword("Password")]
         public string ConfirmPassword { get; set; }
+
+        [Required]
+        [StringLength(225, MinimumLength = 3, ErrorMessage = "Tên phải có ít nhất 3 ký tự và nhiều nhất là 225 ký tự")]
+        public string FullName { get; set; }
+
+        [Required]
+        [VietnamPhoneNumberAttribute]
+        public string Phone { get; set; }
     }
 }

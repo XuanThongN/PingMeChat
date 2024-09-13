@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "BIA.CMS.AdminPage": {
+    "PingMeChat.CMS.AdminPage": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

@@ -34,7 +34,7 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
         DbSet<Chat> Chats { get; set; }
         DbSet<Contact> Contacts { get; set; }
         DbSet<Message> Messages { get; set; }
-        DbSet<MessageStatus> MessageStatus { get; set; }
+        //DbSet<MessageStatus> MessageStatus { get; set; }
         DbSet<UserChat> UserChats { get; set; }
 
 

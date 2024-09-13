@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "BIA.CMS.Api": {
+    "PingMeChat.CMS.Api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
