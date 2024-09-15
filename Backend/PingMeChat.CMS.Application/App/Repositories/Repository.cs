@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using NPOI.SS.Formula.Functions;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore;
 using System;
@@ -23,7 +24,7 @@ namespace PingMeChat.CMS.Application.App.Repositories
         public async Task<T> Add(T entity)
         {
             var result = await _dbSet.AddAsync(entity);
-            
+
             return entity;
         }
 
@@ -125,9 +126,9 @@ namespace PingMeChat.CMS.Application.App.Repositories
             return await query.ToListAsync();
         }
 
-       public async Task<IEnumerable<T>> FindAll(Expression<Func<T, bool>> match,
-                                        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, 
-                                        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
+        public async Task<IEnumerable<T>> FindAll(Expression<Func<T, bool>> match,
+                                         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+                                         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
             IQueryable<T> query = _dbSet;
             query = query.AsNoTracking(); // Không theo dõi đối tượng nào được trả về từ truy vấn
@@ -306,5 +307,18 @@ namespace PingMeChat.CMS.Application.App.Repositories
             else
                 return (await query.Cast<TResult>().ToListAsync(), total);
         }
+        public async Task<bool> RemoveRange(IEnumerable<T> entities)
+        {
+            try
+            {
+                _dbSet.RemoveRange(entities);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
     }
+
 }

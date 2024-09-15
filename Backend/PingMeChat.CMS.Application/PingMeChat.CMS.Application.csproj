@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -11,15 +11,15 @@
     <Compile Remove="Common\ProfileMapper\**" />
     <Compile Remove="Feature\Main\**" />
     <Compile Remove="Feature\Service\SessionServicess\**" />
-    <Compile Remove="Hubs\**" />
+     <Compile Remove="Hubs\**" /> 
     <EmbeddedResource Remove="Common\ProfileMapper\**" />
     <EmbeddedResource Remove="Feature\Main\**" />
     <EmbeddedResource Remove="Feature\Service\SessionServicess\**" />
-    <EmbeddedResource Remove="Hubs\**" />
+     <EmbeddedResource Remove="Hubs\**" /> 
     <None Remove="Common\ProfileMapper\**" />
     <None Remove="Feature\Main\**" />
     <None Remove="Feature\Service\SessionServicess\**" />
-    <None Remove="Hubs\**" />
+     <None Remove="Hubs\**" /> 
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.33" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.33">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

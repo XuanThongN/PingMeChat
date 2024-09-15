@@ -53,5 +53,6 @@ namespace PingMeChat.CMS.Application.App.IRepositories
                                      Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
                                      bool disableTracking = true,
                                      bool ignoreQueryFilters = false);
+        Task<bool> RemoveRange(IEnumerable<T> entities);
     }
 }

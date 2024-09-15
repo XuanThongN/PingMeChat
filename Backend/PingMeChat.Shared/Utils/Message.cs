@@ -63,6 +63,7 @@ namespace PingMeChat.Shared.Utils
             public const string DeletedCompleted = "Xóa thành công {0}";
             public const string ReadedCompleted = "Dữ liệu {0}";
             public const string ReadedAllCompleted = "Danh sách {0}";
+            public const string ChangeStatusCompleted = "Thay đổi trạng thái thành công {0}";
             #endregion
 
             #region auth

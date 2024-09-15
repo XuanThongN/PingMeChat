@@ -1,4 +1,6 @@
 using PingMeChat.CMS.Application.Common.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Roles.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Users.Dto;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -21,5 +23,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Groups.Dto
         public string Description { get; set; }
 
         public bool? IsDataMigration { get; set; }
+
+        public ICollection<RoleDto> Roles { get; set; }
+        public ICollection<UserDto> Users { get; set; }
     }
 }

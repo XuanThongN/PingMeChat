@@ -22,7 +22,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Groups.Dto
 
         [MaxLength(200)]
         public string Description { get; set; }
-        
+
         public bool? IsDataMigration { get; set; }
 
         public List<string>? UserIds { get; set; }

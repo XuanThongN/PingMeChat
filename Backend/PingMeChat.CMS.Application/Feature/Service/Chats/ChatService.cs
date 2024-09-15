@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
@@ -18,8 +19,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId);
         Task<ChatDto> GetChatDetailAsync(string chatId, string userId);
         Task<IEnumerable<ChatDto>> GetChatListAsync(string userId);
-        Task<ChatDto> AddUserToChatAsync(string chatId, string userId);
+        Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId);
         Task<bool> RemoveUserFromChatAsync(string chatId, string userId, string currentUser);
+        Task<bool> CanUserAccessChat(string chatId, string userId);
     }
 
     public class ChatService : ServiceBase<Chat, ChatCreateDto, ChatUpdateDto, ChatDto, IChatRepository>, IChatService
@@ -27,6 +29,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         private readonly IUserChatRepository _userChatRepository;
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IMessageRepository _messageRepository;
+        private readonly IMemoryCache _cache; // Bộ nhớ cache để lưu trữ số lượng lệnh trong khoảng thời gian
 
         public ChatService(
             IChatRepository repository,
@@ -35,17 +38,33 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             IUriService uriService,
             IUserChatRepository userChatRepository,
             ILogErrorRepository logErrorRepository,
-            IMessageRepository messageRepository) : base(repository, unitOfWork, mapper, uriService)
+            IMessageRepository messageRepository,
+            IMemoryCache cache) : base(repository, unitOfWork, mapper, uriService)
         {
             _userChatRepository = userChatRepository;
             _logErrorRepository = logErrorRepository;
             _messageRepository = messageRepository;
+            _cache = cache;
         }
 
         public async Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId)
         {
             try
             {
+                // Check if private chat already exists
+                if (!chatCreateDto.IsGroup)
+                {
+                    var existingChat = await _repository.Find(c =>
+                        !c.IsGroup &&
+                        c.UserChats.Any(uc => uc.UserId == userId) &&
+                        c.UserChats.Any(uc => uc.UserId == chatCreateDto.UserIds.First()));
+
+                    if (existingChat != null)
+                    {
+                        return _mapper.Map<ChatDto>(existingChat);
+                    }
+                }
+
                 var chat = _mapper.Map<Chat>(chatCreateDto);
                 chat.CreatedBy = userId;
                 chat.UpdatedBy = userId;
@@ -53,19 +72,19 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 await _repository.Add(chat);
                 await _unitOfWork.SaveChangeAsync();
 
-                // Thêm người tạo chat vào danh sách thành viên
-                chatCreateDto.UserChatIds = chatCreateDto.UserChatIds.Append(userId);
-                // Thêm các thành viên còn lại vào danh sách thành viên
-                foreach (var userChatId in chatCreateDto.UserChatIds)
+                // Add chat creator to the member list
+                var allUserIds = chatCreateDto.UserIds.Append(userId);
+
+                foreach (var memberId in allUserIds)
                 {
-                    var userChat = new UserChat { 
-                        UserId = userChatId, 
+                    var userChat = new UserChat
+                    {
+                        UserId = memberId,
                         ChatId = chat.Id,
                         CreatedBy = userId,
                         UpdatedBy = userId,
-                        IsAdmin = userChatId == userId,
+                        IsAdmin = chatCreateDto.IsGroup ? memberId == userId : false, // Set người tạo chat là admin nếu chat là group, còn chat private thì không có admin
                         JoinAt = DateTime.UtcNow,
-
                     };
                     await _userChatRepository.Add(userChat);
                 }
@@ -155,7 +174,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             }
         }
 
-        public async Task<ChatDto> AddUserToChatAsync(string chatId, string userId)
+        public async Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId)
         {
             try
             {
@@ -165,15 +184,37 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                     throw new AppException("Chat not found", 404);
                 }
 
+                // Kiểm tra xem đây có phải là chat nhóm không
+                if (!chat.IsGroup)
+                {
+                    throw new AppException("Không thể thêm người dùng vào chat cá nhân", 400);
+                }
+
                 var existingUserChat = await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId);
                 if (existingUserChat != null)
                 {
-                    throw new AppException("User is already a member of this chat", 400);
+                    throw new AppException("Người dùng đã là thành viên của chat này", 400);
                 }
 
-                var userChat = new UserChat { UserId = userId, ChatId = chatId };
+                var userChat = new UserChat
+                {
+                    UserId = userId,
+                    ChatId = chatId,
+                    CreatedBy = currentUserId,
+                    UpdatedBy = currentUserId,
+                    IsAdmin = false,
+                    JoinAt = DateTime.UtcNow
+                };
                 await _userChatRepository.Add(userChat);
                 await _unitOfWork.SaveChangeAsync();
+
+                // Refresh chat data
+                chat = await _repository.Find(
+                    c => c.Id == chatId,
+                    include: c => c
+                        .Include(c => c.UserChats)
+                        .ThenInclude(uc => uc.User)
+                );
 
                 return _mapper.Map<ChatDto>(chat);
             }
@@ -269,5 +310,29 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 throw;
             }
         }
+
+        // Hàm kiểm tra xem người dùng có thể truy cập vào chat hay không
+        // chatId: ID của chat
+        // userId: ID của người dùng
+        // Trả về true nếu người dùng có thể truy cập vào chat, ngược lại trả về false
+        public async Task<bool> CanUserAccessChat(string chatId, string userId)
+        {
+            // Tạo một key cache dựa trên chatId và userId
+            var cacheKey = $"ChatAccess_{chatId}_{userId}";
+
+            // Kiểm tra xem kết quả đã được lưu trong cache hay chưa
+            if (!_cache.TryGetValue(cacheKey, out bool canAccess))
+            {
+                // Nếu không có kết quả trong cache, thì thực hiện truy vấn cơ sở dữ liệu
+                canAccess = await _repository.AnyAsync(c => c.Id == chatId && c.UserChats.Any(uc => uc.UserId == userId));
+
+                // Lưu kết quả vào cache với thời gian sống là 5 phút
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(5));
+                _cache.Set(cacheKey, canAccess, cacheEntryOptions);
+            }
+
+            return canAccess;
+        }
     }
+
 }

@@ -1,4 +1,4 @@
-using PingMeChat.CMS.Entities.Interfaces;
+﻿using PingMeChat.CMS.Entities.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +16,7 @@ namespace PingMeChat.CMS.Entities.Feature
             UserChats = new HashSet<UserChat>();
             Messages = new HashSet<Message>();
         }
-        public string Name { get; set; }
+        public string? Name { get; set; } // Tên của đoạn chat hoặc tên của group chat (có thể null nếu là chat 1-1)
         public bool IsGroup { get; set; }
         public string? AvatarUrl { get; set; }
         public virtual IEnumerable<UserChat> UserChats { get; set; }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.App.Repositories;
+using PingMeChat.CMS.Application.Feature.ChatHubs;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth;
 using PingMeChat.CMS.Application.Feature.Indentity.RefreshTokens;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
@@ -55,6 +56,7 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<IMessageStatusService, MessageStatusService>()
                     .AddScoped<INotificationService, NotificationService>()
                     .AddSingleton<IMvcControllerDiscoveryService, MvcControllerDiscoveryService>()
+                    .AddScoped<IChatHubService, ChatHubService>() // Thêm dịch vụ ChatHubService
                     .AddSingleton<IUriService>(o =>
                     {
                         var accessor = o.GetRequiredService<IHttpContextAccessor>();

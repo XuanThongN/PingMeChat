@@ -18,8 +18,8 @@ namespace PingMeChat.CMS.Entities.Feature
         public string SenderId { get; set; }
         public string? Content { get; set; }
         public DateTime SentAt { get; set; }
-        public virtual List<Attachment> Attachments { get; set; } = new List<Attachment>();
-        public ICollection<MessageReader> MessageReaders { get; set; }  // Danh sách người đọc tin nhắn
+        public virtual List<Attachment>? Attachments { get; set; } = new List<Attachment>();
+        public ICollection<MessageReader>? MessageReaders { get; set; } = new List<MessageReader>();  // Danh sách người đọc tin nhắn
         public virtual Chat Chat { get; set; }
         public virtual Account Sender { get; set; }
     }

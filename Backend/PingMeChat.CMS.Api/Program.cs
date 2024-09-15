@@ -11,6 +11,8 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
+using PingMeChat.CMS.Application.Feature.ChatHubs;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,10 +35,10 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 #endregion
 
 // Cấu hình bộ lọc kiểm tra quyền truy cập của người dùng
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<AuthorizationFilter>();
-});
+//builder.Services.AddControllers(options =>
+//{
+//    options.Filters.Add<AuthorizationFilter>();
+//});
 
 
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
@@ -146,6 +148,10 @@ builder.Services
 builder.Services.AddSwaggerGenNewtonsoftSupport();
 #endregion
 
+#region register SignalR
+builder.Services.AddSignalR();
+#endregion
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -159,12 +165,14 @@ builder.Services.AddScoped<ValidateUserAndModelFilter>();
 GlobalHelper.RegisterAutoMapper(builder.Services);
 GlobalHelper.RegisterServiceLifetimer(builder.Services);
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();  // Thêm dịch vụ bộ nhớ cache
 #endregion 
 
 var app = builder.Build();
 
 #region add middlware
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();  // Thêm middleware xử lý rate limiting
     //.UseMiddleware<TokenRefreshMiddleware>();
 #endregion
 // Configure the HTTP request pipeline.
@@ -198,5 +206,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<ChatHub>("/chatHub");
 app.Run();

@@ -2,6 +2,7 @@ using AutoWrapper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PingMeChat.CMS.API.Routes;
+using PingMeChat.CMS.Application.Common.Attributes;
 using PingMeChat.CMS.Application.Common.Filters;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
@@ -16,14 +17,10 @@ namespace PingMeChat.CMS.Api.Controllers
     public class ChatController : BaseController
     {
         private readonly IChatService _chatService;
-        private readonly IMessageService _messageService;
-        private readonly IMessageStatusService _messageStatusService;
 
-        public ChatController(IChatService chatService, IMessageService messageService, IMessageStatusService messageStatusService)
+        public ChatController(IChatService chatService)
         {
             _chatService = chatService;
-            _messageService = messageService;
-            _messageStatusService = messageStatusService;
         }
 
         [HttpPost]
@@ -38,6 +35,7 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpGet]
+        [ChatAccess]
         [Route(ApiRoutes.Feature.Chat.GetChatDetailRoute)]
         [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetChatDetail(string chatId)
@@ -58,16 +56,19 @@ namespace PingMeChat.CMS.Api.Controllers
         }
 
         [HttpPost]
+        [ChatAccess]
         [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.Chat.AddUserToChatRoute)]
         [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> AddUserToChat(string chatId, [FromBody] string userId)
         {
-            var result = await _chatService.AddUserToChatAsync(chatId, userId);
+            var currentUserId = GetUserId();
+            var result = await _chatService.AddUserToChatAsync(chatId, userId, currentUserId);
             return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "user to chat"), result, StatusCodes.Status200OK));
         }
 
         [HttpDelete]
+        [ChatAccess]
         [Route(ApiRoutes.Feature.Chat.RemoveUserFromChatRoute)]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<IActionResult> RemoveUserFromChat(string chatId, string userId)
@@ -77,15 +78,5 @@ namespace PingMeChat.CMS.Api.Controllers
             return Ok(new ApiResponse(string.Format(Message.Success.DeletedCompleted, "user from chat"), result, StatusCodes.Status200OK));
         }
 
-        [HttpPost]
-        [ValidateUserAndModel]
-        [Route(ApiRoutes.Feature.Chat.SendMessageRoute)]
-        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status201Created)]
-        public async Task<IActionResult> SendMessage(string chatId, [FromBody] string content)
-        {
-            var userId = GetUserId();
-            var result = await _messageService.SendMessageAsync(chatId, userId, content);
-            return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "message"), result, StatusCodes.Status201Created));
-        }
     }
 }

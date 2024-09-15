@@ -48,6 +48,18 @@ namespace PingMeChat.CMS.API.Routes
                 public const string DeleteRoute = "api/menus/delete/{id}";
             }
 
+            public static class Group
+            {
+                public const string PaginationRoute = "api/groups/pagination";
+                public const string AddRoute = "api/groups/add";
+                public const string GetAllRoute = "api/groups/get-all";
+                public const string GetByIdRoute = "api/groups/get-by-id/{id}";
+                public const string UpdateRoute = "api/groups/update";
+                public const string DeleteRoute = "api/groups/delete/{id}";
+                public const string GetAllActive = "api/groups/get-all-acctive";
+                public const string ChangeStatusRoute = "api/groups/change-status/{id}";
+            }
+
             // Chat api routes
             public static class Chat
             {
@@ -58,7 +70,14 @@ namespace PingMeChat.CMS.API.Routes
                 public const string DeleteChatRoute = "api/chats/delete-chat/{id}";
                 public const string AddUserToChatRoute = "api/chats/add-user-to-chat/{chatId}";
                 public const string RemoveUserFromChatRoute = "api/chats/remove-user-from-chat/{chatId}";
-                public const string SendMessageRoute = "api/chats/send-message/{chatId}";
+            }
+
+            // Message api routes
+            public static class Message
+            {
+                public const string SendMessageRoute = "api/messages/send-message/{chatId}";
+                public const string PaginationRoute = "api/messages/pagination";
+                public const string GetChatMessagesRoute = "api/messages/{chatId}";
             }
         }
     }
