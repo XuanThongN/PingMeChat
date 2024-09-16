@@ -12,9 +12,9 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             _hubContext = hubContext;
         }
 
-        public async Task SendMessageAsync(string userId, string message)
+        public async Task SendMessageAsync(string chatId, string userId, string message)
         {
-            await _hubContext.Clients.User(userId).SendAsync("ReceiveMessage", message);
+            await _hubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", userId, message);
         }
 
         public async Task JoinGroupAsync(string connectionId, string groupName)
@@ -22,9 +22,9 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             await _hubContext.Groups.AddToGroupAsync(connectionId, groupName);
         }
 
-        public async Task SendMessageToGroupAsync(string groupName, string message)
+        public async Task SendMessageToGroupAsync(string chatId, string userId, string message)
         {
-            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveGroupMessage", message);
+            await _hubContext.Clients.Group(chatId).SendAsync("ReceiveGroupMessage", userId, message);
         }
     }
 

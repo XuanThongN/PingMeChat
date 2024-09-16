@@ -107,7 +107,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         await transaction.CommitAsync();
 
-                        await _chatHubService.SendMessageToGroupAsync(chatId, message.Content); // Gửi thông báo đến tất cả người dùng trong đoạn chat
+                        await _chatHubService.SendMessageToGroupAsync(chatId, userId, message.Content); // Gửi thông báo đến tất cả người dùng trong đoạn chat
 
                         return _mapper.Map<MessageDto>(message);
                     }
