@@ -156,7 +156,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             {
                 var userChats = await _userChatRepository.FindAll(uc => uc.UserId == userId);
                 var chatIds = userChats.Select(uc => uc.ChatId);
-                var chats = await _repository.FindAll(c => chatIds.Contains(c.Id));
+                var chats = await _repository.FindAll(c => chatIds.Contains(c.Id), include: chat => chat.Include(o => o.UserChats).ThenInclude(u => u.User));
                 return _mapper.Map<IEnumerable<ChatDto>>(chats);
             }
             catch (Exception ex)

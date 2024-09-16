@@ -12,7 +12,6 @@ using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 using PingMeChat.CMS.Application.Feature.ChatHubs;
-using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -41,7 +41,14 @@ namespace PingMeChat.CMS.Application.Common.Middlewares
             //var refreshToken = context.Request.Headers["RefreshToken"].FirstOrDefault()?.Split(" ").Last();
             var refreshToken = context.Request.Cookies["RefreshToken"];
 
-            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            //if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            //{
+            //    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            //    return;
+            //}
+
+            //Tạm thời comment để test websocket
+            if (string.IsNullOrEmpty(accessToken))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return;
