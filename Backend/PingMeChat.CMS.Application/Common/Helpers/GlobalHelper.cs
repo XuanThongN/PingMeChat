@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using PingMeChat.CMS.Application.App.IRepositories;
@@ -57,6 +58,8 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<INotificationService, NotificationService>()
                     .AddSingleton<IMvcControllerDiscoveryService, MvcControllerDiscoveryService>()
                     .AddScoped<IChatHubService, ChatHubService>() // Thêm dịch vụ ChatHubService
+                    .AddSingleton<IUserConnectionManager, UserConnectionManager>()
+                    .AddSingleton<IUserIdProvider, CustomUserIdProvider>()
                     .AddSingleton<IUriService>(o =>
                     {
                         var accessor = o.GetRequiredService<IHttpContextAccessor>();
