@@ -179,10 +179,42 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             return await _chatService.CanUserAccessChat(chatId, userId);
         }
 
-        public async Task SendNotification(string targetUserId, string message)
+
+        //Call audio/Video
+        public async Task InitiateCall(string targetUserId, bool isVideo)
         {
-            await Clients.User(targetUserId).SendAsync("ReceiveNotification", message);
-            //await Clients.Groups(targetUserId).SendAsync("ReceiveNotification", message);
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("IncomingCall", callerUserId, isVideo);
+        }
+
+        public async Task AnswerCall(string callerUserId, bool accept)
+        {
+            var targetUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(callerUserId).SendAsync("CallAnswered", targetUserId, accept);
+        }
+
+        public async Task IceCandidate(string targetUserId, string candidate)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("IceCandidate", callerUserId, candidate);
+        }
+
+        public async Task Offer(string targetUserId, string sdp)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("Offer", callerUserId, sdp);
+        }
+
+        public async Task Answer(string targetUserId, string sdp)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("Answer", callerUserId, sdp);
+        }
+
+        public async Task EndCall(string targetUserId)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("CallEnded", callerUserId);
         }
     }
 
