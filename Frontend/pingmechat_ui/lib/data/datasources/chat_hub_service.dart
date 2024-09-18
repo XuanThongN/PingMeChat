@@ -1,17 +1,39 @@
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:signalr_core/signalr_core.dart';
 
-import '../../../domain/models/chat.dart';
+import '../../domain/models/chat.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;
-  
+  String accessToken = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdXBlcmFkbWluIiwiVXNlcklkIjoiY2MxZTY2M2EtMTdiNy00NzBiLWFmZDUtYmM0NzUyYzgwZGQxIiwiRW1haWwiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImp0aSI6IjBmYjBiOTMwLWQ0YjktNGE5ZC1hMTRiLWQyYTVlMDJkMjlmOCIsImV4cCI6MTcyNjUzMjY5NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDMwIiwiYXVkIjoiVXNlciJ9.4mEXsimCtuAB8PSyOjRKHGCGXXh1A29CR8A5OXFuZzYKcpE5mYDmCIR-2xFrv6urFoK0i5uC22xuRM3e38K3nQ';
+   String refreshToken = 'pwkvVjtwWqH10PhHZD3YjMwEZBUVkejOd2x2qIhgA1+OdBC3Th9t+SbinZLss5iQg5RxVTD4iZZFLto5NJ0U+g==';
+
   Future<void> connect() async {
     _hubConnection = HubConnectionBuilder()
-      .withUrl('wss://localhost:7043/chatHub')
-      .build();
-    
-    await _hubConnection.start();
+        .withUrl(
+          'https://localhost:7043/chatHub', // Use HTTPS for negotiation
+          HttpConnectionOptions(
+            // accessTokenFactory: () async => accessToken,
+            transport: HttpTransportType.webSockets,
+            customHeaders: {
+              'Authorization': 'Bearer $accessToken',
+              'RefreshToken': refreshToken,
+            },
+          ),
+        )
+        .build();
+
+    try {
+      await _hubConnection.start();
+      print('Connected to SignalR hub');
+    } catch (e) {
+      if (e.toString().contains('401')) {
+        print('Authentication failed: Invalid access token');
+        // Optionally, handle token refresh logic here
+      } else {
+        print('Error connecting to SignalR hub: $e');
+      }
+    }
   }
 
   void onReceiveMessage(void Function(String message) handler) {
@@ -19,6 +41,7 @@ class ChatHubService {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);
       }
+      print('Received message: ${arguments![0]}');
     });
   }
 

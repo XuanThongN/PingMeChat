@@ -1,9 +1,5 @@
-import 'package:pingmechat_ui/domain/models/chat.dart';
-import 'package:pingmechat_ui/domain/models/message.dart';
-import 'package:pingmechat_ui/domain/usecases/chat/get_messages.dart';
-
 import '../../domain/repositories/chat_repository.dart';
-import '../datasources/remote/chat_remote_datasource.dart';
+import '../datasources/chat_remote_datasource.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatRemoteDataSource remoteDataSource;

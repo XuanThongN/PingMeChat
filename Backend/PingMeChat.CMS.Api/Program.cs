@@ -188,12 +188,18 @@ else
 }
 
 app.UseHttpsRedirection();
+// app.UseCors(options => options
+//         .WithOrigins("http://localhost:9000", "https://localhost:9000")
+//        .AllowAnyMethod()
+//        .AllowAnyHeader()
+//        .AllowCredentials()
+//    );
 app.UseCors(options => options
-        .WithOrigins("http://localhost:9000", "https://localhost:9000")
-       .AllowAnyMethod()
-       .AllowAnyHeader()
-       .AllowCredentials()
-   );
+    .SetIsOriginAllowed(origin => true) // allow any origin
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()
+    );
 //app.UseCookiePolicy(new CookiePolicyOptions
 //{
 //    MinimumSameSitePolicy = SameSiteMode.None,

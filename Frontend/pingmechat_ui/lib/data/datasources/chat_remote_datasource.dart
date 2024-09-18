@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
-import '../../../domain/models/chat.dart';
-import '../../models/chat_model.dart';
+import '../../domain/models/chat.dart';
+import '../models/chat_model.dart';
 import 'chat_hub_service.dart';
 
 class ChatRemoteDataSource {

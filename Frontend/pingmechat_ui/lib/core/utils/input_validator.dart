@@ -1,5 +1,4 @@
 // Create a input validator class
-import 'package:flutter/material.dart';
 
 class InputValidator {
   static String? validateEmail(String? value) {

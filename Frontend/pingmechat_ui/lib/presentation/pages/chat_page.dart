@@ -2,72 +2,84 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/config/theme.dart';
+import 'package:pingmechat_ui/main.dart';
 import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
 import 'package:pingmechat_ui/presentation/pages/call_page.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
 import 'package:pingmechat_ui/presentation/pages/video_call_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
+import 'package:pingmechat_ui/providers/chat_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../domain/models/account.dart';
+import '../../domain/models/attachment.dart';
+import '../../domain/models/chat.dart';
+import '../../domain/models/message.dart';
 import 'incomming_call.dart';
 
-class Message {
-  final String sender;
-  final String content;
-  final DateTime timestamp;
-  final bool isAudio;
-  final String? audioDuration;
-  final String? audioUrl;
-  final String? imageUrl;
-  final String? videoUrl;
+// class Message {
+//   final String sender;
+//   final String content;
+//   final DateTime timestamp;
+//   final bool isAudio;
+//   final String? audioDuration;
+//   final String? audioUrl;
+//   final String? imageUrl;
+//   final String? videoUrl;
 
-  Message({
-    required this.sender,
-    required this.content,
-    required this.timestamp,
-    this.isAudio = false,
-    this.audioDuration,
-    this.audioUrl,
-    this.imageUrl,
-    this.videoUrl,
-  });
-}
+//   Message({
+//     required this.sender,
+//     required this.content,
+//     required this.timestamp,
+//     this.isAudio = false,
+//     this.audioDuration,
+//     this.audioUrl,
+//     this.imageUrl,
+//     this.videoUrl,
+//   });
+// }
 
 class ChatScreen extends StatefulWidget {
+  final String chatId;
+
+  const ChatScreen({Key? key, this.chatId = 'd3f5ef6a-4d3d-4294-a753-ba047ffb5283'}) : super(key: key);
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final List<Message> messages = [
-    Message(
-        sender: 'Jhon Abraham',
-        content: 'Hello ! Nazrul How are you?',
-        timestamp: DateTime.now().subtract(Duration(minutes: 16))),
-    Message(
-        sender: 'Nazrul',
-        content: 'You did your job well!',
-        timestamp: DateTime.now().subtract(Duration(minutes: 15))),
-    Message(
-        sender: 'Jhon Abraham',
-        content: 'Have a great working week!!',
-        videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
-        timestamp: DateTime.now().subtract(Duration(minutes: 14))),
-    Message(
-        sender: 'Jhon Abraham',
-        content: 'Hope you like it',
-        imageUrl: 'https://i.sstatic.net/B7tGA.gif?s=256',
-        timestamp: DateTime.now().subtract(Duration(minutes: 14))),
-    Message(
-      sender: 'Nazrul',
-      content: '',
-      timestamp: DateTime.now().subtract(Duration(minutes: 13)),
-      isAudio: true,
-      audioDuration: '00:16',
-      audioUrl:
-          'https://stream.nct.vn/NhacCuaTui2056/TraiDatOmMatTroi-KaiDinhAMEEGREYD-15211404.mp3', // Ensure this URL is correct and accessible
-    ),
-  ];
+  // final List<Message> messages = [
+  //   Message(
+  //       sender: 'Jhon Abraham',
+  //       content: 'Hello ! Nazrul How are you?',
+  //       timestamp: DateTime.now().subtract(Duration(minutes: 16))),
+  //   Message(
+  //       sender: 'Nazrul',
+  //       content: 'You did your job well!',
+  //       timestamp: DateTime.now().subtract(Duration(minutes: 15))),
+  //   Message(
+  //       sender: 'Jhon Abraham',
+  //       content: 'Have a great working week!!',
+  //       videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
+  //       timestamp: DateTime.now().subtract(Duration(minutes: 14))),
+  //   Message(
+  //       sender: 'Jhon Abraham',
+  //       content: 'Hope you like it',
+  //       imageUrl: 'https://i.sstatic.net/B7tGA.gif?s=256',
+  //       timestamp: DateTime.now().subtract(Duration(minutes: 14))),
+  //   Message(
+  //     sender: 'Nazrul',
+  //     content: '',
+  //     timestamp: DateTime.now().subtract(Duration(minutes: 13)),
+  //     isAudio: true,
+  //     audioDuration: '00:16',
+  //     audioUrl:
+  //         'https://stream.nct.vn/NhacCuaTui2056/TraiDatOmMatTroi-KaiDinhAMEEGREYD-15211404.mp3', // Ensure this URL is correct and accessible
+  //   ),
+  // ];
+  List<Message> messages = [];
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
@@ -82,9 +94,14 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    // WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     // _audioPlayer = AudioPlayer();
     // _audioPlayer.setReleaseMode(ReleaseMode.stop);
+
+    // Load messages when the screen is first created
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatProvider>().messages;
+    });
   }
 
   void _scrollToBottom() {
@@ -122,20 +139,61 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[index];
-                final showAvatar = _shouldShowAvatar(index);
-                final showTimestamp = _shouldShowTimestamp(index);
+            child: _buildMessageList(),
+          ),
+          // _buildMessageInput(),
+          _buildMessageComposer(),
+        ],
+      ),
+    );
+  }
 
-                return _buildMessageItem(message, showAvatar, showTimestamp);
+  Widget _buildMessageList() {
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, child) {
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: chatProvider.messages.length,
+          itemBuilder: (context, index) {
+            final message = chatProvider.messages[index];
+            final showAvatar = _shouldShowAvatar(chatProvider.messages, index);
+            final showTimestamp =
+                _shouldShowTimestamp(chatProvider.messages, index);
+            return _buildMessageItem(
+              message,
+              showAvatar,
+              showTimestamp,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMessageComposer() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _textController,
+              onChanged: (text) {
+                setState(() {
+                  _isComposing = text.isNotEmpty;
+                });
               },
+              onSubmitted: _isComposing ? _handleSubmitted : (String a) {},
+              decoration: InputDecoration.collapsed(hintText: "Send a message"),
             ),
           ),
-          _buildMessageInput(),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: _isComposing
+                ? () => _handleSubmitted(_textController.text)
+                : null,
+          ),
         ],
       ),
     );
@@ -270,49 +328,36 @@ class _ChatScreenState extends State<ChatScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
-                  // children: [
-                  //   message.audioUrl!.isNotEmpty
-                  //       ? _buildAudioMessage(
-                  //           message.audioDuration!, message.audioUrl!)
-                  //       : Text(
-                  //           message.content,
-                  //           style: AppTypography.message.copyWith(
-                  //             color: isMe ? AppColors.white : AppColors.secondary,
-                  //           ),
-                  //         ),
-                  // ],
                   children: [
-                    if (message.audioUrl != null &&
-                        message.audioDuration != null)
-                      _buildAudioMessage(
-                          message.audioDuration!, message.audioUrl!),
-                    if (message.imageUrl != null)
-                      // Image.network(message.imageUrl!),
-                      // Hiển thị hình ảnh trong một container có kích thước cố định và bo tròn
-                      Container(
-                        width: 200,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(
-                            image: NetworkImage(message.imageUrl!),
-                            fit: BoxFit.cover,
+                    if (message.attachments != null)
+                      for (var attachment in message.attachments!)
+                        if (attachment.fileType == 'image')
+                          Container(
+                            width: 200,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: NetworkImage(attachment.filePath),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
+                    if (message.attachments != null)
+                      for (var attachment in message.attachments!)
+                        if (attachment.fileType == 'video')
+                          Container(
+                            width: 200,
+                            height: 150,
+                            child: VideoPlayerWidget(url: attachment.filePath),
+                          ),
+                    if (message.content != null)
+                      Text(
+                        message.content!,
+                        style: AppTypography.message.copyWith(
+                          color: isMe ? AppColors.white : AppColors.secondary,
                         ),
                       ),
-                    if (message.videoUrl != null)
-                      // Use a video player widget to display the video
-                      Container(
-                        width: 200,
-                        height: 150,
-                        child: VideoPlayerWidget(url: message.videoUrl!),
-                      ),
-                    Text(
-                      message.content,
-                      style: AppTypography.message.copyWith(
-                        color: isMe ? AppColors.white : AppColors.secondary,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -320,7 +365,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    DateFormat('hh:mm a').format(message.timestamp),
+                    DateFormat('hh:mm a').format(message.sentAt),
                     style: AppTypography.chatTime,
                   ),
                 ),
@@ -388,91 +433,91 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageInput() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: CustomSvgIcon(
-              svgPath: 'assets/icons/Clip, Attachment.svg',
-              color: AppColors.secondary,
-            ),
-            onPressed: _pickAction,
-          ),
-          Expanded(
-            child: TextField(
-              controller: _textController,
-              onChanged: (text) {
-                setState(() {
-                  _isComposing = text.isNotEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Aa',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: AppColors.surface,
-                // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                suffixIcon: IconButton(
-                  icon: CustomSvgIcon(
-                    svgPath: 'assets/icons/files_in_message.svg',
-                    color: AppColors.tertiary,
-                    size: 24,
-                  ),
-                  onPressed: _pickSticker,
-                ),
-              ),
-            ),
-          ),
-          if (!_isComposing) ...[
-            // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/camera 01_in_message.svg',
-                color: AppColors.secondary,
-                size: 24,
-              ),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/microphone_in_message.svg',
-                color: AppColors.secondary,
-                size: 24,
-              ),
-              onPressed: _pickVideo,
-            ),
-          ],
-          if (_isComposing)
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/Send_in_message.svg',
-                color: AppColors.primary,
-              ),
-              onPressed: _handleSubmitted,
-            ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildMessageInput() {
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.1),
+  //           spreadRadius: 1,
+  //           blurRadius: 3,
+  //           offset: Offset(0, -1),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         IconButton(
+  //           icon: CustomSvgIcon(
+  //             svgPath: 'assets/icons/Clip, Attachment.svg',
+  //             color: AppColors.secondary,
+  //           ),
+  //           onPressed: _pickAction,
+  //         ),
+  //         Expanded(
+  //           child: TextField(
+  //             controller: _textController,
+  //             onChanged: (text) {
+  //               setState(() {
+  //                 _isComposing = text.isNotEmpty;
+  //               });
+  //             },
+  //             decoration: InputDecoration(
+  //               hintText: 'Aa',
+  //               hintStyle: TextStyle(color: Colors.grey[400]),
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(25),
+  //                 borderSide: BorderSide.none,
+  //               ),
+  //               filled: true,
+  //               fillColor: AppColors.surface,
+  //               // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
+  //               contentPadding:
+  //                   EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //               suffixIcon: IconButton(
+  //                 icon: CustomSvgIcon(
+  //                   svgPath: 'assets/icons/files_in_message.svg',
+  //                   color: AppColors.tertiary,
+  //                   size: 24,
+  //                 ),
+  //                 onPressed: _pickSticker,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //         if (!_isComposing) ...[
+  //           // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/camera 01_in_message.svg',
+  //               color: AppColors.secondary,
+  //               size: 24,
+  //             ),
+  //             onPressed: () {},
+  //           ),
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/microphone_in_message.svg',
+  //               color: AppColors.secondary,
+  //               size: 24,
+  //             ),
+  //             onPressed: _pickVideo,
+  //           ),
+  //         ],
+  //         if (_isComposing)
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/Send_in_message.svg',
+  //               color: AppColors.primary,
+  //             ),
+  //             onPressed: _handleSubmitted,
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // Widget _buildMessageInput() {
   //   return Container(
@@ -533,16 +578,41 @@ class _ChatScreenState extends State<ChatScreen> {
   //   );
   // }
 
-  void _handleSubmitted() {
-    final text = _textController.text;
+  void _handleSubmitted(String text) {
+    // final text = _textController.text;
     if (text.isNotEmpty || _selectedImage != null || _selectedVideo != null) {
       setState(() {
         messages.add(Message(
-          sender: 'Nazrul',
+          chatId: 'chatId',
+          // Add a valid chat ID
+          senderId: 'Nazrul',
+          // Use a valid sender ID
+          sentAt: DateTime.now(),
+          chat: Chat(
+              name: 'Chat Name', isGroup: false, userChats: [], messages: []),
+          // Add a valid Chat object
           content: text,
-          timestamp: DateTime.now(),
-          imageUrl: _selectedImage,
-          videoUrl: _selectedVideo,
+          attachments: [
+            if (_selectedImage != null)
+              Attachment(
+                  fileName: 'image',
+                  filePath: _selectedImage!,
+                  fileType: 'image',
+                  fileSize: 100,
+                  messageId: 'messageId'),
+            if (_selectedVideo != null)
+              Attachment(
+                  fileName: 'video',
+                  filePath: _selectedVideo!,
+                  fileType: 'video',
+                  fileSize: 100,
+                  messageId: 'messageId'),
+          ],
+          sender: Account(
+            fullName: 'Nazrul',
+            email: 'Nazrul',
+            phoneNumber: 'Nazrul',
+          ),
         ));
         _textController.clear();
         _isComposing = false;
@@ -669,24 +739,32 @@ class _ChatScreenState extends State<ChatScreen> {
   //   }
   // }
 
-  bool _shouldShowAvatar(int index) {
+  // bool _shouldShowAvatar(int index) {
+  //   if (index == 0) return true;
+  //   final currentMessage = messages[index];
+  //   final previousMessage = messages[index - 1];
+  //   return currentMessage.senderId != previousMessage.senderId ||
+  //       currentMessage.sentAt.difference(previousMessage.sentAt).inMinutes >= 1;
+  // }
+  bool _shouldShowAvatar(List<Message> messages, int index) {
     if (index == 0) return true;
     final currentMessage = messages[index];
     final previousMessage = messages[index - 1];
-    return currentMessage.sender != previousMessage.sender ||
-        currentMessage.timestamp
-                .difference(previousMessage.timestamp)
-                .inMinutes >=
-            1;
+    return currentMessage.senderId != previousMessage.senderId;
   }
 
-  bool _shouldShowTimestamp(int index) {
+  // bool _shouldShowTimestamp(int index) {
+  //   if (index == messages.length - 1) return true;
+  //   final currentMessage = messages[index];
+  //   final nextMessage = messages[index + 1];
+  //   return currentMessage.senderId != nextMessage.senderId ||
+  //       nextMessage.sentAt.difference(currentMessage.sentAt).inMinutes >= 1;
+  // }
+  bool _shouldShowTimestamp(List<Message> messages, int index) {
     if (index == messages.length - 1) return true;
     final currentMessage = messages[index];
     final nextMessage = messages[index + 1];
-    return currentMessage.sender != nextMessage.sender ||
-        nextMessage.timestamp.difference(currentMessage.timestamp).inMinutes >=
-            1;
+    return nextMessage.sentAt.difference(currentMessage.sentAt).inMinutes >= 1;
   }
 }
 

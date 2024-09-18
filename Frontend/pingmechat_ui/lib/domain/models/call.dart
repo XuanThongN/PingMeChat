@@ -1,5 +1,5 @@
-import 'package:pingmechat_ui/domain/entities/callparticipant.dart';
-import 'package:pingmechat_ui/domain/entities/chat.dart';
+import 'package:pingmechat_ui/domain/models/callparticipant.dart';
+import 'package:pingmechat_ui/domain/models/chat.dart';
 
 enum CallStatus {
   inProgress,

@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
-import '../data/datasources/remote/chat_service.dart';
+import '../data/datasources/chat_service.dart';
 import '../data/models/chat_model.dart';
 import '../domain/models/chat.dart';
 import '../domain/models/message.dart';
@@ -11,13 +13,18 @@ class ChatProvider extends ChangeNotifier {
   List<Message> _messages = [];
 
   ChatProvider(this._chatService) {
-    _initListeners();
+    _initialize();
   }
 
   List<Chat> get chats => _chats;
   List<Message> get messages => _messages;
 
-  void _initListeners() {
+  Future<void> _initialize() async {
+    await _chatService.initialize();
+    _setupSignalRListeners();
+  }
+
+  void _setupSignalRListeners() {
     _chatService.onNewGroupChat((chat) {
       _chats.add(chat);
       notifyListeners();
@@ -28,7 +35,22 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     });
 
-    // Thêm các listeners khác
+    _chatService.chatHubService.onReceiveMessage((message) {
+      // Assume message is a JSON string that can be converted to a Message object
+      print("Tin nhắn nhận đc từ server: " + jsonDecode(message));
+      _messages.add(Message.fromJson(jsonDecode(message)));
+      notifyListeners();
+    });
+
+    _chatService.onNewGroupChat((chat) {
+      _chats.add(chat);
+      notifyListeners();
+    });
+
+    _chatService.onNewPrivateChat((chat) {
+      _chats.add(chat);
+      notifyListeners();
+    });
   }
 
   // Future<void> loadChats() async {
