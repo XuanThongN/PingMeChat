@@ -18,66 +18,16 @@ import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import 'incomming_call.dart';
 
-// class Message {
-//   final String sender;
-//   final String content;
-//   final DateTime timestamp;
-//   final bool isAudio;
-//   final String? audioDuration;
-//   final String? audioUrl;
-//   final String? imageUrl;
-//   final String? videoUrl;
-
-//   Message({
-//     required this.sender,
-//     required this.content,
-//     required this.timestamp,
-//     this.isAudio = false,
-//     this.audioDuration,
-//     this.audioUrl,
-//     this.imageUrl,
-//     this.videoUrl,
-//   });
-// }
-
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String chatId;
+
+  const ChatScreen({super.key, required this.chatId});
+  
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final String chatId = 'd3f5ef6a-4d3d-4294-a753-ba047ffb5283';
-  // final List<Message> messages = [
-  //   Message(
-  //       sender: 'Jhon Abraham',
-  //       content: 'Hello ! Nazrul How are you?',
-  //       timestamp: DateTime.now().subtract(Duration(minutes: 16))),
-  //   Message(
-  //       sender: 'Nazrul',
-  //       content: 'You did your job well!',
-  //       timestamp: DateTime.now().subtract(Duration(minutes: 15))),
-  //   Message(
-  //       sender: 'Jhon Abraham',
-  //       content: 'Have a great working week!!',
-  //       videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
-  //       timestamp: DateTime.now().subtract(Duration(minutes: 14))),
-  //   Message(
-  //       sender: 'Jhon Abraham',
-  //       content: 'Hope you like it',
-  //       imageUrl: 'https://i.sstatic.net/B7tGA.gif?s=256',
-  //       timestamp: DateTime.now().subtract(Duration(minutes: 14))),
-  //   Message(
-  //     sender: 'Nazrul',
-  //     content: '',
-  //     timestamp: DateTime.now().subtract(Duration(minutes: 13)),
-  //     isAudio: true,
-  //     audioDuration: '00:16',
-  //     audioUrl:
-  //         'https://stream.nct.vn/NhacCuaTui2056/TraiDatOmMatTroi-KaiDinhAMEEGREYD-15211404.mp3', // Ensure this URL is correct and accessible
-  //   ),
-  // ];
-  List<Message> messages = [];
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
@@ -98,7 +48,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Load messages when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>().messages;
+      context.read<ChatProvider>().loadMessages(widget.chatId, refresh: true);
     });
   }
 
@@ -580,46 +530,46 @@ class _ChatScreenState extends State<ChatScreen> {
     // final text = _textController.text;
     if (text.isNotEmpty || _selectedImage != null || _selectedVideo != null) {
       setState(() {
-        messages.add(Message(
-          chatId: 'chatId',
-          // Add a valid chat ID
-          senderId: 'Nazrul',
-          // Use a valid sender ID
-          createdDate: DateTime.now(),
-          chat: Chat(
-              id: 'chatId',
-              name: 'Chat Name',
-              isGroup: false,
-              userChats: [],
-              messages: []),
-          // Add a valid Chat object
-          content: text,
-          attachments: [
-            if (_selectedImage != null)
-              Attachment(
-                  fileName: 'image',
-                  filePath: _selectedImage!,
-                  fileType: 'image',
-                  fileSize: 100,
-                  messageId: 'messageId'),
-            if (_selectedVideo != null)
-              Attachment(
-                  fileName: 'video',
-                  filePath: _selectedVideo!,
-                  fileType: 'video',
-                  fileSize: 100,
-                  messageId: 'messageId'),
-          ],
-          sender: Account(
-            id: 'Nazrul',
-            fullName: 'Nazrul',
-            email: 'Nazrul',
-            phoneNumber: 'Nazrul',
-          ),
-        ));
+        // messages.add(Message(
+        //   chatId: 'chatId',
+        //   // Add a valid chat ID
+        //   senderId: 'Nazrul',
+        //   // Use a valid sender ID
+        //   createdDate: DateTime.now(),
+        //   chat: Chat(
+        //       id: 'chatId',
+        //       name: 'Chat Name',
+        //       isGroup: false,
+        //       userChats: [],
+        //       messages: []),
+        //   // Add a valid Chat object
+        //   content: text,
+        //   attachments: [
+        //     if (_selectedImage != null)
+        //       Attachment(
+        //           fileName: 'image',
+        //           filePath: _selectedImage!,
+        //           fileType: 'image',
+        //           fileSize: 100,
+        //           messageId: 'messageId'),
+        //     if (_selectedVideo != null)
+        //       Attachment(
+        //           fileName: 'video',
+        //           filePath: _selectedVideo!,
+        //           fileType: 'video',
+        //           fileSize: 100,
+        //           messageId: 'messageId'),
+        //   ],
+        //   sender: Account(
+        //     id: 'Nazrul',
+        //     fullName: 'Nazrul',
+        //     email: 'Nazrul',
+        //     phoneNumber: 'Nazrul',
+        //   ),
+        // ));
 
         // Gọi hàm gửi tin nhắn tới server ở đây
-        context.read<ChatProvider>().sendMessage(chatId, text);
+        context.read<ChatProvider>().sendMessage(widget.chatId, text);
 
         _textController.clear();
         _isComposing = false;

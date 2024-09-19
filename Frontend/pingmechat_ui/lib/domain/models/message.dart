@@ -35,7 +35,8 @@ class Message {
       messageReaders: (json['messageReaders'] as List?)
           ?.map((i) => MessageReader.fromJson(i))
           .toList(),
-      sender: Account.fromJson(json['sender']),
+      // sender: Account.fromJson(json['sender']) as Account? ??
+      //     null // Dùng as Account? để ép kiểu về Account hoặc null
     );
   }
 

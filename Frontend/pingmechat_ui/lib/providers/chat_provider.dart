@@ -19,6 +19,12 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasMoreChats = true; // Có còn chats để load hay không
 
+  // Các biến dùng cho phân trang tin nhắn
+  int _currentMessagePage = 1;
+  bool _isLoadingMessages = false;
+  bool _hasMoreMessages = true;
+
+  // Constructor
   ChatProvider(this._chatService) {
     _initialize();
   }
@@ -46,7 +52,6 @@ class ChatProvider extends ChangeNotifier {
     });
 
     _chatService.chatHubService.onReceiveMessage((message) {
-
       messages.add(Message(
         chatId: message.chatId,
         senderId: message.senderId,
@@ -66,29 +71,30 @@ class ChatProvider extends ChangeNotifier {
           email: '',
         ),
       ));
+
+      // Cập nhật lại tin nhắn cuối cùng của cuộc trò chuyện
+      final chatIndex = _chats.indexWhere((c) => c.id == message.chatId);
+      if (chatIndex != -1) {
+        // Xoá tin nhắn cũ nhất trong danh sách tin nhắn của cuộc trò chuyện
+        if (_chats[chatIndex].messages!.isNotEmpty) _chats[chatIndex].messages!.clear();
+        // Thêm tin nhắn mới nhất vào đầu danh sách tin nhắn của cuộc trò chuyện
+        _chats[chatIndex].messages!.insert(0, message);
+
+        // Sắp xếp lại danh sách các cuộc trò chuyện theo thời gian tin nhắn cuối cùng
+        _chats.sort((a, b) {
+          final lastMessageA = a.messages!.isNotEmpty ? a.messages!.first.createdDate : a.createdDate;
+          final lastMessageB = b.messages!.isNotEmpty ? b.messages!.first.createdDate : b.createdDate;
+          return lastMessageB!.compareTo(lastMessageA!);
+        });
+      }
       // Assume message is a JSON string that can be converted to a Message object
       print("Tin nhắn nhận đc từ server: ");
       // _messages.add(Message.fromJson(jsonDecode(message)));
       notifyListeners();
     });
-
-    _chatService.onNewGroupChat((chat) {
-      _chats.add(chat);
-      notifyListeners();
-    });
-
-    _chatService.onNewPrivateChat((chat) {
-      _chats.add(chat);
-      notifyListeners();
-    });
   }
 
-  // Future<void> loadChats() async {
-  //   _chats = await _chatService.getChats();
-  //   notifyListeners();
-  // }
-
-   Future<void> loadChats({bool refresh = false}) async {
+  Future<void> loadChats({bool refresh = false}) async {
     if (refresh) {
       _currentPage = 1;
       _chats.clear();
@@ -102,8 +108,9 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       // Gọi API để lấy chats với _currentPage và _itemsPerPage
-      final newChats = await _chatService.getChats(page: _currentPage, pageSize: _itemsPerPage);
-      
+      final newChats = await _chatService.getChats(
+          page: _currentPage, pageSize: _itemsPerPage);
+
       if (newChats.isEmpty) {
         _hasMoreChats = false;
       } else {
@@ -158,6 +165,37 @@ class ChatProvider extends ChangeNotifier {
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
     await _chatService.startNewChat(chatCreateDto);
     // Chat mới sẽ được thêm vào thông qua listeners
+  }
+
+  // Hàm get tất cả tin nhắn của một cuộc trò chuyện
+  Future<void> loadMessages(String chatId, {bool refresh = false}) async {
+    if (refresh) {
+      _messages.clear();
+      _currentMessagePage = 1;
+    }
+
+    // if (_isLoadingMessages || !_hasMoreMessages) return;
+    if (!_hasMoreMessages) return;
+
+    _isLoadingMessages = true;
+    notifyListeners();
+
+    try {
+      final newMessages = await _chatService.getMessages(
+          chatId: chatId, page: _currentMessagePage, pageSize: _itemsPerPage);
+
+      if (newMessages.isEmpty) {
+        _hasMoreMessages = false;
+      } else {
+        _messages.addAll(newMessages);
+        _currentMessagePage++;
+      }
+    } catch (error) {
+      print('Error loading messages: $error');
+    } finally {
+      _isLoadingMessages = false;
+      notifyListeners();
+    }
   }
 
   // Thêm các phương thức khác tương ứng với các chức năng của ChatHub

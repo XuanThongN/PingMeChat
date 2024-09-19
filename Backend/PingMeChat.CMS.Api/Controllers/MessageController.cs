@@ -42,7 +42,7 @@ namespace PingMeChat.CMS.Api.Controllers
         [Route(ApiRoutes.Feature.Message.GetChatMessagesRoute)]
         [ProducesResponseType(typeof(PagedResponse<List<MessageDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetChatMessages(
-            [FromQuery] string chatId,
+            [FromRoute] string chatId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 20)
         {

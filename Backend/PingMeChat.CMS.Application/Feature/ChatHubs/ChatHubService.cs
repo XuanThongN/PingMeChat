@@ -13,12 +13,13 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             _hubContext = hubContext;
         }
 
-        public async Task SendMessageAsync(string chatId, string senderId, string message)
+        public async Task SendMessageAsync(string chatId, string senderId, string message, DateTime dateTime)
         {
             var messageDto = new MessageDto {
                 ChatId = chatId,
                 Content = message,
-                SenderId = senderId
+                SenderId = senderId,
+                CreatedDate = dateTime
             }; 
             await _hubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", messageDto);
         }

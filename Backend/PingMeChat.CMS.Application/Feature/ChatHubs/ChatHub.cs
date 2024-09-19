@@ -120,7 +120,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 throw new AppException("Access denied");
             }
             // Gửi realtime tới những người tham gia đoạn chat
-            await _chatHubService.SendMessageAsync(chatId, userId, message);
+            await _chatHubService.SendMessageAsync(chatId, userId, message, DateTime.UtcNow);
             // Lưu tin nhắn vào database
             await _messageService.SendMessageAsync(chatId, userId, message);
         }

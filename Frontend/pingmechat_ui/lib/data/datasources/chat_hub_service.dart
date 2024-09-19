@@ -1,4 +1,5 @@
 import 'package:pingmechat_ui/data/models/chat_model.dart';
+import 'package:pingmechat_ui/domain/models/message.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 import '../../domain/models/chat.dart';
@@ -14,7 +15,7 @@ class ChatHubService {
   Future<void> connect() async {
     _hubConnection = HubConnectionBuilder()
         .withUrl(
-          'https://jxhq42vd-7043.asse.devtunnels.ms/chatHub', // Use HTTPS for negotiation
+          'https://4jnvrgvp-7043.asse.devtunnels.ms/chatHub', // Use HTTPS for negotiation
           HttpConnectionOptions(
             accessTokenFactory: () async {
               return 'Bearer ${accessToken},${refreshToken}';
@@ -66,13 +67,23 @@ class ChatHubService {
     print('Failed to reconnect after $maxAttempts attempts');
   }
 
-  void onReceiveMessage(void Function(MessageDto message) handler) {
+  // void onReceiveMessage(void Function(MessageDto message) handler) {
+  //   _hubConnection.on('ReceiveMessage', (arguments) {
+  //     print('Received data: $arguments');
+  //     if (arguments == null || arguments.isEmpty) return;
+  //     final messageData = arguments![0] as Map<String, dynamic>;
+  //     final messageDto = MessageDto.fromJson(messageData);
+  //     handler(messageDto);
+  //   });
+  // }
+  
+  void onReceiveMessage(void Function(Message message) handler) {
     _hubConnection.on('ReceiveMessage', (arguments) {
       print('Received data: $arguments');
       if (arguments == null || arguments.isEmpty) return;
       final messageData = arguments![0] as Map<String, dynamic>;
-      final messageDto = MessageDto.fromJson(messageData);
-      handler(messageDto);
+      final messsage = Message.fromJson(messageData);
+      handler(messsage);
     });
   }
 
