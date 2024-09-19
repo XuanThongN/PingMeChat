@@ -1,12 +1,18 @@
+import 'package:pingmechat_ui/domain/models/account.dart';
+
 class UserChat {
-  final String userId;
-  final String chatId;
-  final bool isAdmin;
+  String userId;
+  String chatId;
+  bool isAdmin;
+  String id;
+  Account? user;
 
   UserChat({
     required this.userId,
     required this.chatId,
     required this.isAdmin,
+    required this.id,
+    this.user,
   });
 
   factory UserChat.fromJson(Map<String, dynamic> json) {
@@ -14,6 +20,8 @@ class UserChat {
       userId: json['userId'],
       chatId: json['chatId'],
       isAdmin: json['isAdmin'],
+      id: json['id'],
+      user: Account.fromJson(json['userDto']),
     );
   }
 
@@ -22,6 +30,7 @@ class UserChat {
       'userId': userId,
       'chatId': chatId,
       'isAdmin': isAdmin,
+      'id': id,
     };
   }
 }

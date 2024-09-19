@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.SignalR;
+using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 
 namespace PingMeChat.CMS.Application.Feature.ChatHubs
 {
@@ -12,9 +13,14 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             _hubContext = hubContext;
         }
 
-        public async Task SendMessageAsync(string chatId, string userId, string message)
+        public async Task SendMessageAsync(string chatId, string senderId, string message)
         {
-            await _hubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", userId, message);
+            var messageDto = new MessageDto {
+                ChatId = chatId,
+                Content = message,
+                SenderId = senderId
+            }; 
+            await _hubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", messageDto);
         }
 
         public async Task JoinGroupAsync(string connectionId, string groupName)

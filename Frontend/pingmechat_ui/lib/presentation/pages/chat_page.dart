@@ -41,15 +41,13 @@ import 'incomming_call.dart';
 // }
 
 class ChatScreen extends StatefulWidget {
-  final String chatId;
-
-  const ChatScreen({Key? key, this.chatId = 'd3f5ef6a-4d3d-4294-a753-ba047ffb5283'}) : super(key: key);
-
+  const ChatScreen({super.key});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final String chatId = 'd3f5ef6a-4d3d-4294-a753-ba047ffb5283';
   // final List<Message> messages = [
   //   Message(
   //       sender: 'Jhon Abraham',
@@ -365,7 +363,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    DateFormat('hh:mm a').format(message.sentAt),
+                    DateFormat('hh:mm a').format(message.createdDate),
                     style: AppTypography.chatTime,
                   ),
                 ),
@@ -587,9 +585,13 @@ class _ChatScreenState extends State<ChatScreen> {
           // Add a valid chat ID
           senderId: 'Nazrul',
           // Use a valid sender ID
-          sentAt: DateTime.now(),
+          createdDate: DateTime.now(),
           chat: Chat(
-              name: 'Chat Name', isGroup: false, userChats: [], messages: []),
+              id: 'chatId',
+              name: 'Chat Name',
+              isGroup: false,
+              userChats: [],
+              messages: []),
           // Add a valid Chat object
           content: text,
           attachments: [
@@ -609,11 +611,16 @@ class _ChatScreenState extends State<ChatScreen> {
                   messageId: 'messageId'),
           ],
           sender: Account(
+            id: 'Nazrul',
             fullName: 'Nazrul',
             email: 'Nazrul',
             phoneNumber: 'Nazrul',
           ),
         ));
+
+        // Gọi hàm gửi tin nhắn tới server ở đây
+        context.read<ChatProvider>().sendMessage(chatId, text);
+
         _textController.clear();
         _isComposing = false;
         _selectedImage = null;
@@ -764,7 +771,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (index == messages.length - 1) return true;
     final currentMessage = messages[index];
     final nextMessage = messages[index + 1];
-    return nextMessage.sentAt.difference(currentMessage.sentAt).inMinutes >= 1;
+    return nextMessage.createdDate
+            .difference(currentMessage.createdDate)
+            .inMinutes >=
+        1;
   }
 }
 

@@ -2,26 +2,37 @@ import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 import '../../domain/models/chat.dart';
+import '../models/message_model.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;
-  String accessToken = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdXBlcmFkbWluIiwiVXNlcklkIjoiY2MxZTY2M2EtMTdiNy00NzBiLWFmZDUtYmM0NzUyYzgwZGQxIiwiRW1haWwiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImp0aSI6IjBmYjBiOTMwLWQ0YjktNGE5ZC1hMTRiLWQyYTVlMDJkMjlmOCIsImV4cCI6MTcyNjUzMjY5NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDMwIiwiYXVkIjoiVXNlciJ9.4mEXsimCtuAB8PSyOjRKHGCGXXh1A29CR8A5OXFuZzYKcpE5mYDmCIR-2xFrv6urFoK0i5uC22xuRM3e38K3nQ';
-   String refreshToken = 'pwkvVjtwWqH10PhHZD3YjMwEZBUVkejOd2x2qIhgA1+OdBC3Th9t+SbinZLss5iQg5RxVTD4iZZFLto5NJ0U+g==';
+  String accessToken =
+      'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdXBlcmFkbWluIiwiVXNlcklkIjoiY2MxZTY2M2EtMTdiNy00NzBiLWFmZDUtYmM0NzUyYzgwZGQxIiwiRW1haWwiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImp0aSI6IjBmYjBiOTMwLWQ0YjktNGE5ZC1hMTRiLWQyYTVlMDJkMjlmOCIsImV4cCI6MTcyNjUzMjY5NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDMwIiwiYXVkIjoiVXNlciJ9.4mEXsimCtuAB8PSyOjRKHGCGXXh1A29CR8A5OXFuZzYKcpE5mYDmCIR-2xFrv6urFoK0i5uC22xuRM3e38K3nQ';
+  String refreshToken =
+      'pwkvVjtwWqH10PhHZD3YjMwEZBUVkejOd2x2qIhgA1+OdBC3Th9t+SbinZLss5iQg5RxVTD4iZZFLto5NJ0U+g==';
 
   Future<void> connect() async {
     _hubConnection = HubConnectionBuilder()
         .withUrl(
-          'https://localhost:7043/chatHub', // Use HTTPS for negotiation
+          'https://jxhq42vd-7043.asse.devtunnels.ms/chatHub', // Use HTTPS for negotiation
           HttpConnectionOptions(
-            // accessTokenFactory: () async => accessToken,
+            accessTokenFactory: () async {
+              return 'Bearer ${accessToken},${refreshToken}';
+            },
             transport: HttpTransportType.webSockets,
             customHeaders: {
               'Authorization': 'Bearer $accessToken',
               'RefreshToken': refreshToken,
             },
+            logging: (level, message) => print('SignalR: $level - $message'),
           ),
         )
         .build();
+
+    _hubConnection.onclose((error) async {
+      print('Connection closed: $error');
+      await reconnect();
+    });
 
     try {
       await _hubConnection.start();
@@ -32,16 +43,36 @@ class ChatHubService {
         // Optionally, handle token refresh logic here
       } else {
         print('Error connecting to SignalR hub: $e');
+        await reconnect();
       }
     }
   }
 
-  void onReceiveMessage(void Function(String message) handler) {
-    _hubConnection.on('ReceiveMessage', (arguments) {
-      if (arguments != null && arguments.isNotEmpty) {
-        handler(arguments[0] as String);
+  Future<void> reconnect() async {
+    const int maxAttempts = 5;
+    int attempt = 0;
+    while (attempt < maxAttempts) {
+      attempt++;
+      print('Reconnecting attempt $attempt...');
+      try {
+        await _hubConnection.start();
+        print('Reconnected to SignalR hub');
+        return;
+      } catch (e) {
+        print('Reconnection attempt $attempt failed: $e');
+        await Future.delayed(Duration(seconds: 2));
       }
-      print('Received message: ${arguments![0]}');
+    }
+    print('Failed to reconnect after $maxAttempts attempts');
+  }
+
+  void onReceiveMessage(void Function(MessageDto message) handler) {
+    _hubConnection.on('ReceiveMessage', (arguments) {
+      print('Received data: $arguments');
+      if (arguments == null || arguments.isEmpty) return;
+      final messageData = arguments![0] as Map<String, dynamic>;
+      final messageDto = MessageDto.fromJson(messageData);
+      handler(messageDto);
     });
   }
 
@@ -50,7 +81,8 @@ class ChatHubService {
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
-    await _hubConnection.invoke('StartNewChatAsync', args: [chatCreateDto.toJson()]);
+    await _hubConnection
+        .invoke('StartNewChatAsync', args: [chatCreateDto.toJson()]);
   }
 
   void onNewGroupChat(void Function(Chat chat) handler) {
@@ -111,7 +143,8 @@ class ChatHubService {
   }
 
   Future<void> sendIceCandidate(String targetUserId, String candidate) async {
-    await _hubConnection.invoke('IceCandidate', args: [targetUserId, candidate]);
+    await _hubConnection
+        .invoke('IceCandidate', args: [targetUserId, candidate]);
   }
 
   Future<void> sendOffer(String targetUserId, String sdp) async {
@@ -126,7 +159,8 @@ class ChatHubService {
     await _hubConnection.invoke('EndCall', args: [targetUserId]);
   }
 
-  void onIncomingCall(void Function(String callerUserId, bool isVideo) handler) {
+  void onIncomingCall(
+      void Function(String callerUserId, bool isVideo) handler) {
     _hubConnection.on('IncomingCall', (arguments) {
       if (arguments != null && arguments.length >= 2) {
         handler(arguments[0] as String, arguments[1] as bool);

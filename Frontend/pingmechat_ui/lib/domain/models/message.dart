@@ -6,21 +6,21 @@ class Message {
   final String chatId;
   final String senderId;
   final String? content;
-  final DateTime sentAt;
+  final DateTime createdDate;
   final List<Attachment>? attachments;
   final List<MessageReader>? messageReaders;
-  final Chat chat;
-  final Account sender;
+  final Chat? chat;
+  final Account? sender;
 
   Message({
     required this.chatId,
     required this.senderId,
     this.content,
-    required this.sentAt,
+    required this.createdDate,
     this.attachments,
     this.messageReaders,
-    required this.chat,
-    required this.sender,
+    this.chat,
+    this.sender,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -28,14 +28,13 @@ class Message {
       chatId: json['chatId'],
       senderId: json['senderId'],
       content: json['content'],
-      sentAt: DateTime.parse(json['sentAt']),
+      createdDate: DateTime.parse(json['createdDate']),
       attachments: (json['attachments'] as List?)
           ?.map((i) => Attachment.fromJson(i))
           .toList(),
       messageReaders: (json['messageReaders'] as List?)
           ?.map((i) => MessageReader.fromJson(i))
           .toList(),
-      chat: Chat.fromJson(json['chat']),
       sender: Account.fromJson(json['sender']),
     );
   }
@@ -45,11 +44,10 @@ class Message {
       'chatId': chatId,
       'senderId': senderId,
       'content': content,
-      'sentAt': sentAt.toIso8601String(),
+      'createdDate': createdDate.toIso8601String(),
       'attachments': attachments?.map((i) => i.toJson()).toList(),
       'messageReaders': messageReaders?.map((i) => i.toJson()).toList(),
-      'chat': chat.toJson(),
-      'sender': sender.toJson(),
+      'sender': sender!.toJson(),
     };
   }
 }

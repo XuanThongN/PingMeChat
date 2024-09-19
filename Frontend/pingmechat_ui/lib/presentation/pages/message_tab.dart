@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
+import 'package:pingmechat_ui/domain/models/chat.dart';
+import 'package:pingmechat_ui/providers/chat_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../widgets/custom_icon.dart';
@@ -13,173 +17,174 @@ class MessageTab extends StatefulWidget {
 }
 
 class _MessageTabState extends State<MessageTab> {
-  final List<ChatItem> _allChatItems = [
-    ChatItem(
-        name: 'Alex Linderson',
-        message: 'How are you today?',
-        time: '2 min ago',
-        unreadCount: 3,
-        imageUrl: 'assets/images/alex.jpg',
-        isActive: true),
-    ChatItem(
-        name: 'Team Align',
-        message: 'Dont miss to attend the meeting.',
-        time: '2 min ago',
-        unreadCount: 4,
-        imageUrl: 'assets/images/team_align.jpg',
-        isActive: true),
-    ChatItem(
-        name: 'John Ahraham',
-        message: 'Hey! Can you join the meeting?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/john_a.jpg'),
-    ChatItem(
-        name: 'Sabila Sayma',
-        message: 'How are you today?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/sabila.jpg'),
-    ChatItem(
-        name: 'John Borino',
-        message: 'Have a good day 🌸',
-        time: '2 min ago',
-        imageUrl: 'assets/images/john_b.jpg'),
-    ChatItem(
-        name: 'John Borino',
-        message: 'Have a good day 🌸',
-        time: '2 min ago',
-        imageUrl: 'assets/images/john_b.jpg'),
-    ChatItem(
-        name: 'John Borino',
-        message: 'Have a good day 🌸',
-        time: '2 min ago',
-        imageUrl: 'assets/images/john_b.jpg'),
-    ChatItem(
-        name: 'Jane Doe',
-        message: 'Hello!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/jane.jpg'),
-    ChatItem(
-        name: 'John Doe',
-        message: 'Hi there!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/john.jpg'),
-    ChatItem(
-        name: 'Emma Watson',
-        message: 'What are you up to?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/emma.jpg'),
-    ChatItem(
-        name: 'Daniel Smith',
-        message: 'Lets grab lunch!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/daniel.jpg'),
-    ChatItem(
-        name: 'Sophia Johnson',
-        message: 'Can you help me with this?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/sophia.jpg'),
-    ChatItem(
-        name: 'Oliver Brown',
-        message: 'I have a question for you.',
-        time: '2 min ago',
-        imageUrl: 'assets/images/oliver.jpg'),
-    ChatItem(
-        name: 'Ava Wilson',
-        message: 'Are you free tomorrow?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/ava.jpg'),
-    ChatItem(
-        name: 'William Davis',
-        message: 'Lets go for a walk!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/william.jpg'),
-    ChatItem(
-        name: 'Mia Anderson',
-        message: 'I need your help!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/mia.jpg'),
-    ChatItem(
-        name: 'James Martinez',
-        message: 'How was your weekend?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/james.jpg'),
-    ChatItem(
-        name: 'Charlotte Taylor',
-        message: 'Lets catch up soon!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/charlotte.jpg'),
-    ChatItem(
-        name: 'Benjamin Harris',
-        message: 'Do you have any plans?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/benjamin.jpg'),
-    ChatItem(
-        name: 'Harper Clark',
-        message: 'I miss you!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/harper.jpg'),
-    ChatItem(
-        name: 'Elijah Lewis',
-        message: 'Can we talk?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/elijah.jpg'),
-    ChatItem(
-        name: 'Amelia Turner',
-        message: 'How are you feeling?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/amelia.jpg'),
-    ChatItem(
-        name: 'Logan Walker',
-        message: 'Lets hang out!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/logan.jpg'),
-    ChatItem(
-        name: 'Sofia Hill',
-        message: 'I have a surprise for you.',
-        time: '2 min ago',
-        imageUrl: 'assets/images/sofia.jpg'),
-    ChatItem(
-        name: 'Jackson Green',
-        message: 'Can you call me?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/jackson.jpg'),
-    ChatItem(
-        name: 'Lily Adams',
-        message: 'I need your advice.',
-        time: '2 min ago',
-        imageUrl: 'assets/images/lily.jpg'),
-    ChatItem(
-        name: 'Sebastian Wright',
-        message: 'Lets go on an adventure!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/sebastian.jpg'),
-    ChatItem(
-        name: 'Zoe Parker',
-        message: 'I have something to tell you.',
-        time: '2 min ago',
-        imageUrl: 'assets/images/zoe.jpg'),
-    ChatItem(
-        name: 'Michael Smith',
-        message: 'Good morning!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/michael.jpg'),
-    ChatItem(
-        name: 'Emily Johnson',
-        message: 'How was your day?',
-        time: '2 min ago',
-        imageUrl: 'assets/images/emily.jpg'),
-    ChatItem(
-        name: 'David Brown',
-        message: 'See you later!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/david.jpg'),
-    ChatItem(
-        name: 'Sarah Wilson',
-        message: 'Have a great weekend!',
-        time: '2 min ago',
-        imageUrl: 'assets/images/sarah.jpg'),
-  ];
-  List<ChatItem> _displayedChatItems = [];
+  late ChatProvider _chatProvider; // Khai báo provider
+  // final List<ChatItem> _allChatItems = [
+  //   ChatItem(
+  //       name: 'Alex Linderson',
+  //       message: 'How are you today?',
+  //       time: '2 min ago',
+  //       unreadCount: 3,
+  //       imageUrl: 'assets/images/alex.jpg',
+  //       isActive: true),
+  //   ChatItem(
+  //       name: 'Team Align',
+  //       message: 'Dont miss to attend the meeting.',
+  //       time: '2 min ago',
+  //       unreadCount: 4,
+  //       imageUrl: 'assets/images/team_align.jpg',
+  //       isActive: true),
+  //   ChatItem(
+  //       name: 'John Ahraham',
+  //       message: 'Hey! Can you join the meeting?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/john_a.jpg'),
+  //   ChatItem(
+  //       name: 'Sabila Sayma',
+  //       message: 'How are you today?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/sabila.jpg'),
+  //   ChatItem(
+  //       name: 'John Borino',
+  //       message: 'Have a good day 🌸',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/john_b.jpg'),
+  //   ChatItem(
+  //       name: 'John Borino',
+  //       message: 'Have a good day 🌸',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/john_b.jpg'),
+  //   ChatItem(
+  //       name: 'John Borino',
+  //       message: 'Have a good day 🌸',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/john_b.jpg'),
+  //   ChatItem(
+  //       name: 'Jane Doe',
+  //       message: 'Hello!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/jane.jpg'),
+  //   ChatItem(
+  //       name: 'John Doe',
+  //       message: 'Hi there!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/john.jpg'),
+  //   ChatItem(
+  //       name: 'Emma Watson',
+  //       message: 'What are you up to?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/emma.jpg'),
+  //   ChatItem(
+  //       name: 'Daniel Smith',
+  //       message: 'Lets grab lunch!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/daniel.jpg'),
+  //   ChatItem(
+  //       name: 'Sophia Johnson',
+  //       message: 'Can you help me with this?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/sophia.jpg'),
+  //   ChatItem(
+  //       name: 'Oliver Brown',
+  //       message: 'I have a question for you.',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/oliver.jpg'),
+  //   ChatItem(
+  //       name: 'Ava Wilson',
+  //       message: 'Are you free tomorrow?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/ava.jpg'),
+  //   ChatItem(
+  //       name: 'William Davis',
+  //       message: 'Lets go for a walk!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/william.jpg'),
+  //   ChatItem(
+  //       name: 'Mia Anderson',
+  //       message: 'I need your help!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/mia.jpg'),
+  //   ChatItem(
+  //       name: 'James Martinez',
+  //       message: 'How was your weekend?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/james.jpg'),
+  //   ChatItem(
+  //       name: 'Charlotte Taylor',
+  //       message: 'Lets catch up soon!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/charlotte.jpg'),
+  //   ChatItem(
+  //       name: 'Benjamin Harris',
+  //       message: 'Do you have any plans?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/benjamin.jpg'),
+  //   ChatItem(
+  //       name: 'Harper Clark',
+  //       message: 'I miss you!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/harper.jpg'),
+  //   ChatItem(
+  //       name: 'Elijah Lewis',
+  //       message: 'Can we talk?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/elijah.jpg'),
+  //   ChatItem(
+  //       name: 'Amelia Turner',
+  //       message: 'How are you feeling?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/amelia.jpg'),
+  //   ChatItem(
+  //       name: 'Logan Walker',
+  //       message: 'Lets hang out!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/logan.jpg'),
+  //   ChatItem(
+  //       name: 'Sofia Hill',
+  //       message: 'I have a surprise for you.',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/sofia.jpg'),
+  //   ChatItem(
+  //       name: 'Jackson Green',
+  //       message: 'Can you call me?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/jackson.jpg'),
+  //   ChatItem(
+  //       name: 'Lily Adams',
+  //       message: 'I need your advice.',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/lily.jpg'),
+  //   ChatItem(
+  //       name: 'Sebastian Wright',
+  //       message: 'Lets go on an adventure!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/sebastian.jpg'),
+  //   ChatItem(
+  //       name: 'Zoe Parker',
+  //       message: 'I have something to tell you.',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/zoe.jpg'),
+  //   ChatItem(
+  //       name: 'Michael Smith',
+  //       message: 'Good morning!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/michael.jpg'),
+  //   ChatItem(
+  //       name: 'Emily Johnson',
+  //       message: 'How was your day?',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/emily.jpg'),
+  //   ChatItem(
+  //       name: 'David Brown',
+  //       message: 'See you later!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/david.jpg'),
+  //   ChatItem(
+  //       name: 'Sarah Wilson',
+  //       message: 'Have a great weekend!',
+  //       time: '2 min ago',
+  //       imageUrl: 'assets/images/sarah.jpg'),
+  // ];
+  // List<ChatItem> _displayedChatItems = [];
   final List<StatusItem> statusItems = [
     StatusItem(
         name: 'My status',
@@ -208,7 +213,12 @@ class _MessageTabState extends State<MessageTab> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadingMoreItems();
+    // _loadingMoreItems();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _chatProvider = Provider.of<ChatProvider>(context,
+          listen: false); // Lấy provider từ context
+      _chatProvider.loadChats(); // Load danh sách chat
+    });
   }
 
   @override
@@ -221,18 +231,54 @@ class _MessageTabState extends State<MessageTab> {
   void _onScroll() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      _loadingMoreItems();
+      // _loadingMoreItems();
+      _chatProvider.loadChats();
     }
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Consumer(builder: (context, chatProvider, child){
+  //     return Column(
+  //     children: [
+  //       _buildAppBar(),
+  //       _buildStatusList(),
+  //       _buildRoundedChatList(),
+  //     ],
+  //   )
+  //   });
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildAppBar(),
-        _buildStatusList(),
-        _buildRoundedChatList(),
-      ],
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, child) {
+        return RefreshIndicator(
+          onRefresh: _refreshChatList,
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount:
+                chatProvider.chats.length + (chatProvider.hasMoreChats ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index < chatProvider.chats.length) {
+                return _buildChatItem(chatProvider.chats[index]);
+              } else {
+                return _buildLoadingIndicator();
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, child) {
+        return chatProvider.isLoading
+            ? Center(child: CircularProgressIndicator())
+            : SizedBox.shrink();
+      },
     );
   }
 
@@ -343,16 +389,19 @@ class _MessageTabState extends State<MessageTab> {
                 // itemBuilder: (context, index) =>
                 //     _buildSlidableChatItem(chatItems[index]),
                 controller: _scrollController,
-                itemCount: _displayedChatItems.length + 1,
-                itemBuilder: (context, index) {
-                  if (index < _displayedChatItems.length) {
-                    return _buildSlidableChatItem(_displayedChatItems[index]);
-                  } else if (_isLoading) {
-                    return _buildLoadingIndicator();
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
+                // itemCount: _displayedChatItems.length + 1,
+                // itemBuilder: (context, index) {
+                //   if (index < _displayedChatItems.length) {
+                //     return _buildSlidableChatItem(_displayedChatItems[index]);
+                //   } else if (_isLoading) {
+                //     return _buildLoadingIndicator();
+                //   } else {
+                //     return const SizedBox.shrink();
+                //   }
+                // },
+                itemCount: _chatProvider.chats.length,
+                itemBuilder: (context, index) =>
+                    _buildSlidableChatItem(_chatProvider.chats[index]),
                 itemExtent: 60, // Assuming each item has a fixed height
               ),
             ),
@@ -362,31 +411,28 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: CircularProgressIndicator(
-          // Thay thế bằng widget loading của bạn
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-        ),
-      ),
-    );
-  }
+  // Widget _buildLoadingIndicator() {
+  //   return const Center(
+  //     child: Padding(
+  //       padding: EdgeInsets.all(8),
+  //       child: CircularProgressIndicator(
+  //         // Thay thế bằng widget loading của bạn
+  //         valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Future<void> _refreshChatList() async {
-    // Simulate a network request
-    await Future.delayed(const Duration(seconds: 2));
-    // In a real app, you would fetch new data here
-    setState(() {
-      _currentPage = 0;
-      _displayedChatItems.clear();
-      // Update the chat list with new data
-    });
-    _loadingMoreItems();
+    // await Future.delayed(const Duration(seconds: 2));
+    // _currentPage = 0;
+    // _displayedChatItems.clear();
+    // _loadingMoreItems();
+    await _chatProvider.loadChats(refresh: true);
   }
 
-  Widget _buildSlidableChatItem(ChatItem item) {
+  // Widget _buildSlidableChatItem(ChatItem item) {
+  Widget _buildSlidableChatItem(Chat item) {
     return Slidable(
       key: ValueKey(item),
       endActionPane: ActionPane(
@@ -396,7 +442,7 @@ class _MessageTabState extends State<MessageTab> {
           CustomSlidableAction(
             onPressed: (context) => _handleNotification(item),
             backgroundColor: AppColors.surface,
-            child: CustomActionIcon(
+            child: const CustomActionIcon(
               color: AppColors.secondary,
               svgPath:
                   'assets/icons/notification.svg', // Đường dẫn đến file SVG của bạn
@@ -405,7 +451,7 @@ class _MessageTabState extends State<MessageTab> {
           CustomSlidableAction(
             onPressed: (context) => _handleDelete(item),
             backgroundColor: AppColors.surface,
-            child: CustomActionIcon(
+            child: const CustomActionIcon(
               color: AppColors.red,
               svgPath:
                   'assets/icons/trash.svg', // Đường dẫn đến file SVG của bạn
@@ -419,7 +465,7 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
-  Widget _buildChatItem(ChatItem item) {
+  Widget _buildChatItem(Chat item) {
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
@@ -430,9 +476,12 @@ class _MessageTabState extends State<MessageTab> {
         leading: Stack(children: [
           CircleAvatar(
             radius: 24,
-            backgroundImage: AssetImage(item.imageUrl),
+            backgroundImage:
+                item.avatarUrl != null ? AssetImage(item.avatarUrl!) : null,
           ),
-          if (item.isActive)
+          // if (item.isActive) // Người dùng hoạt động
+          if (item
+              .isGroup) // Tạm thời sử dụng trường isGroup để hiển thị người dùng hoạt động
             Positioned(
               bottom: 0,
               right: 0,
@@ -451,11 +500,11 @@ class _MessageTabState extends State<MessageTab> {
             ),
         ]),
         title: Text(
-          item.name,
+          item.isGroup ? item.name! : (item.userChats.first.user?.fullName ?? ''),
           style: AppTypography.chatName,
         ),
         subtitle: Text(
-          item.message,
+          item.messages!.length >= 1 ? item.messages!.last.content! : '',
           style: AppTypography.chatMessage,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -465,21 +514,24 @@ class _MessageTabState extends State<MessageTab> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              item.time,
+                item.messages!.length >= 1 
+                ? DateFormat('hh:mm a, dd/MM').format(item.messages!.last.createdDate) 
+                : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
+
               style: AppTypography.caption,
             ),
-            if (item.unreadCount != null && item.unreadCount! > 0)
-              Container(
-                padding: EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: AppColors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  item.unreadCount.toString(),
-                  style: AppTypography.badge,
-                ),
-              ),
+            // if (item.unreadCount != null && item.unreadCount! > 0)
+            //   Container(
+            //     padding: EdgeInsets.all(6),
+            //     decoration: const BoxDecoration(
+            //       color: AppColors.red,
+            //       shape: BoxShape.circle,
+            //     ),
+            //     child: Text(
+            //       item.unreadCount.toString(),
+            //       style: AppTypography.badge,
+            //     ),
+            //   ), // Hiển thị số lượng tin nhắn chưa đọc tạm thời chưa có dữ liệu
           ],
         ),
       ),
@@ -501,25 +553,25 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   // Load more items when the user scrolls to the bottom of the list
-  void _loadingMoreItems() {
-    if (_isLoading) return;
-    setState(() {
-      _isLoading = true;
-    });
-    // Simulate a network request
-    Future.delayed(const Duration(seconds: 2), () {
-      final start = _currentPage * _itemsPerPage;
-      final end = start + _itemsPerPage;
-      final newItems = _allChatItems.sublist(
-          start, end > _allChatItems.length ? _allChatItems.length : end);
+  // void _loadingMoreItems() {
+  //   if (_isLoading) return;
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
+  //   // Simulate a network request
+  //   Future.delayed(const Duration(seconds: 2), () {
+  //     final start = _currentPage * _itemsPerPage;
+  //     final end = start + _itemsPerPage;
+  //     final newItems = _allChatItems.sublist(
+  //         start, end > _allChatItems.length ? _allChatItems.length : end);
 
-      setState(() {
-        _displayedChatItems.addAll(newItems);
-        _currentPage++;
-        _isLoading = false;
-      });
-    });
-  }
+  //     setState(() {
+  //       _displayedChatItems.addAll(newItems);
+  //       _currentPage++;
+  //       _isLoading = false;
+  //     });
+  //   });
+  // }
 
   void _showAddOptions(BuildContext context) {
     setState(() {
@@ -578,7 +630,7 @@ class _MessageTabState extends State<MessageTab> {
     }
   }
 
-  void _handleNotification(ChatItem item) {
+  void _handleNotification(Chat item) {
     // Xử lý khi nhấn vào nút thông báo, thông báo bằng snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -589,7 +641,7 @@ class _MessageTabState extends State<MessageTab> {
     // Thêm logic xử lý thông báo ở đây
   }
 
-  void _handleDelete(ChatItem item) {
+  void _handleDelete(Chat item) {
     // Xử lý khi nhấn vào nút xóa
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -611,23 +663,5 @@ class StatusItem {
     required this.imageUrl,
     this.isOnline = false,
     this.isMyStatus = false,
-  });
-}
-
-class ChatItem {
-  final String name;
-  final String message;
-  final String time;
-  final int? unreadCount;
-  final String imageUrl;
-  final bool isActive;
-
-  const ChatItem({
-    required this.name,
-    required this.message,
-    required this.time,
-    this.unreadCount,
-    required this.imageUrl,
-    this.isActive = false,
   });
 }
