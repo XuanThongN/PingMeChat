@@ -46,6 +46,7 @@ dependencies:
   flutter_webrtc: ^0.11.0 #Hỗ trợ video call
   signalr_core: ^1.1.2 #Hỗ trợ kết nối server
   flutter_secure_storage: ^9.2.2 #Hỗ trợ lưu trữ token
+  shared_preferences: ^2.3.2
 #  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
 #  audio_waveforms: ^1.0.5 #Hỗ trợ hiển thị sóng nhạc
 

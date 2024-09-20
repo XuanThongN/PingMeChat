@@ -27,6 +27,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
         private readonly IUserChatRepository _userChatRepository;
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IChatHubService _chatHubService;
+        private readonly IAccountRepository _accountRepository;
         public MessageService(
             IMessageRepository repository,
             IUnitOfWork unitOfWork,
@@ -34,12 +35,14 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
             IUriService uriService,
             IUserChatRepository userChatRepository,
             ILogErrorRepository logErrorRepository,
-            IChatHubService chatHubService)
+            IChatHubService chatHubService,
+            IAccountRepository accountRepository)
             : base(repository, unitOfWork, mapper, uriService)
         {
             _userChatRepository = userChatRepository;
             _logErrorRepository = logErrorRepository;
             _chatHubService = chatHubService;
+            _accountRepository = accountRepository;
         }
         public override async Task<PagedResponse<List<MessageDto>>> Pagination(
         int pageNumber,
@@ -72,6 +75,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                 pageSize,
                 predicate: m => m.ChatId == chatId,
                 orderBy: q => q.OrderByDescending(m => m.SentAt),
+                include: m => m.Include(o => o.Sender)
+                                .Include( o => o.Attachments),
                 route: route
                 );
         }
@@ -88,7 +93,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                 {
                     try
                     {
-                        var userChat = await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId);
+                        var userChat = await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId, include: uc => uc.Include(c => c.User));
                         if (userChat == null)
                         {
                             throw new AppException("Người dùng không thuộc đoạn chat này", 403);
@@ -107,7 +112,14 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         await transaction.CommitAsync();
 
-                        return _mapper.Map<MessageDto>(message);
+                        // Lấy thông tin người gửi
+                        message.Sender = userChat.User;
+
+                        var result = _mapper.Map<MessageDto>(message);
+                        // Thông báo tin nhắn mới tới những người tham gia đoạn chat
+                        await _chatHubService.SendMessageAsync(result);
+
+                        return result;
                     }
                     catch (Exception ex)
                     {

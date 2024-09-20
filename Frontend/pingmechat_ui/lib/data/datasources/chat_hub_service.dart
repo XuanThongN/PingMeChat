@@ -1,30 +1,30 @@
+import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:pingmechat_ui/domain/models/message.dart';
+import 'package:provider/provider.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 import '../../domain/models/chat.dart';
+import '../../providers/auth_provider.dart';
 import '../models/message_model.dart';
+import 'constant.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;
-  String accessToken =
-      'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdXBlcmFkbWluIiwiVXNlcklkIjoiY2MxZTY2M2EtMTdiNy00NzBiLWFmZDUtYmM0NzUyYzgwZGQxIiwiRW1haWwiOiJzdXBlcmFkbWluQGdtYWlsLmNvbSIsImp0aSI6IjBmYjBiOTMwLWQ0YjktNGE5ZC1hMTRiLWQyYTVlMDJkMjlmOCIsImV4cCI6MTcyNjUzMjY5NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDMwIiwiYXVkIjoiVXNlciJ9.4mEXsimCtuAB8PSyOjRKHGCGXXh1A29CR8A5OXFuZzYKcpE5mYDmCIR-2xFrv6urFoK0i5uC22xuRM3e38K3nQ';
-  String refreshToken =
-      'pwkvVjtwWqH10PhHZD3YjMwEZBUVkejOd2x2qIhgA1+OdBC3Th9t+SbinZLss5iQg5RxVTD4iZZFLto5NJ0U+g==';
+  final AuthProvider authProvider;
+
+  ChatHubService(this.authProvider);
 
   Future<void> connect() async {
-    _hubConnection = HubConnectionBuilder()
+     _hubConnection = HubConnectionBuilder()
         .withUrl(
-          'https://4jnvrgvp-7043.asse.devtunnels.ms/chatHub', // Use HTTPS for negotiation
+          ChatHubConstants.chatHubUrl, // URL of the SignalR hub
           HttpConnectionOptions(
             accessTokenFactory: () async {
-              return 'Bearer ${accessToken},${refreshToken}';
+              return await authProvider.getAuthorizationString();
             },
             transport: HttpTransportType.webSockets,
-            customHeaders: {
-              'Authorization': 'Bearer $accessToken',
-              'RefreshToken': refreshToken,
-            },
+            customHeaders: await authProvider.getCustomHeaders(),
             logging: (level, message) => print('SignalR: $level - $message'),
           ),
         )
@@ -67,16 +67,6 @@ class ChatHubService {
     print('Failed to reconnect after $maxAttempts attempts');
   }
 
-  // void onReceiveMessage(void Function(MessageDto message) handler) {
-  //   _hubConnection.on('ReceiveMessage', (arguments) {
-  //     print('Received data: $arguments');
-  //     if (arguments == null || arguments.isEmpty) return;
-  //     final messageData = arguments![0] as Map<String, dynamic>;
-  //     final messageDto = MessageDto.fromJson(messageData);
-  //     handler(messageDto);
-  //   });
-  // }
-  
   void onReceiveMessage(void Function(Message message) handler) {
     _hubConnection.on('ReceiveMessage', (arguments) {
       print('Received data: $arguments');

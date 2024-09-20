@@ -13,6 +13,8 @@ import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
 
 class RegisterPage extends StatefulWidget {
+  static const routeName = '/register';
+
   const RegisterPage({Key? key}) : super(key: key);
 
   @override

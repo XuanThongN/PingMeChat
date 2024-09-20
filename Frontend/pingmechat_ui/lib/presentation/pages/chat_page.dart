@@ -1,33 +1,32 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/config/theme.dart';
-import 'package:pingmechat_ui/main.dart';
+import 'package:pingmechat_ui/domain/models/account.dart';
 import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
-import 'package:pingmechat_ui/presentation/pages/call_page.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
 import 'package:pingmechat_ui/presentation/pages/video_call_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
+import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../domain/models/account.dart';
-import '../../domain/models/attachment.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
-import 'incomming_call.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
 
   const ChatScreen({super.key, required this.chatId});
-  
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  // Khai báo các provider cần thiết
+  late ChatProvider _chatProvider;
+  late AuthProvider _authProvider;
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
@@ -42,13 +41,17 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Lấy ra các provider cần thiết
+    _chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
     // WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     // _audioPlayer = AudioPlayer();
     // _audioPlayer.setReleaseMode(ReleaseMode.stop);
 
     // Load messages when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>().loadMessages(widget.chatId, refresh: true);
+      _chatProvider.loadMessages(widget.chatId, refresh: true);
     });
   }
 
@@ -81,36 +84,42 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(
-            child: _buildMessageList(),
-          ),
-          // _buildMessageInput(),
-          _buildMessageComposer(),
-        ],
-      ),
-    );
+    return Consumer2<ChatProvider, AuthProvider>(
+        builder: (context, chatProvider, authProvider, child) {
+      final chat =
+          chatProvider.chats.firstWhere((chat) => chat.id == widget.chatId);
+      final currentUser = authProvider.currentUser;
+      return Scaffold(
+        backgroundColor: AppColors.white,
+        appBar: _buildAppBar(chat, currentUser),
+        body: Column(
+          children: [
+            Expanded(
+              child: _buildMessageList(currentUser!.id),
+            ),
+            _buildMessageInput(),
+          ],
+        ),
+      );
+    });
   }
 
-  Widget _buildMessageList() {
+  Widget _buildMessageList(String currentUserId) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
+        final messages = chatProvider.getMessagesForChat(widget.chatId);
         return ListView.builder(
           controller: _scrollController,
-          itemCount: chatProvider.messages.length,
+          itemCount: messages.length,
           itemBuilder: (context, index) {
-            final message = chatProvider.messages[index];
-            final showAvatar = _shouldShowAvatar(chatProvider.messages, index);
-            final showTimestamp =
-                _shouldShowTimestamp(chatProvider.messages, index);
+            final message = messages.elementAt(index);
+            final showAvatar = _shouldShowAvatar(messages, index);
+            final showTimestamp = _shouldShowTimestamp(messages, index);
             return _buildMessageItem(
               message,
               showAvatar,
               showTimestamp,
+              currentUserId
             );
           },
         );
@@ -147,7 +156,93 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  Widget _buildMessageInput() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, -1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: CustomSvgIcon(
+              svgPath: 'assets/icons/Clip, Attachment.svg',
+              color: AppColors.secondary,
+            ),
+            onPressed: _pickAction,
+          ),
+          Expanded(
+            child: TextField(
+              controller: _textController,
+              onChanged: (text) {
+                setState(() {
+                  _isComposing = text.isNotEmpty;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Aa',
+                hintStyle: TextStyle(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: AppColors.surface,
+                // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                suffixIcon: IconButton(
+                  icon: CustomSvgIcon(
+                    svgPath: 'assets/icons/files_in_message.svg',
+                    color: AppColors.tertiary,
+                    size: 24,
+                  ),
+                  onPressed: _pickSticker,
+                ),
+              ),
+            ),
+          ),
+          if (!_isComposing) ...[
+            // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/camera 01_in_message.svg',
+                color: AppColors.secondary,
+                size: 24,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/microphone_in_message.svg',
+                color: AppColors.secondary,
+                size: 24,
+              ),
+              onPressed: _pickVideo,
+            ),
+          ],
+          if (_isComposing)
+            IconButton(
+              icon: CustomSvgIcon(
+                svgPath: 'assets/icons/Send_in_message.svg',
+                color: AppColors.primary,
+              ),
+              onPressed: () => _handleSubmitted(_textController.text),
+            ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -173,7 +268,15 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 CircleAvatar(
                   backgroundImage:
-                      NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+                      chat!.isGroup
+                      ? NetworkImage(chat.avatarUrl!)
+                      : NetworkImage(
+                          chat.userChats
+                              .firstWhere(
+                                  (userChat) => userChat.user!.id != currentUser?.id)
+                              .user!
+                              .avatarUrl!,
+                        ),
                   radius: 20,
                 ),
                 Positioned(
@@ -191,17 +294,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
-            // CircleAvatar(
-            //   backgroundImage:
-            //       NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
-            //   radius: 20,
-            // ),
             SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Jhon Abraham',
+                  // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
+                  chat!.isGroup
+                      ? chat.name!
+                      : chat.userChats!
+                          .firstWhere(
+                              (userChat) => userChat.user!.id != currentUser?.id)
+                          .user!
+                          .fullName,
                   style: AppTypography.chatName.copyWith(
                     fontSize: 16,
                   ),
@@ -245,8 +350,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageItem(
-      Message message, bool showAvatar, bool showTimestamp) {
-    final isMe = message.sender == 'Nazrul';
+      Message message, bool showAvatar, bool showTimestamp, String currentUserId) {
+    final isMe = message.senderId == currentUserId;
     return Padding(
       padding: EdgeInsets.only(bottom: 8),
       child: Row(
@@ -569,7 +674,7 @@ class _ChatScreenState extends State<ChatScreen> {
         // ));
 
         // Gọi hàm gửi tin nhắn tới server ở đây
-        context.read<ChatProvider>().sendMessage(widget.chatId, text);
+        _chatProvider.sendMessage(widget.chatId, text);
 
         _textController.clear();
         _isComposing = false;
@@ -703,6 +808,8 @@ class _ChatScreenState extends State<ChatScreen> {
   //   return currentMessage.senderId != previousMessage.senderId ||
   //       currentMessage.sentAt.difference(previousMessage.sentAt).inMinutes >= 1;
   // }
+
+  // Hiển thị avatar nếu tin nhắn hiện tại không phải của người gửi trước đó
   bool _shouldShowAvatar(List<Message> messages, int index) {
     if (index == 0) return true;
     final currentMessage = messages[index];

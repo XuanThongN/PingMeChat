@@ -28,15 +28,15 @@ class Message {
       chatId: json['chatId'],
       senderId: json['senderId'],
       content: json['content'],
-      createdDate: DateTime.parse(json['createdDate']),
+      createdDate: DateTime.parse(json['createdDate']).toLocal(),
       attachments: (json['attachments'] as List?)
           ?.map((i) => Attachment.fromJson(i))
           .toList(),
       messageReaders: (json['messageReaders'] as List?)
           ?.map((i) => MessageReader.fromJson(i))
           .toList(),
-      // sender: Account.fromJson(json['sender']) as Account? ??
-      //     null // Dùng as Account? để ép kiểu về Account hoặc null
+          // Map json['sender'] to Account object
+      sender: json['sender'] != null ? Account.fromJson(json['sender']) : null,
     );
   }
 

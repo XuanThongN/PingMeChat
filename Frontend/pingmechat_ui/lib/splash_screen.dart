@@ -5,9 +5,27 @@ import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
 import 'package:pingmechat_ui/presentation/widgets/social_button.dart';
+import 'package:provider/provider.dart';
 
-class OnboardingScreen extends StatelessWidget {
+import 'presentation/pages/home.dart';
+import 'providers/auth_provider.dart';
+
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      _checkLoginStatus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,5 +163,15 @@ class OnboardingScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final isAuth =
+        await Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
+    if (isAuth) {
+      Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+    } else {
+      Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
+    }
   }
 }
