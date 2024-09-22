@@ -2,13 +2,12 @@ import 'dart:convert';
 
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 
+import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import '../models/chat_model.dart';
 import 'chat_hub_service.dart';
 import 'package:http/http.dart' as http;
-import 'constant.dart';
-
 class ChatService {
   final ChatHubService chatHubService;
   final AuthProvider authProvider;

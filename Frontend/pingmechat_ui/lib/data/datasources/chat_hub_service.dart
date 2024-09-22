@@ -4,10 +4,10 @@ import 'package:pingmechat_ui/domain/models/message.dart';
 import 'package:provider/provider.dart';
 import 'package:signalr_core/signalr_core.dart';
 
+import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../providers/auth_provider.dart';
 import '../models/message_model.dart';
-import 'constant.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;

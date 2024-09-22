@@ -2,19 +2,19 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
-import 'package:pingmechat_ui/data/datasources/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
 import '../presentation/pages/home.dart';
 import '../presentation/pages/login_page.dart';
 
 class AuthProvider with ChangeNotifier {
-  late String? _accessToken;
-  late String? _refreshToken;
-  late DateTime? _expiryDate;
+  String? _accessToken;
+  String? _refreshToken;
+  DateTime? _expiryDate;
   String? _userId;
-  late Account? _currentUser;
+  Account? _currentUser;
 
   bool get isAuth {
     return _accessToken != null;
@@ -173,4 +173,5 @@ class AuthProvider with ChangeNotifier {
   Future<String> getAuthorizationString() async {
     return 'Bearer $_accessToken,$_refreshToken';
   }
+ 
 }

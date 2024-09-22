@@ -13,7 +13,7 @@ using System.Security.Claims;
 
 namespace PingMeChat.CMS.Application.Feature.ChatHubs
 {
-    [Authorize]
+    // [Authorize]
     public class ChatHub : Hub
     {
         private readonly IChatHubService _chatHubService;

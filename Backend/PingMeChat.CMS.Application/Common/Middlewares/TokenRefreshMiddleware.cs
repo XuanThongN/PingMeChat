@@ -47,18 +47,18 @@ namespace PingMeChat.CMS.Application.Common.Middlewares
             }
             //var refreshToken = context.Request.Cookies["RefreshToken"];
 
-            //if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
-            //{
-            //    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            //    return;
-            //}
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            {
+               context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+               return;
+            }
 
             //Tạm thời comment để test websocket
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                return;
-            }
+            // if (string.IsNullOrEmpty(accessToken))
+            // {
+            //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            //     return;
+            // }
 
             // Giải mã access token - nếu token hết hạn thì tiếp tục dùng thêm refresh token để tạo token mới
             var claimsPrincipal = jwtLib.GetPrincipalFromExpiredToken(accessToken);
