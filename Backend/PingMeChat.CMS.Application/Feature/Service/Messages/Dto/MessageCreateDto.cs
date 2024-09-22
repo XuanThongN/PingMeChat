@@ -13,10 +13,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages.Dto
     {
         [Required]
         public string ChatId { get; set; }
-        [Required]
         public string SenderId { get; set; }
         [Required]
-        public string Content { get; set; }
+        public string? Content { get; set; }
         public string? AttachmentUrl { get; set; }
         public bool IsRead { get; set; }
     }

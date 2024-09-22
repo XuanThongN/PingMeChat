@@ -39,20 +39,26 @@ namespace PingMeChat.CMS.Application.Common.Middlewares
             // Lấy access token từ header Authorization và refresh token từ cookie
             var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             var refreshToken = context.Request.Headers["RefreshToken"].FirstOrDefault()?.Split(" ").Last();
+            var authHeader = context.Request.Query["access_token"].FirstOrDefault()?.Substring("Bearer ".Length).Split(',');
+            if (authHeader != null && authHeader.Length == 2)
+            {
+                accessToken = authHeader[0];
+                refreshToken = authHeader[1];
+            }
             //var refreshToken = context.Request.Cookies["RefreshToken"];
 
-            //if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
-            //{
-            //    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            //    return;
-            //}
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            {
+               context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+               return;
+            }
 
             //Tạm thời comment để test websocket
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                return;
-            }
+            // if (string.IsNullOrEmpty(accessToken))
+            // {
+            //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            //     return;
+            // }
 
             // Giải mã access token - nếu token hết hạn thì tiếp tục dùng thêm refresh token để tạo token mới
             var claimsPrincipal = jwtLib.GetPrincipalFromExpiredToken(accessToken);

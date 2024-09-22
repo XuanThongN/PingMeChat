@@ -123,6 +123,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
                 TokenExpiresMinutes = tokenExpiresMinutes,
                 RefreshTokenExpiresMinutes = (60 * 24 * Int32.Parse(refreshTokenExpiresDays)).ToString(),
                 FullName = user.FullName,
+                Email = user.Email,
+                UserId = user.Id
             };
         }
 

@@ -45,13 +45,32 @@ namespace PingMeChat.CMS.Api.Controllers
             return Ok(new ApiResponse(string.Format(Message.Success.ReadedCompleted, "chat detail"), result, StatusCodes.Status200OK));
         }
 
+        //[HttpGet]
+        //[Route(ApiRoutes.Feature.Chat.GetChatListRoute)]
+        //[ProducesResponseType(typeof(IEnumerable<ChatDto>), StatusCodes.Status200OK)]
+        //public async Task<IActionResult> GetChatList()
+        //{
+        //    var userId = GetUserId();
+        //    var result = await _chatService.GetChatListAsync(userId);
+        //    return Ok(new ApiResponse(string.Format(Message.Success.ReadedAllCompleted, "chat list"), result, StatusCodes.Status200OK));
+        //}
+
         [HttpGet]
         [Route(ApiRoutes.Feature.Chat.GetChatListRoute)]
         [ProducesResponseType(typeof(IEnumerable<ChatDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetChatList()
+        public async Task<IActionResult> GetChatList(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20
+            )
         {
             var userId = GetUserId();
-            var result = await _chatService.GetChatListAsync(userId);
+            //var result = await _chatService.GetChatListAsync(userId);
+            var result = await _chatService.GetChatListAsync(
+                userId,
+                pageNumber,
+                pageSize,
+                route: Request.Path.Value
+            );
             return Ok(new ApiResponse(string.Format(Message.Success.ReadedAllCompleted, "chat list"), result, StatusCodes.Status200OK));
         }
 

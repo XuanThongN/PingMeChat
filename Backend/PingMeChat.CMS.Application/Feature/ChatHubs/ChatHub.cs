@@ -13,7 +13,7 @@ using System.Security.Claims;
 
 namespace PingMeChat.CMS.Application.Feature.ChatHubs
 {
-    [Authorize]
+    // [Authorize]
     public class ChatHub : Hub
     {
         private readonly IChatHubService _chatHubService;
@@ -120,7 +120,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 throw new AppException("Access denied");
             }
             // Gửi realtime tới những người tham gia đoạn chat
-            await _chatHubService.SendMessageAsync(chatId, userId, message);
+            //await _chatHubService.SendMessageAsync(chatId, userId, message, DateTime.UtcNow);
             // Lưu tin nhắn vào database
             await _messageService.SendMessageAsync(chatId, userId, message);
         }
@@ -179,10 +179,42 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             return await _chatService.CanUserAccessChat(chatId, userId);
         }
 
-        public async Task SendNotification(string targetUserId, string message)
+
+        //Call audio/Video
+        public async Task InitiateCall(string targetUserId, bool isVideo)
         {
-            await Clients.User(targetUserId).SendAsync("ReceiveNotification", message);
-            //await Clients.Groups(targetUserId).SendAsync("ReceiveNotification", message);
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("IncomingCall", callerUserId, isVideo);
+        }
+
+        public async Task AnswerCall(string callerUserId, bool accept)
+        {
+            var targetUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(callerUserId).SendAsync("CallAnswered", targetUserId, accept);
+        }
+
+        public async Task IceCandidate(string targetUserId, string candidate)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("IceCandidate", callerUserId, candidate);
+        }
+
+        public async Task Offer(string targetUserId, string sdp)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("Offer", callerUserId, sdp);
+        }
+
+        public async Task Answer(string targetUserId, string sdp)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("Answer", callerUserId, sdp);
+        }
+
+        public async Task EndCall(string targetUserId)
+        {
+            var callerUserId = Context.User.FindFirstValue("UserId");
+            await Clients.User(targetUserId).SendAsync("CallEnded", callerUserId);
         }
     }
 

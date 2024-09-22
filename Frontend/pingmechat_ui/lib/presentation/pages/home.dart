@@ -10,6 +10,8 @@ import 'package:pingmechat_ui/presentation/pages/settting_tab.dart';
 import '../widgets/custom_icon.dart';
 
 class HomePage extends StatefulWidget {
+  static const routeName = '/home';
+
   const HomePage({Key? key}) : super(key: key);
 
   @override

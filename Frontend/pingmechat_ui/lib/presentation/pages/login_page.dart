@@ -5,13 +5,17 @@ import 'package:pingmechat_ui/core/utils/input_validator.dart';
 import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_text_field.dart';
+import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../providers/auth_provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
 import 'home.dart';
 
 class LoginPage extends StatefulWidget {
+  static const routeName = '/login';
+
   const LoginPage({Key? key}) : super(key: key);
 
   @override
@@ -155,15 +159,23 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildEmailField() {
     return CustomTextField(
-      label: 'Your email',
+      label: 'Email or Username',
       controller: _emailController,
-      validator: InputValidator.validateEmail,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your email or username';
+        }
+        if (InputValidator.validateEmail(value) == null ||
+            InputValidator.validateUsername(value) == null) {
+          return null;
+        }
+        return 'Please enter a valid email or username';
+      },
       keyboardType: TextInputType.emailAddress,
       autoFocus: true,
       focusNode: _emailFocusNode,
-      // Để xác định focus node
       onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(
-          _passwordFocusNode), // Di chuyển focus đến password field khi nhấn Enter
+          _passwordFocusNode), // Move focus to password field when Enter is pressed
     );
   }
 
@@ -184,17 +196,21 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       _isLoading.value = true;
       try {
-        // Call API here
-        await Future.delayed(const Duration(seconds: 2)); // Fake API call
-        // Xử lý kết quả đăng nhập thành công
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful')),
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final success = await authProvider.login(
+          _emailController.text,
+          _passwordController.text,
         );
-        //Sau khi đăng nhập thành công, chuyển hướng đến trang Home
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login successful')),
+          );
+          Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login failed')),
+          );
+        }
       } catch (e) {
         // Xử lý lỗi
         ScaffoldMessenger.of(context).showSnackBar(

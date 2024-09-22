@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Exceptions;
+using PingMeChat.CMS.Application.Common.Pagination;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Application.Lib;
@@ -19,6 +20,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId);
         Task<ChatDto> GetChatDetailAsync(string chatId, string userId);
         Task<IEnumerable<ChatDto>> GetChatListAsync(string userId);
+        Task<PagedResponse<List<ChatDto>>> GetChatListAsync(string chatId, int pageNumber, int pageSize, string route = null);
         Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId);
         Task<bool> RemoveUserFromChatAsync(string chatId, string userId, string currentUser);
         Task<bool> CanUserAccessChat(string chatId, string userId);
@@ -154,9 +156,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         {
             try
             {
-                var userChats = await _userChatRepository.FindAll(uc => uc.UserId == userId);
-                var chatIds = userChats.Select(uc => uc.ChatId);
-                var chats = await _repository.FindAll(c => chatIds.Contains(c.Id), include: chat => chat.Include(o => o.UserChats).ThenInclude(u => u.User));
+                var chats = await _repository.FindAll(c => c.UserChats.Any(x => x.UserId == userId));
                 return _mapper.Map<IEnumerable<ChatDto>>(chats);
             }
             catch (Exception ex)
@@ -173,6 +173,30 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 throw new AppException("Error occurred while retrieving chat list.", 500);
             }
         }
+        public async Task<PagedResponse<List<ChatDto>>> GetChatListAsync(
+    string userId,
+    int pageNumber,
+    int pageSize,
+    string route = null)
+        {
+            return await Pagination(
+                pageNumber,
+                pageSize,
+                predicate: c => c.UserChats.Any(uc => uc.UserId == userId) && (c.IsGroup || c.Messages.Any()),
+                orderBy: q => q.OrderByDescending(c => c.Messages
+                    .OrderByDescending(m => m.CreatedDate)
+                    .Select(m => (DateTime?)m.CreatedDate)
+                    .FirstOrDefault() ?? c.CreatedDate), // Nếu không có tin nhắn, dùng DateTime.MinValue để xếp cuối cùng
+                include: q => q
+                    .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
+                    .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
+                    .ThenInclude(m => m.Sender)
+                    , // Lấy tin nhắn cuối cùng
+                route: route
+            );
+        }
+
+
 
         public async Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId)
         {

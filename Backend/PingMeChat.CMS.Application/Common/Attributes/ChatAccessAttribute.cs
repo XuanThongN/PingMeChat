@@ -13,7 +13,7 @@ namespace PingMeChat.CMS.Application.Common.Attributes
     {
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var chatId = context.ActionArguments["chatId"] as string;
+            var chatId = context.ActionArguments["chatId"] as string ?? context.HttpContext.Request.Query["chatId"];
             if (string.IsNullOrEmpty(chatId))
             {
                 context.Result = new BadRequestObjectResult("ChatId is required."); 

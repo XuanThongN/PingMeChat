@@ -15,7 +15,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.UserChats
     {
         public UserChatMapper()
         {
-            CreateMap<UserChat, UserChatDto>().ReverseMap();
+            //CreateMap<UserChat, UserChatDto>();
+            CreateMap<UserChat, UserChatDto>().ForMember(
+                dest => dest.UserDto, opt => opt.MapFrom(src => src.User
+                )).ReverseMap();
             CreateMap<UserChat, UserChatCreateDto>().ReverseMap();
             CreateMap<UserChat, UserChatUpdateDto>().ReverseMap();
         }

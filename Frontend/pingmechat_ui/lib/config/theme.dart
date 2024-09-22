@@ -69,7 +69,7 @@ class AppTypography {
   //Tạo style cho hiển thị tên người dùng đoạn chat
   static const TextStyle chatName = TextStyle(
     fontFamily: 'Caros',
-    fontSize: 20,
+    fontSize: 16,
     color: AppColors.secondary,
     fontWeight: FontWeight.w500,
   );
