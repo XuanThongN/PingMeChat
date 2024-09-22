@@ -10,13 +10,12 @@ using System.Threading.Tasks;
 namespace PingMeChat.CMS.Application.Feature.Service.Contacts.Dto
 {
     public class ContactCreateDto : CreateDto
-    {
-        [Required(ErrorMessage = "User ID is required")]
-        public string UserId { get; set; }
+    {   
+        public string? UserId { get; set; } // Id của người dùng hiện tại
 
         [Required(ErrorMessage = "Friend ID is required")]
-        public string FriendId { get; set; }
+        public string ContactUserId { get; set; } // Id của người dùng mà người dùng hiện tại muốn thêm vào danh sách liên hệ
 
-        public string? NickName { get; set; }
+        public string? NickName { get; set; } // Tên hiển thị của người dùng trong danh sách liên hệ
     }
 }

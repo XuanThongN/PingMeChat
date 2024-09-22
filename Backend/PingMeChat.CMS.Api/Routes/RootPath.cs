@@ -79,6 +79,18 @@ namespace PingMeChat.CMS.API.Routes
                 public const string PaginationRoute = "api/messages/pagination";
                 public const string GetChatMessagesRoute = "api/messages/{chatId}";
             }
+
+            // Contact api routes
+            public static class Contact
+            {
+                public const string AddRoute = "api/contacts/add";
+                public const string GetAllRoute = "api/contacts/get-all";
+                public const string GetAllByCurrentUserRoute = "api/contacts/get-all-by-current-user";
+                public const string GetByIdRoute = "api/contacts/get-by-id/{id}";
+                public const string UpdateRoute = "api/contacts/update";
+                public const string DeleteRoute = "api/contacts/delete/{id}";
+                public const string PaginationRoute = "api/contacts/pagination";
+            }
         }
     }
 }

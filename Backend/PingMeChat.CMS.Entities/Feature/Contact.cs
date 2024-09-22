@@ -13,8 +13,8 @@ namespace PingMeChat.CMS.Entities.Feature
     public class Contact : AuditableBaseEntity
     {
         public string UserId { get; set; }
-        public string ContactId { get; set; }
-        public string Nickname { get; set; }
+        public string ContactUserId { get; set; }
+        public string? Nickname { get; set; }
         public DateTime AddedAt { get; set; } 
         public string? Settings { get; set; }
         public virtual Account User { get; set; }
