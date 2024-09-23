@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
 
 import '../data/datasources/chat_service.dart';
 import '../data/models/chat_model.dart';
@@ -21,9 +23,8 @@ class ChatProvider extends ChangeNotifier {
   Map<String, bool> _hasMoreMessagesByChatId = {};
   Map<String, bool> _isLoadingMessagesByChatId = {};
 
-  // int _currentMessagePage = 1;
-  // bool _isLoadingMessages = false;
-  // bool _hasMoreMessages = true;
+// Callback để mở ChatPage
+  void Function(Chat)? onOpenChatPage;
 
   // Constructor
   ChatProvider(this._chatService) {
@@ -58,9 +59,20 @@ class ChatProvider extends ChangeNotifier {
     });
 
     _chatService.onNewPrivateChat((chat) {
+      // Thêm cuộc trò chuyện mới vào danh sách chats
       _chats.add(chat);
       notifyListeners();
+      // Mở ChatPage với cuộc trò chuyện mới
+      onOpenChatPage?.call(chat);
     });
+    // _chatService.onNewPrivateChat((chat) {
+    //   if (_shouldOpenChatPage(chat)) {
+    //     onOpenChatPage?.call(chat);
+    //   } else {
+    //     _chats.add(chat);
+    //     notifyListeners();
+    //   }
+    // });
 
     _chatService.chatHubService.onReceiveMessage((message) {
       _messagesByChatId[message.chatId]?.add(Message(
@@ -209,4 +221,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // Thêm các phương thức khác tương ứng với các chức năng của ChatHub
+  bool _shouldOpenChatPage(Chat chat) {
+    return chat.isGroup == false && chat.messages!.isEmpty;
+  }
 }

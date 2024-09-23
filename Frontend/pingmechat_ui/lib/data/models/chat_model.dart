@@ -1,27 +1,27 @@
 class ChatCreateDto {
-  final String id;
-  final String name;
-  final DateTime createdAt;
+  final String? name;
+  final bool isGroup;
+  final String? avatar;
+  final List<String> userIds;
 
-  ChatCreateDto({
-    required this.id,
-    required this.name,
-    required this.createdAt,
-  });
+  ChatCreateDto(
+      {this.name, required this.isGroup, this.avatar, required this.userIds});
 
   factory ChatCreateDto.fromJson(Map<String, dynamic> json) {
     return ChatCreateDto(
-      id: json['id'],
       name: json['name'],
-      createdAt: DateTime.parse(json['createdAt']),
+      isGroup: json['isGroup'] ?? false,
+      avatar: json['avatar'],
+      userIds: List<String>.from(json['userIds']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
-      'createdAt': createdAt.toIso8601String(),
+      'isGroup': isGroup,
+      'avatar': avatar,
+      'userIds': userIds,
     };
   }
 }

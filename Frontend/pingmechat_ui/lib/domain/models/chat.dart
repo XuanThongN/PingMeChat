@@ -24,9 +24,9 @@ class Chat {
 
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
-        name: json['name'],
-        isGroup: json['isGroup'],
-        avatarUrl: json['avatarUrl'],
+        name: json['name'] ?? '',
+        isGroup: json['isGroup'] ?? false,
+        avatarUrl: json['avatarUrl'] ?? '',
         userChats: List<UserChat>.from(json['userChats']
             .map((userChatJson) => UserChat.fromJson(userChatJson))),
         messages: List<Message>.from(json['messages']

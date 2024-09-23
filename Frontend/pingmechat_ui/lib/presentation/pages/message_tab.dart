@@ -9,6 +9,7 @@ import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../data/models/chat_model.dart';
 import '../../providers/contact_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
@@ -35,6 +36,15 @@ class _MessageTabState extends State<MessageTab> {
     _chatProvider = Provider.of<ChatProvider>(context,
         listen: false); // Lấy provider từ context
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Thiết lập callback để mở ChatPage
+    _chatProvider.onOpenChatPage = (chat) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+      );
+    };
+
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       _chatProvider.loadChats(); // Load danh sách chat
 
@@ -85,29 +95,19 @@ class _MessageTabState extends State<MessageTab> {
   Widget _buildStatusList() {
     return Consumer<ContactProvider>(
       builder: (context, contactProvider, child) {
-        final currentUser = _authProvider.currentUser;
         final contacts = contactProvider.contacts;
-        final currentContact = Contact(
-          id: currentUser!.id,
-          fullName: currentUser.fullName,
-          avatarUrl:
-              'assets/images/my_avatar.png', // Replace with actual avatar URL
-          isOnline: true,
-          // Add other necessary fields
-        );
         return SizedBox(
           height: 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: contacts.length + 1,
+            itemCount: contacts.length,
             itemBuilder: (context, index) {
-              if (index == 0) {
-                return _buildContactStatusItem(
-                    currentContact, _authProvider.currentUser!.id);
-              } else {
-                return _buildContactStatusItem(
-                    contacts[index - 1], _authProvider.currentUser!.id);
-              }
+              final contact = contacts[index];
+              return GestureDetector(
+                onTap: () => _handleContactStatusTap(contact),
+                child: _buildContactStatusItem(
+                    contact, _authProvider.currentUser!.id),
+              );
             },
           ),
         );
@@ -115,72 +115,81 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
+  // Viết hàm xử lý khi nhấn vào trạng thái liên hệ sẽ tiến hành tạo cuộc trò chuyện mới nếu chưa có cuộc trò chuyện riêng tư, còn nếu có rồi thì hiển thị nội dung cuộc trò chuyện
+  void _handleContactStatusTap(Contact contact) {
+    // Lấy id của người dùng được chọn từ contact nếu contact.user.id == currentUser.id thì lấy contact.contactUser.id,
+    // Nếu contact.contactUser.id == currentUser.id thì lấy contact.user.id
+    String contactId;
+    if (contact.user!.id == _authProvider.currentUser!.id) {
+      contactId = contact.contactUser!.id;
+    } else {
+      contactId = contact.user!.id;
+    }
+    // Đầu tiên kiểm tra xem có cuộc trò chuyện riêng tư này chưa, nếu có thì trỏ tới cuộc trò chuyện đó, nếu không thì tạo mới
+    // Nên check chat phải là isGroup = false
+    final chat = _chatProvider.chats.firstWhere((element) =>
+        element.userChats.any((userChat) => userChat.userId == contactId) &&
+        !element.isGroup);
+    if (chat != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+      );
+    } else {
+      _chatProvider.startNewChat(ChatCreateDto(
+        isGroup: false,
+        userIds: [contactId],
+      ));
+    }
+  }
+
   Widget _buildContactStatusItem(Contact contact, String currentUserId) {
     final isMe = contact.id == currentUserId;
-    return GestureDetector(
-      onTap: () {
-        if (isMe) {
-          // Handle click event for the current user's status
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Clicked on your own status'),
-            ),
-          );
-        } else {
-          // Handle click event for other contacts' status
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Clicked on ${contact.fullName}\'s status'),
-            ),
-          );
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: contact.isOnline ? Colors.green : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: CustomCircleAvatar(
-                    backgroundImage: AssetImage(contact.avatarUrl!),
-                    radius: 30,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        children: [
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: contact.isOnline ? Colors.green : Colors.transparent,
+                    width: 2,
                   ),
                 ),
-                if (isMe)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 14),
+                child: CustomCircleAvatar(
+                  backgroundImage: AssetImage(contact.avatarUrl!),
+                  radius: 30,
+                ),
+              ),
+              if (isMe)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
                     ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 14),
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              contact.fullName!.isNotEmpty
-                  ? contact.fullName!
-                  : (isMe
-                      ? contact.contactUser!.fullName
-                      : contact.user!.fullName),
-              style: AppTypography.caption,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            contact.fullName!.isNotEmpty
+                ? contact.fullName!
+                : (isMe
+                    ? contact.contactUser!.fullName
+                    : contact.user!.fullName),
+            style: AppTypography.caption,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

@@ -262,64 +262,64 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => UserInformationPage()));
         },
-        child: Row(
-          children: [
-            // add status icon here
-            Stack(
-              children: [
-                CustomCircleAvatar(
-                  backgroundImage:
-                      chat!.isGroup
-                      ? NetworkImage(chat.avatarUrl!)
-                      : NetworkImage(
-                          chat.userChats
-                              .firstWhere(
-                                  (userChat) => userChat.user!.id != currentUser?.id)
-                              .user!
-                              .avatarUrl!,
-                        ),
-                  radius: 20,
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
-                  chat!.isGroup
-                      ? chat.name!
-                      : chat.userChats!
-                          .firstWhere(
-                              (userChat) => userChat.user!.id != currentUser?.id)
-                          .user!
-                          .fullName,
-                  style: AppTypography.chatName.copyWith(
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  'Active now',
-                  style: AppTypography.caption,
-                ),
-              ],
-            ),
-          ],
-        ),
+        // child: Row(
+        //   children: [
+        //     // add status icon here
+        //     Stack(
+        //       children: [
+        //         CustomCircleAvatar(
+        //           backgroundImage:
+        //               chat!.isGroup
+        //               ? NetworkImage(chat.avatarUrl!)
+        //               : NetworkImage(
+        //                   chat.userChats
+        //                       .firstWhere(
+        //                           (userChat) => userChat.user!.id != currentUser?.id)
+        //                       .user!
+        //                       .avatarUrl!,
+        //                 ),
+        //           radius: 20,
+        //         ),
+        //         Positioned(
+        //           right: 0,
+        //           bottom: 0,
+        //           child: Container(
+        //             width: 12,
+        //             height: 12,
+        //             decoration: BoxDecoration(
+        //               color: AppColors.primary,
+        //               shape: BoxShape.circle,
+        //               border: Border.all(color: Colors.white, width: 2),
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     SizedBox(width: 12),
+        //     Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         Text(
+        //           // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
+        //           chat!.isGroup
+        //               ? chat.name!
+        //               : chat.userChats!
+        //                   .firstWhere(
+        //                       (userChat) => userChat.user!.id != currentUser?.id)
+        //                   .user!
+        //                   .fullName,
+        //           style: AppTypography.chatName.copyWith(
+        //             fontSize: 16,
+        //           ),
+        //         ),
+        //         Text(
+        //           'Active now',
+        //           style: AppTypography.caption,
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // ),
       ),
       actions: [
         IconButton(

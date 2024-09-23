@@ -59,7 +59,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                     var existingChat = await _repository.Find(c =>
                         !c.IsGroup &&
                         c.UserChats.Any(uc => uc.UserId == userId) &&
-                        c.UserChats.Any(uc => uc.UserId == chatCreateDto.UserIds.First()));
+                        c.UserChats.Any(uc => uc.UserId == chatCreateDto.UserIds.First()),
+                        include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
+                    );
 
                     if (existingChat != null)
                     {
@@ -92,7 +94,12 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 }
                 await _unitOfWork.SaveChangeAsync();
 
-                return _mapper.Map<ChatDto>(chat);
+                // Load the chat with UserChats and Users included
+                var createdChat = await _repository.Find(c => c.Id == chat.Id,
+                    include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
+                );
+
+                return _mapper.Map<ChatDto>(createdChat);
             }
             catch (Exception ex)
             {

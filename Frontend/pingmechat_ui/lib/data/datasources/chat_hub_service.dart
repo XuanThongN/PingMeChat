@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:pingmechat_ui/domain/models/message.dart';
@@ -12,25 +14,14 @@ import '../models/message_model.dart';
 class ChatHubService {
   late HubConnection _hubConnection;
   final AuthProvider authProvider;
+  final Completer<void> _connectionCompleter = Completer<void>();
 
-  ChatHubService(this.authProvider);
+  ChatHubService(this.authProvider) {
+    _initializeConnection();
+  }
 
-  Future<void> connect() async {
-    _hubConnection = HubConnectionBuilder()
-        .withUrl(
-          ChatHubConstants.chatHubUrl, // URL of the SignalR hub
-          HttpConnectionOptions(
-            // accessTokenFactory: () async {
-            //   return await authProvider.getAuthorizationString();
-            // },
-            accessTokenFactory:  () async => authProvider.accessToken!,
-            transport: HttpTransportType.webSockets,
-            customHeaders: await authProvider.getCustomHeaders(),
-            logging: (level, message) => print('SignalR: $level - $message'),
-          ),
-        )
-        .build();
-   
+  Future<void> _initializeConnection() async {
+    _hubConnection = await _buildHubConnection();
     // Thêm token vào URL cho WebSocket connection
     final originalUrl = _hubConnection.baseUrl;
     final uriBuilder = Uri.parse(originalUrl).replace(queryParameters: {
@@ -38,24 +29,48 @@ class ChatHubService {
       'refresh_token': authProvider.refreshToken!,
     });
     _hubConnection.baseUrl = uriBuilder.toString();
-
-    // Xử lý sự kiện khi connection bị đóng
-    _hubConnection.onclose((error) async {
-      print('Connection closed: $error');
-      await reconnect();
-    });
+    _setupConnectionHandlers();
 
     try {
       await _hubConnection.start();
       print('Connected to SignalR hub');
+      _connectionCompleter.complete();
     } catch (e) {
-      if (e.toString().contains('401')) {
-        print('Authentication failed: Invalid access token');
-        // Optionally, handle token refresh logic here
-      } else {
-        print('Error connecting to SignalR hub: $e');
-        await reconnect();
-      }
+      await _handleConnectionError(e);
+    }
+  }
+
+  Future<void> connect() async {
+    await _connectionCompleter.future;
+  }
+
+  Future<HubConnection> _buildHubConnection() async {
+    return HubConnectionBuilder()
+        .withUrl(
+          ChatHubConstants.chatHubUrl,
+          HttpConnectionOptions(
+            accessTokenFactory: () async => authProvider.accessToken!,
+            transport: HttpTransportType.webSockets,
+            customHeaders: await authProvider.getCustomHeaders(),
+            logging: (level, message) => print('SignalR: $level - $message'),
+          ),
+        )
+        .build();
+  }
+
+  void _setupConnectionHandlers() {
+    _hubConnection.onclose((error) async {
+      print('Connection closed: $error');
+      await reconnect();
+    });
+  }
+
+  Future<void> _handleConnectionError(dynamic e) async {
+    if (e.toString().contains('401')) {
+      print('Authentication failed: Invalid access token');
+    } else {
+      print('Error connecting to SignalR hub: $e');
+      await reconnect();
     }
   }
 
@@ -77,6 +92,17 @@ class ChatHubService {
     print('Failed to reconnect after $maxAttempts attempts');
   }
 
+  Future<void> sendMessage(String chatId, String message) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('SendMessage', args: [chatId, message]);
+  }
+
+  Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
+    await _connectionCompleter.future;
+    await _hubConnection
+        .invoke('StartNewChatAsync', args: [chatCreateDto.toJson()]);
+  }
+
   void onReceiveMessage(void Function(Message message) handler) {
     _hubConnection.on('ReceiveMessage', (arguments) {
       print('Received data: $arguments');
@@ -85,15 +111,6 @@ class ChatHubService {
       final messsage = Message.fromJson(messageData);
       handler(messsage);
     });
-  }
-
-  Future<void> sendMessage(String chatId, String message) async {
-    await _hubConnection.invoke('SendMessage', args: [chatId, message]);
-  }
-
-  Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
-    await _hubConnection
-        .invoke('StartNewChatAsync', args: [chatCreateDto.toJson()]);
   }
 
   void onNewGroupChat(void Function(Chat chat) handler) {
@@ -113,18 +130,22 @@ class ChatHubService {
   }
 
   Future<void> joinChat(String chatId) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('JoinChat', args: [chatId]);
   }
 
   Future<void> sendMessageToGroup(String chatId, String message) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('SendMessageToGroup', args: [chatId, message]);
   }
 
   Future<void> userIsTyping(String chatId) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('UserIsTyping', args: [chatId]);
   }
 
   Future<void> userStoppedTyping(String chatId) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('UserStoppedTyping', args: [chatId]);
   }
 
@@ -144,74 +165,51 @@ class ChatHubService {
     });
   }
 
-  // Call audio/video methods
   Future<void> initiateCall(String targetUserId, bool isVideo) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('InitiateCall', args: [targetUserId, isVideo]);
   }
 
-  Future<void> answerCall(String callerUserId, bool accept) async {
-    await _hubConnection.invoke('AnswerCall', args: [callerUserId, accept]);
-  }
-
-  Future<void> sendIceCandidate(String targetUserId, String candidate) async {
-    await _hubConnection
-        .invoke('IceCandidate', args: [targetUserId, candidate]);
-  }
-
-  Future<void> sendOffer(String targetUserId, String sdp) async {
-    await _hubConnection.invoke('Offer', args: [targetUserId, sdp]);
-  }
-
-  Future<void> sendAnswer(String targetUserId, String sdp) async {
-    await _hubConnection.invoke('Answer', args: [targetUserId, sdp]);
-  }
-
-  Future<void> endCall(String targetUserId) async {
-    await _hubConnection.invoke('EndCall', args: [targetUserId]);
-  }
-
-  void onIncomingCall(
-      void Function(String callerUserId, bool isVideo) handler) {
-    _hubConnection.on('IncomingCall', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
+  void onCallInitiated(void Function(String callerId, bool isVideo) handler) {
+    _hubConnection.on('CallInitiated', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String, arguments[1] as bool);
       }
     });
   }
 
-  void onCallAnswered(void Function(String targetUserId, bool accept) handler) {
-    _hubConnection.on('CallAnswered', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
-        handler(arguments[0] as String, arguments[1] as bool);
+  Future<void> acceptCall(String callerId) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('AcceptCall', args: [callerId]);
+  }
+
+  void onCallAccepted(void Function(String calleeId) handler) {
+    _hubConnection.on('CallAccepted', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        handler(arguments[0] as String);
       }
     });
   }
 
-  void onIceCandidate(void Function(String userId, String candidate) handler) {
-    _hubConnection.on('IceCandidate', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
-        handler(arguments[0] as String, arguments[1] as String);
+  Future<void> rejectCall(String callerId) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('RejectCall', args: [callerId]);
+  }
+
+  void onCallRejected(void Function(String calleeId) handler) {
+    _hubConnection.on('CallRejected', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        handler(arguments[0] as String);
       }
     });
   }
 
-  void onOffer(void Function(String userId, String sdp) handler) {
-    _hubConnection.on('Offer', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
-        handler(arguments[0] as String, arguments[1] as String);
-      }
-    });
+  Future<void> endCall(String callId) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('EndCall', args: [callId]);
   }
 
-  void onAnswer(void Function(String userId, String sdp) handler) {
-    _hubConnection.on('Answer', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
-        handler(arguments[0] as String, arguments[1] as String);
-      }
-    });
-  }
-
-  void onCallEnded(void Function(String userId) handler) {
+  void onCallEnded(void Function(String callId) handler) {
     _hubConnection.on('CallEnded', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);
