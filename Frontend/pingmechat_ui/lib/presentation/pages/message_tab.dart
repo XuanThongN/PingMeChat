@@ -3,10 +3,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
+import 'package:pingmechat_ui/domain/models/contact.dart';
+import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../providers/contact_provider.dart';
+import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
 import 'chat_page.dart';
 import 'create_group_page.dart';
@@ -18,23 +22,7 @@ class MessageTab extends StatefulWidget {
 
 class _MessageTabState extends State<MessageTab> {
   late ChatProvider _chatProvider; // Khai báo provider
-  final List<StatusItem> statusItems = [
-    StatusItem(
-        name: 'My status',
-        imageUrl: 'assets/images/my_status.jpg',
-        isMyStatus: true),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-    StatusItem(name: 'Marina', imageUrl: 'assets/images/marina.jpg'),
-    StatusItem(name: 'Dean', imageUrl: 'assets/images/dean.jpg'),
-    StatusItem(name: 'Max', imageUrl: 'assets/images/max.jpg'),
-    StatusItem(name: 'Max', imageUrl: 'assets/images/max.jpg'),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-  ];
-
+  late AuthProvider _authProvider; // Khai báo provider
   bool _isAddOptionsVisible =
       false; // Biến kiểm tra xem có hiển thị menu thêm mới không
   final ScrollController _scrollController = ScrollController();
@@ -46,8 +34,12 @@ class _MessageTabState extends State<MessageTab> {
     // _loadingMoreItems();
     _chatProvider = Provider.of<ChatProvider>(context,
         listen: false); // Lấy provider từ context
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       _chatProvider.loadChats(); // Load danh sách chat
+
+      Provider.of<ContactProvider>(context, listen: false)
+          .fetchContacts(); // Load danh sách contact
     });
   }
 
@@ -61,23 +53,9 @@ class _MessageTabState extends State<MessageTab> {
   void _onScroll() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      // _loadingMoreItems();
       _chatProvider.loadChats();
     }
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Consumer(builder: (context, chatProvider, child){
-  //     return Column(
-  //     children: [
-  //       _buildAppBar(),
-  //       _buildStatusList(),
-  //       _buildRoundedChatList(),
-  //     ],
-  //   )
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -87,51 +65,12 @@ class _MessageTabState extends State<MessageTab> {
           children: [
             _buildAppBar(),
             _buildStatusList(),
-            // Expanded(
-            //   child: RefreshIndicator(
-            //     onRefresh: _refreshChatList,
-            //     child: ListView.builder(
-            //       controller: _scrollController,
-            //       itemCount: chatProvider.chats.length + (chatProvider.hasMoreChats ? 1 : 0),
-            //       itemBuilder: (context, index) {
-            //         if (index < chatProvider.chats.length) {
-            //           return _buildChatItem(chatProvider.chats[index]);
-            //         } else {
-            //           return _buildLoadingIndicator();
-            //         }
-            //       },
-            //     ),
-            //   ),
-            // ),
             _buildRoundedChatList(),
           ],
         );
       },
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Consumer<ChatProvider>(
-  //     builder: (context, chatProvider, child) {
-  //       return RefreshIndicator(
-  //         onRefresh: _refreshChatList,
-  //         child: ListView.builder(
-  //           controller: _scrollController,
-  //           itemCount:
-  //               chatProvider.chats.length + (chatProvider.hasMoreChats ? 1 : 0),
-  //           itemBuilder: (context, index) {
-  //             if (index < chatProvider.chats.length) {
-  //               return _buildChatItem(chatProvider.chats[index]);
-  //             } else {
-  //               return _buildLoadingIndicator();
-  //             }
-  //           },
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   Widget _buildLoadingIndicator() {
     return Consumer<ChatProvider>(
@@ -144,56 +83,104 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   Widget _buildStatusList() {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: statusItems.length,
-        itemBuilder: (context, index) => _buildStatusItem(statusItems[index]),
-      ),
+    return Consumer<ContactProvider>(
+      builder: (context, contactProvider, child) {
+        final currentUser = _authProvider.currentUser;
+        final contacts = contactProvider.contacts;
+        final currentContact = Contact(
+          id: currentUser!.id,
+          fullName: currentUser.fullName,
+          avatarUrl:
+              'assets/images/my_avatar.png', // Replace with actual avatar URL
+          isOnline: true,
+          // Add other necessary fields
+        );
+        return SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: contacts.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return _buildContactStatusItem(
+                    currentContact, _authProvider.currentUser!.id);
+              } else {
+                return _buildContactStatusItem(
+                    contacts[index - 1], _authProvider.currentUser!.id);
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildStatusItem(StatusItem item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: item.isOnline ? Colors.green : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-                child: CircleAvatar(
-                  // backgroundImage: CachedNetworkImageProvider(item.imageUrl),
-                  // Use AssetImage for local images
-                  backgroundImage: AssetImage(item.imageUrl),
-                  radius: 30,
-                ),
-              ),
-              if (item.isMyStatus)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
+  Widget _buildContactStatusItem(Contact contact, String currentUserId) {
+    final isMe = contact.id == currentUserId;
+    return GestureDetector(
+      onTap: () {
+        if (isMe) {
+          // Handle click event for the current user's status
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Clicked on your own status'),
+            ),
+          );
+        } else {
+          // Handle click event for other contacts' status
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Clicked on ${contact.fullName}\'s status'),
+            ),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: contact.isOnline ? Colors.green : Colors.transparent,
+                      width: 2,
                     ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 14),
+                  ),
+                  child: CustomCircleAvatar(
+                    backgroundImage: AssetImage(contact.avatarUrl!),
+                    radius: 30,
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(item.name, style: AppTypography.caption),
-        ],
+                if (isMe)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 14),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              contact.fullName!.isNotEmpty
+                  ? contact.fullName!
+                  : (isMe
+                      ? contact.contactUser!.fullName
+                      : contact.user!.fullName),
+              style: AppTypography.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -211,10 +198,6 @@ class _MessageTabState extends State<MessageTab> {
             AppLocalizations.of(context)!.home,
             style: AppTypography.h2,
           ),
-          // const CircleAvatar(
-          //   backgroundImage: AssetImage('assets/images/profile.jpg'),
-          //   radius: 18,
-          // ),
           _buildCircularButton(_isAddOptionsVisible ? Icons.close : Icons.add,
               () {
             _showAddOptions(context);
@@ -259,23 +242,7 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
-  // Widget _buildLoadingIndicator() {
-  //   return const Center(
-  //     child: Padding(
-  //       padding: EdgeInsets.all(8),
-  //       child: CircularProgressIndicator(
-  //         // Thay thế bằng widget loading của bạn
-  //         valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Future<void> _refreshChatList() async {
-    // await Future.delayed(const Duration(seconds: 2));
-    // _currentPage = 0;
-    // _displayedChatItems.clear();
-    // _loadingMoreItems();
     await _chatProvider.loadChats(refresh: true);
   }
 
@@ -318,7 +285,9 @@ class _MessageTabState extends State<MessageTab> {
       onTap: () {
         // Handle chat item tap
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => ChatScreen(chatId: item.id)));
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatScreen(chatId: item.id)));
       },
       child: ListTile(
         leading: Stack(children: [
@@ -403,27 +372,6 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
-  // Load more items when the user scrolls to the bottom of the list
-  // void _loadingMoreItems() {
-  //   if (_isLoading) return;
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //   // Simulate a network request
-  //   Future.delayed(const Duration(seconds: 2), () {
-  //     final start = _currentPage * _itemsPerPage;
-  //     final end = start + _itemsPerPage;
-  //     final newItems = _allChatItems.sublist(
-  //         start, end > _allChatItems.length ? _allChatItems.length : end);
-
-  //     setState(() {
-  //       _displayedChatItems.addAll(newItems);
-  //       _currentPage++;
-  //       _isLoading = false;
-  //     });
-  //   });
-  // }
-
   void _showAddOptions(BuildContext context) {
     setState(() {
       _isAddOptionsVisible = !_isAddOptionsVisible;
@@ -501,18 +449,4 @@ class _MessageTabState extends State<MessageTab> {
       ),
     );
   }
-}
-
-class StatusItem {
-  final String name;
-  final String imageUrl;
-  final bool isOnline;
-  final bool isMyStatus;
-
-  const StatusItem({
-    required this.name,
-    required this.imageUrl,
-    this.isOnline = false,
-    this.isMyStatus = false,
-  });
 }

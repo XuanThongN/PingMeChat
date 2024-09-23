@@ -13,6 +13,7 @@ import 'package:video_player/video_player.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
+import '../widgets/custom_circle_avatar.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -266,7 +267,7 @@ class _ChatScreenState extends State<ChatScreen> {
             // add status icon here
             Stack(
               children: [
-                CircleAvatar(
+                CustomCircleAvatar(
                   backgroundImage:
                       chat!.isGroup
                       ? NetworkImage(chat.avatarUrl!)
@@ -360,7 +361,7 @@ class _ChatScreenState extends State<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe && showAvatar) ...[
-            CircleAvatar(
+            CustomCircleAvatar(
               backgroundImage:
                   NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
               radius: 16,

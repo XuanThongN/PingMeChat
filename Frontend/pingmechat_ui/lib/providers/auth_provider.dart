@@ -77,10 +77,9 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> login(String email, String password) async {
-    const url = ApiConstants.baseApiUrl + ApiConstants.loginEndpoint;
     try {
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse(ApiConstants.loginEndpoint),
         body: json.encode({
           'userName': email,
           'password': password,

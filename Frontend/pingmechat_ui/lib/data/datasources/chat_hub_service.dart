@@ -16,20 +16,30 @@ class ChatHubService {
   ChatHubService(this.authProvider);
 
   Future<void> connect() async {
-     _hubConnection = HubConnectionBuilder()
+    _hubConnection = HubConnectionBuilder()
         .withUrl(
           ChatHubConstants.chatHubUrl, // URL of the SignalR hub
           HttpConnectionOptions(
-            accessTokenFactory: () async {
-              return await authProvider.getAuthorizationString();
-            },
+            // accessTokenFactory: () async {
+            //   return await authProvider.getAuthorizationString();
+            // },
+            accessTokenFactory:  () async => authProvider.accessToken!,
             transport: HttpTransportType.webSockets,
             customHeaders: await authProvider.getCustomHeaders(),
             logging: (level, message) => print('SignalR: $level - $message'),
           ),
         )
         .build();
+   
+    // Thêm token vào URL cho WebSocket connection
+    final originalUrl = _hubConnection.baseUrl;
+    final uriBuilder = Uri.parse(originalUrl).replace(queryParameters: {
+      'access_token': authProvider.accessToken!,
+      'refresh_token': authProvider.refreshToken!,
+    });
+    _hubConnection.baseUrl = uriBuilder.toString();
 
+    // Xử lý sự kiện khi connection bị đóng
     _hubConnection.onclose((error) async {
       print('Connection closed: $error');
       await reconnect();

@@ -8,7 +8,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
     {
         public ContactMapper()
         {
-            CreateMap<Contact, ContactDto>().ReverseMap();
+            //CreateMap<Contact, ContactDto>().ReverseMap();
+            CreateMap<Contact, ContactDto>()
+                .ForMember(d => d.ContactUser, o => o.MapFrom(src => src.ContactUser))
+                .ForMember(d => d.User, o => o.MapFrom(src => src.User));
             CreateMap<Contact, ContactCreateDto>().ReverseMap();
             CreateMap<Contact, ContactUpdateDto>().ReverseMap();
         }

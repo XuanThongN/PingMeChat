@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
-import '../../config/theme.dart'; // Assuming your theme settings are configured here
+import '../../config/theme.dart';
+import '../widgets/custom_circle_avatar.dart'; // Assuming your theme settings are configured here
 
 class CallTab extends StatefulWidget {
   @override
@@ -129,7 +130,7 @@ class _CallTabState extends State<CallTab> {
         ],
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: CustomCircleAvatar(
           backgroundImage: AssetImage(item.imageUrl),
           radius: 24,
         ),
