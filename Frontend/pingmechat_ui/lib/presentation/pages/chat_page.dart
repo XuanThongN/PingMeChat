@@ -14,6 +14,7 @@ import 'package:video_player/video_player.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import '../widgets/custom_circle_avatar.dart';
+import '../widgets/message_widget.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -107,7 +108,9 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             Expanded(
-              child: _buildMessageList(currentUser!.id),
+              child: Container(
+                child: _buildMessageList(currentUser!.id, chat.isGroup),
+              ),
             ),
             _buildMessageInput(),
           ],
@@ -135,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildMessageList(String currentUserId) {
+  Widget _buildMessageList(String currentUserId, bool isGroupChat) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         final messages = chatProvider.getMessagesForChat(widget.chatId);
@@ -145,7 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
           itemBuilder: (context, index) {
             // Hiển thị một widget loading khi đang tải tin nhắn cũ hơn
             if (index == 0) {
-              return chatProvider.isLoadingMessages(widget.chatId)
+              chatProvider.isLoadingMessages(widget.chatId)
                   ? Center(child: CircularProgressIndicator())
                   : SizedBox.shrink();
             }
@@ -157,8 +160,17 @@ class _ChatScreenState extends State<ChatScreen> {
             final previousMessage = index > 0 ? messages[index - 1] : null;
             final showDateDivider = previousMessage == null ||
                 !_isSameDay(message.createdDate, previousMessage.createdDate);
-            return _buildMessageItem(message, showAvatar, showTimestamp,
-                currentUserId, showDateDivider);
+            // return _buildMessageItem(message, showAvatar, showTimestamp,
+            //     currentUserId, showDateDivider);
+            return ChatMessageWidget(
+              message: message,
+              isLastMessageFromSameSender: showAvatar,
+              shouldShowAvatar: showAvatar,
+              shouldShowDateDivider: showDateDivider,
+              previousMessageDate: previousMessage?.createdDate,
+              isGroupMessage: isGroupChat,
+              showTimestamp: showTimestamp,
+            );
           },
         );
       },
@@ -303,7 +315,7 @@ class _ChatScreenState extends State<ChatScreen> {
           size: 30,
         ),
         onPressed: () {
-          Navigator.pop(context);
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
         },
       ),
       title: GestureDetector(
@@ -405,7 +417,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Center(
                 child: Text(
                   _getFormattedDate(message.createdDate),
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: const Color.fromARGB(255, 61, 58, 58)),
                 ),
               ),
             ),

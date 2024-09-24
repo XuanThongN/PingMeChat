@@ -3,7 +3,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
-import 'package:pingmechat_ui/domain/models/contact.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
@@ -186,12 +185,13 @@ class _MessageTabState extends State<MessageTab> {
             ],
           ),
           const SizedBox(height: 4),
-            Text(
+          Text(
             contactUser.fullName,
-            style: AppTypography.caption, // Tránh tràn dòng và hiển thị dấu ba chấm
+            style: AppTypography
+                .caption, // Tránh tràn dòng và hiển thị dấu ba chấm
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            ),
+          ),
         ],
       ),
     );
@@ -310,13 +310,13 @@ class _MessageTabState extends State<MessageTab> {
       },
       child: ListTile(
         leading: Stack(children: [
-          CircleAvatar(
+          CustomCircleAvatar(
             radius: 24,
             backgroundImage:
-                item.avatarUrl != null ? AssetImage(item.avatarUrl!) : null,
+                item.avatarUrl != null ? NetworkImage(item.avatarUrl!) : null,
           ),
           // if (item.isActive) // Người dùng hoạt động
-          if (item
+          if (!item
               .isGroup) // Tạm thời sử dụng trường isGroup để hiển thị người dùng hoạt động
             Positioned(
               bottom: 0,
@@ -341,40 +341,92 @@ class _MessageTabState extends State<MessageTab> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          item.messages!.length >= 1 ? item.messages!.last.content! : '',
-          style: AppTypography.chatMessage,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        subtitle:
+        Row(
           children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        final currentUserId = authProvider.currentUser?.id;
+                        final lastMessage = item.messages!.isNotEmpty ? item.messages!.last : null;
+                        if (lastMessage == null) {
+                          return Text('');
+                        }
+                        final isCurrentUser = lastMessage.senderId == currentUserId;
+                        final senderName = isCurrentUser ? 'You' : (lastMessage.sender?.fullName ?? 'Unknown');
+                        return Text(
+                          '$senderName: ${lastMessage.content}',
+                          style: AppTypography.chatMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    '•',
+                    style: TextStyle(
+                      fontSize: 6,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                ],
+              ),
+            ),
             Text(
               item.messages!.length >= 1
-                  ? DateFormat('hh:mm a')
-                      .format(item.messages!.last.createdDate)
+                  ? _showTimeOfChat(item.messages!.last.createdDate)
                   : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
-
               style: AppTypography.caption,
             ),
+          ],
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+              ),
+            ), // Hiển thị chấm tròn màu xanh nước biển nếu có tin nhắn chưa đọc
+            // Text(
+            //   item.messages!.length >= 1
+            //       ? _showTimeOfChat(item.messages!.last.createdDate)
+            //       : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
+
+            //   style: AppTypography.caption,
+            // ),
             // if (item.unreadCount != null && item.unreadCount! > 0)
-            //   Container(
-            //     padding: EdgeInsets.all(6),
-            //     decoration: const BoxDecoration(
-            //       color: AppColors.red,
-            //       shape: BoxShape.circle,
-            //     ),
-            //     child: Text(
-            //       item.unreadCount.toString(),
-            //       style: AppTypography.badge,
-            //     ),
-            //   ), // Hiển thị số lượng tin nhắn chưa đọc tạm thời chưa có dữ liệu
           ],
         ),
       ),
     );
+  }
+
+  String _showTimeOfChat(DateTime lastMessageTime) {
+    String formattedTime = '';
+    final now = DateTime.now();
+    final difference = now.difference(lastMessageTime);
+
+    if (difference.inHours < 24) {
+      formattedTime = DateFormat('HH:mm').format(lastMessageTime);
+    } else if (difference.inDays < 7) {
+      formattedTime = DateFormat('EEEE', 'vi')
+          .format(lastMessageTime); // Hiển thị thứ bằng tiếng Việt
+    } else {
+      formattedTime = DateFormat('dd MMMM', 'vi')
+          .format(lastMessageTime); // Hiển thị ngày tháng bằng tiếng Việt
+    }
+    return formattedTime;
   }
 
   Widget _buildCircularButton(IconData icon, VoidCallback onPressed) {

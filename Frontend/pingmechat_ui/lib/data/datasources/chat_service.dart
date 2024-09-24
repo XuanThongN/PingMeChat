@@ -15,6 +15,10 @@ class ChatService {
 
   ChatService({required this.chatHubService, required this.authProvider});
 
+  String getCurrentUserId() {
+    return authProvider.currentUser?.id ?? '';
+  }
+
 // Hàm lấy danh sách các cuộc trò chuyện
   Future<List<Chat>> getChats({int page = 1, int pageSize = 20}) async {
     try {

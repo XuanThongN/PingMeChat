@@ -54,13 +54,18 @@ class ChatProvider extends ChangeNotifier {
 
   void _setupSignalRListeners() {
     _chatService.onNewGroupChat((chat) {
-      _chats.add(chat);
+      _chats.insert(0, chat);
       notifyListeners();
+
+      // Chỉ mở trang chat nếu người dùng hiện tại là người tạo nhóm
+      if (chat.createdBy == _chatService.getCurrentUserId()) {
+        onOpenChatPage?.call(chat);
+      }
     });
 
     _chatService.onNewPrivateChat((chat) {
       // Thêm cuộc trò chuyện mới vào danh sách chats
-      _chats.add(chat);
+      _chats.insert(0, chat);
       notifyListeners();
       // Mở ChatPage với cuộc trò chuyện mới
       onOpenChatPage?.call(chat);
@@ -75,9 +80,10 @@ class ChatProvider extends ChangeNotifier {
         try {
           final newChat = await _chatService.getChatById(message.chatId);
           if (newChat != null) {
+            _chats.clear();
             // Thêm đoạn chat vào đầu danh sách chats
             _chats.insert(0, newChat);
-            _messagesByChatId[message.chatId] = [message];
+            _messagesByChatId[message.chatId]?.add(message);
           }
         } catch (error) {
           print('Error fetching chat: $error');
@@ -223,10 +229,5 @@ class ChatProvider extends ChangeNotifier {
       _isLoadingMessagesByChatId[chatId] = false;
       notifyListeners();
     }
-  }
-
-  // Thêm các phương thức khác tương ứng với các chức năng của ChatHub
-  bool _shouldOpenChatPage(Chat chat) {
-    return chat.isGroup == false && chat.messages!.isEmpty;
   }
 }
