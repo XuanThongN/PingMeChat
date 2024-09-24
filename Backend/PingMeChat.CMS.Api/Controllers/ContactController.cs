@@ -1,10 +1,12 @@
 using AutoWrapper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PingMeChat.CMS.API.Routes;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Filters;
 using PingMeChat.CMS.Application.Common.Pagination;
+using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Contacts;
 using PingMeChat.CMS.Application.Feature.Service.Contacts.Dto;
 using PingMeChat.Shared;
@@ -23,11 +25,11 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpGet]
         [Route(ApiRoutes.Feature.Contact.GetAllByCurrentUserRoute)]
-        [ProducesResponseType(typeof(ContactDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ContactDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllByCurrentUser()
         {
             var currentUserId = GetUserId();
-            var data = await _contactService.FindAll(u => u.UserId == currentUserId || u.ContactUserId == currentUserId);
+            var data = await _contactService.GetUserContacts(currentUserId);
             return Ok(new ApiResponse(string.Format(Message.Success.ReadedCompleted, "liên hệ người dùng"), data, StatusCodes.Status200OK));
         }
 

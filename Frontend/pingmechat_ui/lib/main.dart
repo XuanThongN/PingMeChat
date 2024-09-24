@@ -5,6 +5,7 @@ import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
+import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:pingmechat_ui/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:pingmechat_ui/data/datasources/chat_service.dart';
@@ -36,6 +37,12 @@ void main() {
           update: (context, chatService, previous) =>
               previous ?? ChatProvider(chatService),
         ),
+        ChangeNotifierProxyProvider<AuthProvider, ContactProvider>(
+          create: (context) => ContactProvider(context.read<AuthProvider>()),
+          update: (context, authProvider, previous) =>
+              previous ?? ContactProvider(authProvider),
+        )
+
       ],
       child: const MyApp(),
     ),

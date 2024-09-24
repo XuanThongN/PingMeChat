@@ -3,10 +3,16 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
+import 'package:pingmechat_ui/domain/models/contact.dart';
+import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../data/models/chat_model.dart';
+import '../../domain/models/account.dart';
+import '../../providers/contact_provider.dart';
+import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
 import 'chat_page.dart';
 import 'create_group_page.dart';
@@ -18,23 +24,7 @@ class MessageTab extends StatefulWidget {
 
 class _MessageTabState extends State<MessageTab> {
   late ChatProvider _chatProvider; // Khai báo provider
-  final List<StatusItem> statusItems = [
-    StatusItem(
-        name: 'My status',
-        imageUrl: 'assets/images/my_status.jpg',
-        isMyStatus: true),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-    StatusItem(name: 'Marina', imageUrl: 'assets/images/marina.jpg'),
-    StatusItem(name: 'Dean', imageUrl: 'assets/images/dean.jpg'),
-    StatusItem(name: 'Max', imageUrl: 'assets/images/max.jpg'),
-    StatusItem(name: 'Max', imageUrl: 'assets/images/max.jpg'),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-    StatusItem(
-        name: 'Adil', imageUrl: 'assets/images/adil.jpg', isOnline: true),
-  ];
-
+  late AuthProvider _authProvider; // Khai báo provider
   bool _isAddOptionsVisible =
       false; // Biến kiểm tra xem có hiển thị menu thêm mới không
   final ScrollController _scrollController = ScrollController();
@@ -46,8 +36,21 @@ class _MessageTabState extends State<MessageTab> {
     // _loadingMoreItems();
     _chatProvider = Provider.of<ChatProvider>(context,
         listen: false); // Lấy provider từ context
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Thiết lập callback để mở ChatPage
+    _chatProvider.onOpenChatPage = (chat) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+      );
+    };
+
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       _chatProvider.loadChats(); // Load danh sách chat
+
+      Provider.of<ContactProvider>(context, listen: false)
+          .fetchContacts(); // Load danh sách contact
     });
   }
 
@@ -61,23 +64,9 @@ class _MessageTabState extends State<MessageTab> {
   void _onScroll() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      // _loadingMoreItems();
       _chatProvider.loadChats();
     }
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Consumer(builder: (context, chatProvider, child){
-  //     return Column(
-  //     children: [
-  //       _buildAppBar(),
-  //       _buildStatusList(),
-  //       _buildRoundedChatList(),
-  //     ],
-  //   )
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -87,51 +76,12 @@ class _MessageTabState extends State<MessageTab> {
           children: [
             _buildAppBar(),
             _buildStatusList(),
-            // Expanded(
-            //   child: RefreshIndicator(
-            //     onRefresh: _refreshChatList,
-            //     child: ListView.builder(
-            //       controller: _scrollController,
-            //       itemCount: chatProvider.chats.length + (chatProvider.hasMoreChats ? 1 : 0),
-            //       itemBuilder: (context, index) {
-            //         if (index < chatProvider.chats.length) {
-            //           return _buildChatItem(chatProvider.chats[index]);
-            //         } else {
-            //           return _buildLoadingIndicator();
-            //         }
-            //       },
-            //     ),
-            //   ),
-            // ),
             _buildRoundedChatList(),
           ],
         );
       },
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Consumer<ChatProvider>(
-  //     builder: (context, chatProvider, child) {
-  //       return RefreshIndicator(
-  //         onRefresh: _refreshChatList,
-  //         child: ListView.builder(
-  //           controller: _scrollController,
-  //           itemCount:
-  //               chatProvider.chats.length + (chatProvider.hasMoreChats ? 1 : 0),
-  //           itemBuilder: (context, index) {
-  //             if (index < chatProvider.chats.length) {
-  //               return _buildChatItem(chatProvider.chats[index]);
-  //             } else {
-  //               return _buildLoadingIndicator();
-  //             }
-  //           },
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   Widget _buildLoadingIndicator() {
     return Consumer<ChatProvider>(
@@ -144,17 +94,61 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   Widget _buildStatusList() {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: statusItems.length,
-        itemBuilder: (context, index) => _buildStatusItem(statusItems[index]),
-      ),
+    return Consumer<ContactProvider>(
+      builder: (context, contactProvider, child) {
+        final contacts = contactProvider.contacts;
+        return SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: contacts.length,
+            itemBuilder: (context, index) {
+              final currentUserId = _authProvider.currentUser!.id;
+              final contact = contacts[index];
+              final contactUser = contact.user!.id == currentUserId
+                  ? contact.contactUser
+                  : contact.user;
+              return GestureDetector(
+                onTap: () => _handleContactStatusTap(contactUser.id),
+                child: _buildContactStatusItem(contactUser!),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildStatusItem(StatusItem item) {
+  // Viết hàm xử lý khi nhấn vào trạng thái liên hệ sẽ tiến hành tạo cuộc trò chuyện mới nếu chưa có cuộc trò chuyện riêng tư, còn nếu có rồi thì hiển thị nội dung cuộc trò chuyện
+  void _handleContactStatusTap(String contactUserId) {
+    // Duyệt tất cả các cuộc trò chuyện riêng tư và tìm cuộc trò chuyện có chứa user đang nhấn
+    // Tìm chat có chứa user với contactUserId
+    final chat = _chatProvider.chats.firstWhere(
+      (chat) =>
+          chat.isGroup == false &&
+          chat.userChats.any((uc) => uc.userId == contactUserId),
+      orElse: () => Chat(
+          isGroup: false,
+          userChats: [],
+          id: ''), // Cung cấp giá trị mặc định khi không tìm thấy phần tử nào
+    );
+
+// Kiểm tra nếu chat không phải là null và lấy chatId
+    if (chat.id.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+      );
+    } else {
+      _chatProvider.startNewChat(ChatCreateDto(
+        isGroup: false,
+        userIds: [contactUserId],
+      ));
+    }
+  }
+
+  Widget _buildContactStatusItem(Account contactUser) {
+    // final isMe = contact.user!.id == currentUserId;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -165,34 +159,39 @@ class _MessageTabState extends State<MessageTab> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: item.isOnline ? Colors.green : Colors.transparent,
+                    color: Colors.green ?? Colors.transparent,
                     width: 2,
                   ),
                 ),
-                child: CircleAvatar(
-                  // backgroundImage: CachedNetworkImageProvider(item.imageUrl),
-                  // Use AssetImage for local images
-                  backgroundImage: AssetImage(item.imageUrl),
+                child: CustomCircleAvatar(
+                  backgroundImage: contactUser.avatarUrl != null
+                      ? AssetImage(contactUser.avatarUrl!)
+                      : null,
                   radius: 30,
                 ),
               ),
-              if (item.isMyStatus)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 14),
-                  ),
-                ),
+              // if (isMe)
+              //   Positioned(
+              //     right: 0,
+              //     bottom: 0,
+              //     child: Container(
+              //       padding: const EdgeInsets.all(4),
+              //       decoration: const BoxDecoration(
+              //         color: Colors.blue,
+              //         shape: BoxShape.circle,
+              //       ),
+              //       child: const Icon(Icons.add, color: Colors.white, size: 14),
+              //     ),
+              //   ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(item.name, style: AppTypography.caption),
+            Text(
+            contactUser.fullName,
+            style: AppTypography.caption, // Tránh tràn dòng và hiển thị dấu ba chấm
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            ),
         ],
       ),
     );
@@ -211,10 +210,6 @@ class _MessageTabState extends State<MessageTab> {
             AppLocalizations.of(context)!.home,
             style: AppTypography.h2,
           ),
-          // const CircleAvatar(
-          //   backgroundImage: AssetImage('assets/images/profile.jpg'),
-          //   radius: 18,
-          // ),
           _buildCircularButton(_isAddOptionsVisible ? Icons.close : Icons.add,
               () {
             _showAddOptions(context);
@@ -259,23 +254,7 @@ class _MessageTabState extends State<MessageTab> {
     );
   }
 
-  // Widget _buildLoadingIndicator() {
-  //   return const Center(
-  //     child: Padding(
-  //       padding: EdgeInsets.all(8),
-  //       child: CircularProgressIndicator(
-  //         // Thay thế bằng widget loading của bạn
-  //         valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Future<void> _refreshChatList() async {
-    // await Future.delayed(const Duration(seconds: 2));
-    // _currentPage = 0;
-    // _displayedChatItems.clear();
-    // _loadingMoreItems();
     await _chatProvider.loadChats(refresh: true);
   }
 
@@ -314,11 +293,20 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   Widget _buildChatItem(Chat item) {
+    // lấy tên của người dùng hoặc tên nhóm
+    final chatName = item.isGroup
+        ? item.name
+        : item.userChats
+            .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
+            .user
+            ?.fullName;
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => ChatScreen(chatId: item.id)));
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatScreen(chatId: item.id)));
       },
       child: ListTile(
         leading: Stack(children: [
@@ -348,10 +336,10 @@ class _MessageTabState extends State<MessageTab> {
             ),
         ]),
         title: Text(
-          item.isGroup
-              ? item.name!
-              : (item.userChats.first.user?.fullName ?? ''),
+          chatName ?? '',
           style: AppTypography.chatName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
           item.messages!.length >= 1 ? item.messages!.last.content! : '',
@@ -402,27 +390,6 @@ class _MessageTabState extends State<MessageTab> {
       ),
     );
   }
-
-  // Load more items when the user scrolls to the bottom of the list
-  // void _loadingMoreItems() {
-  //   if (_isLoading) return;
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //   // Simulate a network request
-  //   Future.delayed(const Duration(seconds: 2), () {
-  //     final start = _currentPage * _itemsPerPage;
-  //     final end = start + _itemsPerPage;
-  //     final newItems = _allChatItems.sublist(
-  //         start, end > _allChatItems.length ? _allChatItems.length : end);
-
-  //     setState(() {
-  //       _displayedChatItems.addAll(newItems);
-  //       _currentPage++;
-  //       _isLoading = false;
-  //     });
-  //   });
-  // }
 
   void _showAddOptions(BuildContext context) {
     setState(() {
@@ -501,18 +468,4 @@ class _MessageTabState extends State<MessageTab> {
       ),
     );
   }
-}
-
-class StatusItem {
-  final String name;
-  final String imageUrl;
-  final bool isOnline;
-  final bool isMyStatus;
-
-  const StatusItem({
-    required this.name,
-    required this.imageUrl,
-    this.isOnline = false,
-    this.isMyStatus = false,
-  });
 }

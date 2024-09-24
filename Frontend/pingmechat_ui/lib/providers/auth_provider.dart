@@ -77,10 +77,9 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> login(String email, String password) async {
-    const url = ApiConstants.baseApiUrl + ApiConstants.loginEndpoint;
     try {
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse(ApiConstants.loginEndpoint),
         body: json.encode({
           'userName': email,
           'password': password,
@@ -141,11 +140,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _accessToken = null;
-    _userId = null;
-    _expiryDate = null;
-    _currentUser = null;
-    notifyListeners();
+    notifyLogout();
     final prefs = await SharedPreferences.getInstance();
     prefs.clear();
   }
@@ -173,5 +168,13 @@ class AuthProvider with ChangeNotifier {
   Future<String> getAuthorizationString() async {
     return 'Bearer $_accessToken,$_refreshToken';
   }
- 
+
+  void notifyLogout() {
+    _accessToken = null;
+    _refreshToken = null;
+    _userId = null;
+    _expiryDate = null;
+    _currentUser = null;
+    notifyListeners();
+  }
 }

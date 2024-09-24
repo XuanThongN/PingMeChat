@@ -7,6 +7,7 @@ using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
+using NPOI.SS.Formula.Functions;
 
 namespace PingMeChat.CMS.Application.Feature.Service
 {
@@ -25,6 +26,7 @@ namespace PingMeChat.CMS.Application.Feature.Service
         Task<TReadDto> Find(Expression<Func<TEntity, bool>> match);
         Task<TReadDto> Find(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null);
         Task<TReadDto> FindById(string id);
+        Task<IEnumerable<TReadDto>> FindAll(Expression<Func<TEntity, bool>> predicate, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null);
         Task<IEnumerable<TReadDto>> FindAll(Expression<Func<TEntity, bool>> predicate);
         Task<IEnumerable<TReadDto>> GetAllInclude(params Expression<Func<TEntity, object>>[] includeProperties);
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> match);
@@ -186,6 +188,19 @@ namespace PingMeChat.CMS.Application.Feature.Service
             try
             {
                 IEnumerable<TEntity> entities = await _repository.FindAll(predicate);
+                return _mapper.Map<IEnumerable<TReadDto>>(entities);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions or rethrow as needed
+                throw new Exception("Error occurred while finding entities.", ex);
+            }
+        }
+        public virtual async Task<IEnumerable<TReadDto>> FindAll(Expression<Func<TEntity, bool>> predicate, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
+        {
+            try
+            {
+                IEnumerable<TEntity> entities = await _repository.FindAll(predicate, include);
                 return _mapper.Map<IEnumerable<TReadDto>>(entities);
             }
             catch (Exception ex)

@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
 
 import '../data/datasources/chat_service.dart';
 import '../data/models/chat_model.dart';
@@ -21,9 +23,8 @@ class ChatProvider extends ChangeNotifier {
   Map<String, bool> _hasMoreMessagesByChatId = {};
   Map<String, bool> _isLoadingMessagesByChatId = {};
 
-  // int _currentMessagePage = 1;
-  // bool _isLoadingMessages = false;
-  // bool _hasMoreMessages = true;
+// Callback để mở ChatPage
+  void Function(Chat)? onOpenChatPage;
 
   // Constructor
   ChatProvider(this._chatService) {
@@ -58,28 +59,45 @@ class ChatProvider extends ChangeNotifier {
     });
 
     _chatService.onNewPrivateChat((chat) {
+      // Thêm cuộc trò chuyện mới vào danh sách chats
       _chats.add(chat);
       notifyListeners();
+      // Mở ChatPage với cuộc trò chuyện mới
+      onOpenChatPage?.call(chat);
     });
 
-    _chatService.chatHubService.onReceiveMessage((message) {
-      _messagesByChatId[message.chatId]?.add(Message(
-        chatId: message.chatId,
-        senderId: message.senderId,
-        content: message.content,
-        createdDate: message.createdDate,
-      ));
-
-      // Cập nhật lại tin nhắn cuối cùng của cuộc trò chuyện
+    _chatService.chatHubService.onReceiveMessage((message) async {
+      // Check if the chat exists in the current list
       final chatIndex = _chats.indexWhere((c) => c.id == message.chatId);
-      if (chatIndex != -1) {
-        // Xoá tin nhắn cũ nhất trong danh sách tin nhắn của cuộc trò chuyện
-        if (_chats[chatIndex].messages!.isNotEmpty)
+
+      if (chatIndex == -1) {
+        // Chat not found, fetch it from the database
+        try {
+          final newChat = await _chatService.getChatById(message.chatId);
+          if (newChat != null) {
+            // Thêm đoạn chat vào đầu danh sách chats
+            _chats.insert(0, newChat);
+            _messagesByChatId[message.chatId] = [message];
+          }
+        } catch (error) {
+          print('Error fetching chat: $error');
+        }
+      } else {
+        // Chat found, add the message to the existing chat
+        _messagesByChatId[message.chatId]?.add(Message(
+          chatId: message.chatId,
+          senderId: message.senderId,
+          content: message.content,
+          createdDate: message.createdDate,
+        ));
+
+        // Update the last message of the chat
+        if (_chats[chatIndex].messages!.isNotEmpty) {
           _chats[chatIndex].messages!.clear();
-        // Thêm tin nhắn mới nhất vào đầu danh sách tin nhắn của cuộc trò chuyện
+        }
         _chats[chatIndex].messages!.insert(0, message);
 
-        // Sắp xếp lại danh sách các cuộc trò chuyện theo thời gian tin nhắn cuối cùng
+        // Sort chats by the last message date
         _chats.sort((a, b) {
           final lastMessageA = a.messages!.isNotEmpty
               ? a.messages!.first.createdDate
@@ -90,9 +108,8 @@ class ChatProvider extends ChangeNotifier {
           return lastMessageB!.compareTo(lastMessageA!);
         });
       }
-      // Assume message is a JSON string that can be converted to a Message object
+
       print("Tin nhắn nhận đc từ server: ");
-      // _messages.add(Message.fromJson(jsonDecode(message)));
       notifyListeners();
     });
   }
@@ -195,8 +212,8 @@ class ChatProvider extends ChangeNotifier {
         _hasMoreMessagesByChatId[chatId] = false;
       } else {
         _messagesByChatId[chatId] = [
-          ...(_messagesByChatId[chatId] ?? []),
-          ...newMessages
+          ...newMessages.reversed,
+          ...(_messagesByChatId[chatId] ?? [])
         ];
         _currentPageByChatId[chatId] = currentPage + 1;
       }
@@ -209,4 +226,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // Thêm các phương thức khác tương ứng với các chức năng của ChatHub
+  bool _shouldOpenChatPage(Chat chat) {
+    return chat.isGroup == false && chat.messages!.isEmpty;
+  }
 }

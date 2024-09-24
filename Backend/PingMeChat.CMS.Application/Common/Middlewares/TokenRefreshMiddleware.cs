@@ -39,12 +39,24 @@ namespace PingMeChat.CMS.Application.Common.Middlewares
             // Lấy access token từ header Authorization và refresh token từ cookie
             var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             var refreshToken = context.Request.Headers["RefreshToken"].FirstOrDefault()?.Split(" ").Last();
-            var authHeader = context.Request.Query["access_token"].FirstOrDefault()?.Substring("Bearer ".Length).Split(',');
-            if (authHeader != null && authHeader.Length == 2)
+            //var authHeader = context.Request.Query["access_token"].FirstOrDefault()?.Substring("Bearer ".Length).Split(',');
+            //if (authHeader != null && authHeader.Length == 2)
+            //{
+            //    accessToken = authHeader[0];
+            //    refreshToken = authHeader[1];
+            //}
+
+            // Xử lý trường hợp SignalR request
+            if (string.IsNullOrEmpty(accessToken))
             {
-                accessToken = authHeader[0];
-                refreshToken = authHeader[1];
+                accessToken = context.Request.Query["access_token"].FirstOrDefault();
             }
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                refreshToken = context.Request.Query["refresh_token"].FirstOrDefault();
+            }
+
+
             //var refreshToken = context.Request.Cookies["RefreshToken"];
 
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))

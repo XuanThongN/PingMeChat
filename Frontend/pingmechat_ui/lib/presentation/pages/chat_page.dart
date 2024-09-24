@@ -13,6 +13,7 @@ import 'package:video_player/video_player.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
+import '../widgets/custom_circle_avatar.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -52,7 +53,11 @@ class _ChatScreenState extends State<ChatScreen> {
     // Load messages when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _chatProvider.loadMessages(widget.chatId, refresh: true);
+      _scrollToBottom();
     });
+
+    // Thêm listener để gọi hàm _onScroll khi người dùng cuộn lên trên đầu trang thì load tin nhắn mới
+    _scrollController.addListener(_onScroll);
   }
 
   void _scrollToBottom() {
@@ -61,6 +66,13 @@ class _ChatScreenState extends State<ChatScreen> {
       duration: Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.minScrollExtent) {
+      _chatProvider.loadMessages(widget.chatId);
+    }
   }
 
   @override
@@ -104,6 +116,25 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  String _getFormattedDate(DateTime date) {
+    final now = DateTime.now();
+    final yesterday = now.subtract(Duration(days: 1));
+
+    if (_isSameDay(date, now)) {
+      return 'Hôm nay';
+    } else if (_isSameDay(date, yesterday)) {
+      return 'Hôm qua';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
+  }
+
   Widget _buildMessageList(String currentUserId) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
@@ -112,15 +143,22 @@ class _ChatScreenState extends State<ChatScreen> {
           controller: _scrollController,
           itemCount: messages.length,
           itemBuilder: (context, index) {
+            // Hiển thị một widget loading khi đang tải tin nhắn cũ hơn
+            if (index == 0) {
+              return chatProvider.isLoadingMessages(widget.chatId)
+                  ? Center(child: CircularProgressIndicator())
+                  : SizedBox.shrink();
+            }
             final message = messages.elementAt(index);
             final showAvatar = _shouldShowAvatar(messages, index);
             final showTimestamp = _shouldShowTimestamp(messages, index);
-            return _buildMessageItem(
-              message,
-              showAvatar,
-              showTimestamp,
-              currentUserId
-            );
+
+            // Hiển thị thanh ngang để chia tin nhắn theo ngày
+            final previousMessage = index > 0 ? messages[index - 1] : null;
+            final showDateDivider = previousMessage == null ||
+                !_isSameDay(message.createdDate, previousMessage.createdDate);
+            return _buildMessageItem(message, showAvatar, showTimestamp,
+                currentUserId, showDateDivider);
           },
         );
       },
@@ -243,6 +281,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
+    final chatName = chat!.isGroup
+        ? chat.name
+        : chat.userChats
+            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+            .user!
+            .fullName;
+    final chatAvatarUrl = chat.isGroup
+        ? chat.avatarUrl
+        : chat.userChats
+            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+            .user!
+            .avatarUrl;
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -264,58 +314,51 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(
           children: [
             // add status icon here
-            Stack(
-              children: [
-                CircleAvatar(
-                  backgroundImage:
-                      chat!.isGroup
-                      ? NetworkImage(chat.avatarUrl!)
-                      : NetworkImage(
-                          chat.userChats
-                              .firstWhere(
-                                  (userChat) => userChat.user!.id != currentUser?.id)
-                              .user!
-                              .avatarUrl!,
-                        ),
-                  radius: 20,
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Stack(
+                children: [
+                  CustomCircleAvatar(
+                    backgroundImage: chatAvatarUrl != null
+                        ? NetworkImage(chatAvatarUrl)
+                        : null,
+                    radius: 20,
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
-                  chat!.isGroup
-                      ? chat.name!
-                      : chat.userChats!
-                          .firstWhere(
-                              (userChat) => userChat.user!.id != currentUser?.id)
-                          .user!
-                          .fullName,
-                  style: AppTypography.chatName.copyWith(
-                    fontSize: 16,
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
+                    chatName!,
+                    style: AppTypography.chatName.copyWith(
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  'Active now',
-                  style: AppTypography.caption,
-                ),
-              ],
+                  Text(
+                    'Active now',
+                    style: AppTypography.caption,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -349,79 +392,95 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageItem(
-      Message message, bool showAvatar, bool showTimestamp, String currentUserId) {
+  Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
+      String currentUserId, bool showDateDivider) {
     final isMe = message.senderId == currentUserId;
     return Padding(
       padding: EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
         children: [
-          if (!isMe && showAvatar) ...[
-            CircleAvatar(
-              backgroundImage:
-                  NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
-              radius: 16,
-            ),
-            SizedBox(width: 8),
-          ],
-          if (!isMe && !showAvatar) SizedBox(width: 40),
-          Column(
-            crossAxisAlignment:
-                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            children: [
-              Container(
-                constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isMe ? AppColors.primary_chat : AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    if (message.attachments != null)
-                      for (var attachment in message.attachments!)
-                        if (attachment.fileType == 'image')
-                          Container(
-                            width: 200,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: NetworkImage(attachment.filePath),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                    if (message.attachments != null)
-                      for (var attachment in message.attachments!)
-                        if (attachment.fileType == 'video')
-                          Container(
-                            width: 200,
-                            height: 150,
-                            child: VideoPlayerWidget(url: attachment.filePath),
-                          ),
-                    if (message.content != null)
-                      Text(
-                        message.content!,
-                        style: AppTypography.message.copyWith(
-                          color: isMe ? AppColors.white : AppColors.secondary,
-                        ),
-                      ),
-                  ],
+          if (showDateDivider)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Center(
+                child: Text(
+                  _getFormattedDate(message.createdDate),
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
-              if (showTimestamp)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    DateFormat('hh:mm a').format(message.createdDate),
-                    style: AppTypography.chatTime,
-                  ),
+            ),
+          Row(
+            mainAxisAlignment:
+                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!isMe && showAvatar) ...[
+                CustomCircleAvatar(
+                  backgroundImage:
+                      NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+                  radius: 16,
                 ),
+                SizedBox(width: 8),
+              ],
+              if (!isMe && !showAvatar) SizedBox(width: 40),
+              Column(
+                crossAxisAlignment:
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.7),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isMe ? AppColors.primary_chat : AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        if (message.attachments != null)
+                          for (var attachment in message.attachments!)
+                            if (attachment.fileType == 'image')
+                              Container(
+                                width: 200,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  image: DecorationImage(
+                                    image: NetworkImage(attachment.filePath),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                        if (message.attachments != null)
+                          for (var attachment in message.attachments!)
+                            if (attachment.fileType == 'video')
+                              Container(
+                                width: 200,
+                                height: 150,
+                                child:
+                                    VideoPlayerWidget(url: attachment.filePath),
+                              ),
+                        if (message.content != null)
+                          Text(
+                            message.content!,
+                            style: AppTypography.message.copyWith(
+                              color:
+                                  isMe ? AppColors.white : AppColors.secondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (showTimestamp)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        DateFormat('hh:mm a').format(message.createdDate),
+                        style: AppTypography.chatTime,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ],
@@ -635,44 +694,6 @@ class _ChatScreenState extends State<ChatScreen> {
     // final text = _textController.text;
     if (text.isNotEmpty || _selectedImage != null || _selectedVideo != null) {
       setState(() {
-        // messages.add(Message(
-        //   chatId: 'chatId',
-        //   // Add a valid chat ID
-        //   senderId: 'Nazrul',
-        //   // Use a valid sender ID
-        //   createdDate: DateTime.now(),
-        //   chat: Chat(
-        //       id: 'chatId',
-        //       name: 'Chat Name',
-        //       isGroup: false,
-        //       userChats: [],
-        //       messages: []),
-        //   // Add a valid Chat object
-        //   content: text,
-        //   attachments: [
-        //     if (_selectedImage != null)
-        //       Attachment(
-        //           fileName: 'image',
-        //           filePath: _selectedImage!,
-        //           fileType: 'image',
-        //           fileSize: 100,
-        //           messageId: 'messageId'),
-        //     if (_selectedVideo != null)
-        //       Attachment(
-        //           fileName: 'video',
-        //           filePath: _selectedVideo!,
-        //           fileType: 'video',
-        //           fileSize: 100,
-        //           messageId: 'messageId'),
-        //   ],
-        //   sender: Account(
-        //     id: 'Nazrul',
-        //     fullName: 'Nazrul',
-        //     email: 'Nazrul',
-        //     phoneNumber: 'Nazrul',
-        //   ),
-        // ));
-
         // Gọi hàm gửi tin nhắn tới server ở đây
         _chatProvider.sendMessage(widget.chatId, text);
 
@@ -785,30 +806,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // void _handleSubmitted() {
-  //   final text = _textController.text;
-  //   if (text.isNotEmpty) {
-  //     setState(() {
-  //       messages.add(Message(
-  //         sender: 'Nazrul',
-  //         content: text,
-  //         timestamp: DateTime.now(),
-  //       ));
-  //       _textController.clear();
-  //       _isComposing = false;
-  //     });
-  //     _scrollToBottom();
-  //   }
-  // }
-
-  // bool _shouldShowAvatar(int index) {
-  //   if (index == 0) return true;
-  //   final currentMessage = messages[index];
-  //   final previousMessage = messages[index - 1];
-  //   return currentMessage.senderId != previousMessage.senderId ||
-  //       currentMessage.sentAt.difference(previousMessage.sentAt).inMinutes >= 1;
-  // }
-
   // Hiển thị avatar nếu tin nhắn hiện tại không phải của người gửi trước đó
   bool _shouldShowAvatar(List<Message> messages, int index) {
     if (index == 0) return true;
@@ -817,13 +814,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return currentMessage.senderId != previousMessage.senderId;
   }
 
-  // bool _shouldShowTimestamp(int index) {
-  //   if (index == messages.length - 1) return true;
-  //   final currentMessage = messages[index];
-  //   final nextMessage = messages[index + 1];
-  //   return currentMessage.senderId != nextMessage.senderId ||
-  //       nextMessage.sentAt.difference(currentMessage.sentAt).inMinutes >= 1;
-  // }
   bool _shouldShowTimestamp(List<Message> messages, int index) {
     if (index == messages.length - 1) return true;
     final currentMessage = messages[index];

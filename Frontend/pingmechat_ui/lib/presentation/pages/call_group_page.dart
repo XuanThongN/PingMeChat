@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_circle_avatar.dart';
 
 class GroupCallPage extends StatelessWidget {
   @override
@@ -35,7 +36,7 @@ class GroupCallPage extends StatelessWidget {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      CircleAvatar(
+                      CustomCircleAvatar(
                         backgroundImage: NetworkImage(
                             'https://via.placeholder.com/150'), // Replace with organizer's image URL
                         radius: 25,

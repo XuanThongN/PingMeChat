@@ -83,8 +83,31 @@ builder.Services
         OnMessageReceived = context =>
         {
             // Luôn đọc token từ header, bỏ qua cache
-            context.Token = context.Request.Headers["Authorization"]
-                .FirstOrDefault()?.Split(" ").Last();
+            //context.Token = context.Request.Headers["Authorization"]
+            //    .FirstOrDefault()?.Split(" ").Last();
+            //return Task.CompletedTask;
+
+            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var refreshToken = context.Request.Headers["RefreshToken"].FirstOrDefault();
+
+            var path = context.HttpContext.Request.Path;
+            if (path.StartsWithSegments("/chatHub"))
+            {
+                // Ưu tiên lấy token từ query string cho SignalR
+                accessToken = context.Request.Query["access_token"].FirstOrDefault() ?? accessToken;
+                refreshToken = context.Request.Query["refresh_token"].FirstOrDefault() ?? refreshToken;
+            }
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.Token = accessToken;
+            }
+
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                context.HttpContext.Items["RefreshToken"] = refreshToken;
+            }
+
             return Task.CompletedTask;
         }
     };
