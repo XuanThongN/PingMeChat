@@ -15,27 +15,34 @@ class ChatHubService {
   late HubConnection _hubConnection;
   final AuthProvider authProvider;
   final Completer<void> _connectionCompleter = Completer<void>();
+  bool _isConnected = false;
 
   ChatHubService(this.authProvider) {
+    authProvider.addListener(_handleAuthChange);
     _initializeConnection();
   }
 
   Future<void> _initializeConnection() async {
-    _hubConnection = await _buildHubConnection();
-    // Thêm token vào URL cho WebSocket connection
-    final originalUrl = _hubConnection.baseUrl;
-    final uriBuilder = Uri.parse(originalUrl).replace(queryParameters: {
-      'access_token': authProvider.accessToken!,
-      'refresh_token': authProvider.refreshToken!,
-    });
-    _hubConnection.baseUrl = uriBuilder.toString();
-    _setupConnectionHandlers();
-
+    if (!authProvider.isAuth) {
+      print('User not authenticated. Skipping connection initialization.');
+      return;
+    }
     try {
+      _hubConnection = await _buildHubConnection();
+      // Thêm token vào URL cho WebSocket connection
+      final originalUrl = _hubConnection.baseUrl;
+      final uriBuilder = Uri.parse(originalUrl).replace(queryParameters: {
+        'access_token': authProvider.accessToken!,
+        'refresh_token': authProvider.refreshToken!,
+      });
+      _hubConnection.baseUrl = uriBuilder.toString();
+      _setupConnectionHandlers();
+
       await _hubConnection.start();
       print('Connected to SignalR hub');
       _connectionCompleter.complete();
     } catch (e) {
+      print('Error initializing connection: $e');
       await _handleConnectionError(e);
     }
   }
@@ -66,6 +73,8 @@ class ChatHubService {
   }
 
   Future<void> _handleConnectionError(dynamic e) async {
+    print('Error connecting to SignalR hub: $e');
+    _isConnected = false;
     if (e.toString().contains('401')) {
       print('Authentication failed: Invalid access token');
     } else {
@@ -90,6 +99,27 @@ class ChatHubService {
       }
     }
     print('Failed to reconnect after $maxAttempts attempts');
+  }
+
+  void _handleAuthChange() {
+    if (!authProvider.isAuth && _isConnected) {
+      _disconnectHub();
+    } else if (authProvider.isAuth && !_isConnected) {
+      _initializeConnection();
+    }
+  }
+
+  Future<void> _disconnectHub() async {
+    await _hubConnection?.stop();
+    _isConnected = false;
+    print('Disconnected from SignalR hub');
+  }
+
+  // Phương thức mới để đóng kết nối và dọn dẹp tài nguyên
+  Future<void> close() async {
+    authProvider.removeListener(_handleAuthChange);
+    await _disconnectHub();
+    print('ChatHubService closed and resources cleaned up');
   }
 
   Future<void> sendMessage(String chatId, String message) async {

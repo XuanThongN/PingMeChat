@@ -1,7 +1,7 @@
 // Đây là file chứa các hằng số dùng chung trong ứng dụng
 // Các hằng số này bao gồm các URL API, thông tin authen, thông tin chatHub
 // Để sử dụng các hằng số này, ta chỉ cần import file này vào nơi cần sử dụng
-const String baseUrl = 'https://kntxxbwg-7043.asse.devtunnels.ms';
+const String baseUrl = 'https://jxhq42vd-7043.asse.devtunnels.ms';
 
 class ApiConstants {
   // Base URL
@@ -16,6 +16,9 @@ class ApiConstants {
 
   // Chat
   static const String getChatListEndpoint = '$baseApiUrl/chats/get-chat-list';
+  static String getChatByIdEndpoint(String chatId) {
+    return '$baseApiUrl/chats/get-chat-detail/$chatId';
+  }
   static const String startNewPrivateChatEndpoint = '$baseApiUrl/chats/start-new-private-chat';
   // Message
   static String getMessagesEndpoint(String chatId, int pageNumber, int pageSize) {

@@ -122,10 +122,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             {
                 var chat = await _repository.Find(
                     c => c.Id == chatId,
-                    include: c => c
-                        .Include(c => c.UserChats)
-                        .ThenInclude(uc => uc.User)
-                        .Include(c => c.Messages.OrderByDescending(m => m.SentAt).Take(20))
+                    include: q => q
+                    .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
+                    .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
+                    .ThenInclude(m => m.Sender)
                 );
 
                 if (chat == null)

@@ -44,6 +44,33 @@ class ChatService {
     }
   }
 
+// Hàm lấy cuộc trò chuyện dựa theo id
+  Future<Chat> getChatById(String chat) async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConstants.getChatByIdEndpoint(chat)),
+        headers: await authProvider.getCustomHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        // Lấy phần 'result' và truy cập vào 'data' trong đó
+        final data = jsonResponse['result'];
+
+        // Chuyển đổi từng phần tử trong 'data' thành đối tượng 'Chat'
+        Chat chat = Chat.fromJson(data);
+
+        return chat;
+      } else {
+        throw Exception(
+            'HTTP error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load chat: $e');
+    }
+  }
+
 // Hàm lấy danh sách tin nhắn của một cuộc trò chuyện
   Future<List<Message>> getMessages(
       {required String chatId, int page = 1, int pageSize = 20}) async {

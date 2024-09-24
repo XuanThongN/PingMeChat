@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../../data/models/chat_model.dart';
+import '../../domain/models/account.dart';
 import '../../providers/contact_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
@@ -102,11 +103,14 @@ class _MessageTabState extends State<MessageTab> {
             scrollDirection: Axis.horizontal,
             itemCount: contacts.length,
             itemBuilder: (context, index) {
+              final currentUserId = _authProvider.currentUser!.id;
               final contact = contacts[index];
+              final contactUser = contact.user!.id == currentUserId
+                  ? contact.contactUser
+                  : contact.user;
               return GestureDetector(
-                onTap: () => _handleContactStatusTap(contact),
-                child: _buildContactStatusItem(
-                    contact, _authProvider.currentUser!.id),
+                onTap: () => _handleContactStatusTap(contactUser.id),
+                child: _buildContactStatusItem(contactUser!),
               );
             },
           ),
@@ -116,21 +120,21 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   // Viết hàm xử lý khi nhấn vào trạng thái liên hệ sẽ tiến hành tạo cuộc trò chuyện mới nếu chưa có cuộc trò chuyện riêng tư, còn nếu có rồi thì hiển thị nội dung cuộc trò chuyện
-  void _handleContactStatusTap(Contact contact) {
-    // Lấy id của người dùng được chọn từ contact nếu contact.user.id == currentUser.id thì lấy contact.contactUser.id,
-    // Nếu contact.contactUser.id == currentUser.id thì lấy contact.user.id
-    String contactId;
-    if (contact.user!.id == _authProvider.currentUser!.id) {
-      contactId = contact.contactUser!.id;
-    } else {
-      contactId = contact.user!.id;
-    }
-    // Đầu tiên kiểm tra xem có cuộc trò chuyện riêng tư này chưa, nếu có thì trỏ tới cuộc trò chuyện đó, nếu không thì tạo mới
-    // Nên check chat phải là isGroup = false
-    final chat = _chatProvider.chats.firstWhere((element) =>
-        element.userChats.any((userChat) => userChat.userId == contactId) &&
-        !element.isGroup);
-    if (chat != null) {
+  void _handleContactStatusTap(String contactUserId) {
+    // Duyệt tất cả các cuộc trò chuyện riêng tư và tìm cuộc trò chuyện có chứa user đang nhấn
+    // Tìm chat có chứa user với contactUserId
+    final chat = _chatProvider.chats.firstWhere(
+      (chat) =>
+          chat.isGroup == false &&
+          chat.userChats.any((uc) => uc.userId == contactUserId),
+      orElse: () => Chat(
+          isGroup: false,
+          userChats: [],
+          id: ''), // Cung cấp giá trị mặc định khi không tìm thấy phần tử nào
+    );
+
+// Kiểm tra nếu chat không phải là null và lấy chatId
+    if (chat.id.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
@@ -138,13 +142,13 @@ class _MessageTabState extends State<MessageTab> {
     } else {
       _chatProvider.startNewChat(ChatCreateDto(
         isGroup: false,
-        userIds: [contactId],
+        userIds: [contactUserId],
       ));
     }
   }
 
-  Widget _buildContactStatusItem(Contact contact, String currentUserId) {
-    final isMe = contact.id == currentUserId;
+  Widget _buildContactStatusItem(Account contactUser) {
+    // final isMe = contact.user!.id == currentUserId;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -155,40 +159,39 @@ class _MessageTabState extends State<MessageTab> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: contact.isOnline ? Colors.green : Colors.transparent,
+                    color: Colors.green ?? Colors.transparent,
                     width: 2,
                   ),
                 ),
                 child: CustomCircleAvatar(
-                  backgroundImage: AssetImage(contact.avatarUrl!),
+                  backgroundImage: contactUser.avatarUrl != null
+                      ? AssetImage(contactUser.avatarUrl!)
+                      : null,
                   radius: 30,
                 ),
               ),
-              if (isMe)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 14),
-                  ),
-                ),
+              // if (isMe)
+              //   Positioned(
+              //     right: 0,
+              //     bottom: 0,
+              //     child: Container(
+              //       padding: const EdgeInsets.all(4),
+              //       decoration: const BoxDecoration(
+              //         color: Colors.blue,
+              //         shape: BoxShape.circle,
+              //       ),
+              //       child: const Icon(Icons.add, color: Colors.white, size: 14),
+              //     ),
+              //   ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            contact.fullName!.isNotEmpty
-                ? contact.fullName!
-                : (isMe
-                    ? contact.contactUser!.fullName
-                    : contact.user!.fullName),
-            style: AppTypography.caption,
+            Text(
+            contactUser.fullName,
+            style: AppTypography.caption, // Tránh tràn dòng và hiển thị dấu ba chấm
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
+            ),
         ],
       ),
     );
@@ -290,6 +293,13 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   Widget _buildChatItem(Chat item) {
+    // lấy tên của người dùng hoặc tên nhóm
+    final chatName = item.isGroup
+        ? item.name
+        : item.userChats
+            .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
+            .user
+            ?.fullName;
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
@@ -326,10 +336,10 @@ class _MessageTabState extends State<MessageTab> {
             ),
         ]),
         title: Text(
-          item.isGroup
-              ? item.name!
-              : (item.userChats.first.user?.fullName ?? ''),
+          chatName ?? '',
           style: AppTypography.chatName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
           item.messages!.length >= 1 ? item.messages!.last.content! : '',

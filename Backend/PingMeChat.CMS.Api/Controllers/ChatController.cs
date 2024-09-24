@@ -38,7 +38,7 @@ namespace PingMeChat.CMS.Api.Controllers
         [ChatAccess]
         [Route(ApiRoutes.Feature.Chat.GetChatDetailRoute)]
         [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetChatDetail(string chatId)
+        public async Task<IActionResult> GetChatDetail([FromRoute] string chatId)
         {
             var userId = GetUserId();
             var result = await _chatService.GetChatDetailAsync(chatId, userId);
