@@ -8,5 +8,5 @@ public interface IChatHubService
 {
     Task SendMessageAsync(MessageDto chatDto);
     Task JoinGroupAsync(string connectionId, string groupName);
-    Task SendMessageToGroupAsync(string chatId, string userId, string message);
+
 }

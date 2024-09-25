@@ -9,10 +9,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/domain/models/account.dart';
 import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
+import 'package:pingmechat_ui/presentation/pages/call_page.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
 import 'package:pingmechat_ui/presentation/pages/video_call_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -242,7 +244,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 svgPath: 'assets/icons/Send_in_message.svg',
                 color: AppColors.primary,
               ),
-              onPressed: () => _handleSubmitted,
+              onPressed: () => _handleSubmitted(),
             ),
         ],
       ),
@@ -340,12 +342,7 @@ class _ChatScreenState extends State<ChatScreen> {
             color: AppColors.tertiary,
             size: 24,
           ),
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => GroupCallPage()));
-            // MaterialPageRoute(builder: (context) => IncomingCallPage()));
-            // context, MaterialPageRoute(builder: (context) => CallScreen()));
-          },
+          onPressed: () => _initiateCall(context, false),
         ),
         IconButton(
           icon: CustomSvgIcon(
@@ -360,6 +357,23 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ],
     );
+  }
+
+// Hàm này dùng để gọi cuộc gọi video
+  void _initiateCall(BuildContext context, bool isVideo) {
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final chat = chatProvider.chats.firstWhere((chat) => chat.id == widget.chatId);
+    callProvider.initiateCall(chat, isVideo).then((_) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CallPage(
+            isIncoming: false,
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
@@ -401,7 +415,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   Container(
                     constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width * 0.7),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       color: isMe ? AppColors.primary_chat : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
@@ -466,7 +481,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _chatProvider.sendMessage(
           chatId: widget.chatId,
           message: text.isNotEmpty ? text : '',
-          attachments: _selectedAttachments!,
+          files: _selectedAttachments!,
         );
         _textController.clear();
         setState(() {
@@ -508,62 +523,64 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // Hàm chọn media từ thư viện
   void _pickMedia() async {
-  // Xin quyền truy cập vào bộ nhớ
-  var status = await Permission.storage.request();
+    // Xin quyền truy cập vào bộ nhớ
+    var status = await Permission.storage.request();
 
-  if (status.isGranted) {
-    // Nếu quyền được cấp, mở media picker cho ảnh hoặc video
-    final ImagePicker picker = ImagePicker();
-    
-    // Hiển thị modal cho phép người dùng chọn ảnh hoặc video
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo),
-              title: const Text('Chọn ảnh'),
-              onTap: () async {
-                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                if (image != null) {
-                  setState(() {
-                    _selectedAttachments!.add(File(image.path));
-                  });
-                }
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('Chọn video'),
-              onTap: () async {
-                final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
-                if (video != null) {
-                  setState(() {
-                    _selectedAttachments!.add(File(video.path));
-                  });
-                }
-                Navigator.pop(context);
-              },
-            ),
-          ],
+    if (status.isGranted) {
+      // Nếu quyền được cấp, mở media picker cho ảnh hoặc video
+      final ImagePicker picker = ImagePicker();
+
+      // Hiển thị modal cho phép người dùng chọn ảnh hoặc video
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text('Chọn ảnh'),
+                onTap: () async {
+                  final XFile? image =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    setState(() {
+                      _selectedAttachments!.add(File(image.path));
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam),
+                title: const Text('Chọn video'),
+                onTap: () async {
+                  final XFile? video =
+                      await picker.pickVideo(source: ImageSource.gallery);
+                  if (video != null) {
+                    setState(() {
+                      _selectedAttachments!.add(File(video.path));
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  } else if (status.isDenied) {
-    // Nếu quyền bị từ chối, hiển thị thông báo
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
-      ),
-    );
-  } else if (status.isPermanentlyDenied) {
-    // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
-    openAppSettings();
+      );
+    } else if (status.isDenied) {
+      // Nếu quyền bị từ chối, hiển thị thông báo
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+        ),
+      );
+    } else if (status.isPermanentlyDenied) {
+      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
+      openAppSettings();
+    }
   }
-}
-
 
   void _pickIcon() async {
     // Hiển thị một modal bottom sheet để chọn emoji

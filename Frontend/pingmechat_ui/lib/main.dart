@@ -5,6 +5,7 @@ import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:pingmechat_ui/splash_screen.dart';
@@ -23,7 +24,8 @@ void main() {
         ChangeNotifierProvider(
             create: (_) => AuthProvider()), // Initialize AuthProvider
         ProxyProvider<AuthProvider, ChatHubService>(
-          update: (context, authProvider, previous) => ChatHubService(authProvider),
+          update: (context, authProvider, previous) =>
+              ChatHubService(authProvider),
         ),
         ProxyProvider2<AuthProvider, ChatHubService, ChatService>(
           update: (context, authProvider, chatHubService, previous) =>
@@ -41,8 +43,12 @@ void main() {
           create: (context) => ContactProvider(context.read<AuthProvider>()),
           update: (context, authProvider, previous) =>
               previous ?? ContactProvider(authProvider),
-        )
-
+        ),
+        ChangeNotifierProxyProvider<ChatHubService, CallProvider>(
+          create: (context) => CallProvider(context.read<ChatHubService>()),
+          update: (context, chatHubService, previous) =>
+              previous ?? CallProvider(chatHubService),
+        ),
       ],
       child: const MyApp(),
     ),

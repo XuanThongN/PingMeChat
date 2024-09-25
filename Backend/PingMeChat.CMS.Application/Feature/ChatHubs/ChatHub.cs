@@ -14,7 +14,7 @@ using System.Security.Claims;
 
 namespace PingMeChat.CMS.Application.Feature.ChatHubs
 {
-     [Authorize]
+    [Authorize]
     public class ChatHub : Hub
     {
         private readonly IChatHubService _chatHubService;
@@ -122,6 +122,8 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             }
             // Gửi realtime tới những người tham gia đoạn chat
             //await _chatHubService.SendMessageAsync(chatId, userId, message, DateTime.UtcNow);
+            // Gán người gửi vào dto
+            messageCreateDto.SenderId = userId;
             // Lưu tin nhắn vào database
             await _messageService.SendMessageAsync(messageCreateDto);
         }
@@ -134,16 +136,6 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 throw new AppException("User not authenticated");
             }
             await _chatHubService.JoinGroupAsync(Context.ConnectionId, chatId);
-        }
-
-        public async Task SendMessageToGroup(string chatId, string message)
-        {
-            var userId = Context.User.FindFirstValue("UserId");
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new HubException("User not authenticated");
-            }
-            await _chatHubService.SendMessageToGroupAsync(chatId, userId, message);
         }
 
         // Hiển thị người gõ tin nhắn
@@ -182,40 +174,63 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
 
         //Call audio/Video
-        public async Task InitiateCall(string targetUserId, bool isVideo)
+        // Hàm này được gọi khi một người dùng muốn bắt đầu một cuộc gọi
+        // chatId: ID của cuộc trò chuyện
+        // isVideo: true nếu là cuộc gọi video, false nếu là cuộc gọi âm thanh
+        public async Task InitiateCall(string chatId, bool isVideo)
         {
             var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(targetUserId).SendAsync("IncomingCall", callerUserId, isVideo);
+            // Gửi thông báo "IncomingCall" đến tất cả người dùng trong nhóm chat
+            await Clients.Group(chatId).SendAsync("IncomingCall", callerUserId, chatId, isVideo);
         }
 
-        public async Task AnswerCall(string callerUserId, bool accept)
+        // Hàm này được gọi khi người nhận cuộc gọi trả lời
+        // chatId: ID của cuộc trò chuyện
+        // accept: true nếu người nhận chấp nhận cuộc gọi, false nếu từ chối
+        public async Task AnswerCall(string chatId, bool accept)
         {
-            var targetUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(callerUserId).SendAsync("CallAnswered", targetUserId, accept);
+            var answeringUserId = Context.User.FindFirstValue("UserId");
+            // Gửi thông báo "CallAnswered" đến tất cả người dùng trong nhóm chat
+            await Clients.Group(chatId).SendAsync("CallAnswered", answeringUserId, chatId, accept);
         }
 
-        public async Task IceCandidate(string targetUserId, string candidate)
+        // Hàm này được gọi khi có một ICE candidate mới được tạo ra trong quá trình thiết lập kết nối
+        // chatId: ID của cuộc trò chuyện
+        // candidate: Thông tin về ICE candidate
+        public async Task IceCandidate(string chatId, string candidate)
         {
-            var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(targetUserId).SendAsync("IceCandidate", callerUserId, candidate);
+            var userId = Context.User.FindFirstValue("UserId");
+            // Gửi thông báo "IceCandidate" đến tất cả người dùng khác trong nhóm chat
+            await Clients.OthersInGroup(chatId).SendAsync("IceCandidate", userId, candidate);
         }
 
-        public async Task Offer(string targetUserId, string sdp)
+        // Hàm này được gọi khi người gọi tạo ra một offer SDP
+        // chatId: ID của cuộc trò chuyện
+        // sdp: Session Description Protocol, chứa thông tin về cấu hình media
+        public async Task Offer(string chatId, string sdp)
         {
-            var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(targetUserId).SendAsync("Offer", callerUserId, sdp);
+            var userId = Context.User.FindFirstValue("UserId");
+            // Gửi thông báo "Offer" đến tất cả người dùng khác trong nhóm chat
+            await Clients.OthersInGroup(chatId).SendAsync("Offer", userId, sdp);
         }
 
-        public async Task Answer(string targetUserId, string sdp)
+        // Hàm này được gọi khi người nhận tạo ra một answer SDP
+        // chatId: ID của cuộc trò chuyện
+        // sdp: Session Description Protocol, chứa thông tin về cấu hình media
+        public async Task Answer(string chatId, string sdp)
         {
-            var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(targetUserId).SendAsync("Answer", callerUserId, sdp);
+            var userId = Context.User.FindFirstValue("UserId");
+            // Gửi thông báo "Answer" đến tất cả người dùng khác trong nhóm chat
+            await Clients.OthersInGroup(chatId).SendAsync("Answer", userId, sdp);
         }
 
-        public async Task EndCall(string targetUserId)
+        // Hàm này được gọi khi một người dùng kết thúc cuộc gọi
+        // chatId: ID của cuộc trò chuyện
+        public async Task EndCall(string chatId)
         {
-            var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.User(targetUserId).SendAsync("CallEnded", callerUserId);
+            var userId = Context.User.FindFirstValue("UserId");
+            // Gửi thông báo "CallEnded" đến tất cả người dùng trong nhóm chat
+            await Clients.Group(chatId).SendAsync("CallEnded", userId);
         }
     }
 

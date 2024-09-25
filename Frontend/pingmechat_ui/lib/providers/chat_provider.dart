@@ -153,7 +153,7 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage({required String chatId, required String message, List<File> attachments = const []}) async {
+  Future<void> sendMessage({required String chatId, required String message, List<File> files = const []}) async {
     // Thêm tin nhắn vào danh sách local
     // _messages.add(Message(
     //   chatId: chatId,
@@ -176,15 +176,21 @@ class ChatProvider extends ChangeNotifier {
     // notifyListeners(); // Thông báo cho UI để cập nhật giao diện
 
     try {
-      List<Attachment> uploadedAttachments = [];
-      if (attachments.isNotEmpty) {
-        uploadedAttachments = await uploadFile(attachments);
+      List<UploadResult> uploadedAttachments = [];
+      List<Attachment> attachments = [];
+      if (files.isNotEmpty) {
+        uploadedAttachments = await _chatService.uploadFiles(files);
       }
-
+      print("uploadedAttachments: $uploadedAttachments");
+      attachments = uploadedAttachments.map((e) => Attachment(
+        fileName: e.fileName!, 
+        fileUrl: e.url!,
+         fileType: e.fileType!, 
+         fileSize: e.fileSize!)).toList();
       MessageSendDto messageDto = MessageSendDto(
         chatId: chatId,
         content: message,
-        attachments: uploadedAttachments,
+        attachments: attachments,
       );
       await _chatService.sendMessage(messageDto);
 
