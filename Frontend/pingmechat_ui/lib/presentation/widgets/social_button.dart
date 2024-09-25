@@ -5,10 +5,10 @@ class SocialButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const SocialButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +34,8 @@ class SocialButton extends StatelessWidget {
 }
 
 class ListSocialButtons extends StatelessWidget {
+  const ListSocialButtons({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Row(

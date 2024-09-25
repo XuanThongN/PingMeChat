@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MediaLinksDocumentsPage extends StatefulWidget {
+  const MediaLinksDocumentsPage({super.key});
+
   @override
   _MediaLinksDocumentsPageState createState() =>
       _MediaLinksDocumentsPageState();
@@ -26,17 +28,17 @@ class _MediaLinksDocumentsPageState extends State<MediaLinksDocumentsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Media, Links & Documents',
+        title: const Text('Media, Links & Documents',
             style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.black,
           unselectedLabelColor: Colors.grey,
           indicatorColor: Colors.black,
-          tabs: [
+          tabs: const [
             Tab(text: 'Media'),
             Tab(text: 'Links'),
             Tab(text: 'Documents'),
@@ -48,8 +50,8 @@ class _MediaLinksDocumentsPageState extends State<MediaLinksDocumentsPage>
         children: [
           // Media Tab
           GridView.builder(
-            padding: EdgeInsets.all(10),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            padding: const EdgeInsets.all(10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
@@ -72,18 +74,18 @@ class _MediaLinksDocumentsPageState extends State<MediaLinksDocumentsPage>
           ListView(
             children: [
               ListTile(
-                leading: Icon(Icons.link, color: Colors.blue),
-                title: Text('160+ FREE Tab Bar Component Types'),
-                subtitle: Text(
+                leading: const Icon(Icons.link, color: Colors.blue),
+                title: const Text('160+ FREE Tab Bar Component Types'),
+                subtitle: const Text(
                     'https://www.figma.com/community/file/1312921033225014799/160-free-tab-bar-component-types'),
                 onTap: () {
                   // Mở liên kết trong trình duyệt tại đây
                 },
               ),
               ListTile(
-                leading: Icon(Icons.link, color: Colors.blue),
-                title: Text('150+ FREE Stepper / Wizard Component'),
-                subtitle: Text(
+                leading: const Icon(Icons.link, color: Colors.blue),
+                title: const Text('150+ FREE Stepper / Wizard Component'),
+                subtitle: const Text(
                     'https://www.figma.com/community/file/1344038523080556624/150-free-stepper-wizard-component'),
                 onTap: () {},
               ),
@@ -94,15 +96,15 @@ class _MediaLinksDocumentsPageState extends State<MediaLinksDocumentsPage>
           ListView(
             children: [
               ListTile(
-                leading: Icon(Icons.insert_drive_file, color: Colors.orange),
-                title: Text('Document1.pdf'),
-                subtitle: Text('Yesterday, 10:15 AM'),
+                leading: const Icon(Icons.insert_drive_file, color: Colors.orange),
+                title: const Text('Document1.pdf'),
+                subtitle: const Text('Yesterday, 10:15 AM'),
                 onTap: () {},
               ),
               ListTile(
-                leading: Icon(Icons.insert_drive_file, color: Colors.orange),
-                title: Text('Document2.docx'),
-                subtitle: Text('Last Week, 2:00 PM'),
+                leading: const Icon(Icons.insert_drive_file, color: Colors.orange),
+                title: const Text('Document2.docx'),
+                subtitle: const Text('Last Week, 2:00 PM'),
                 onTap: () {},
               ),
               // More ListTiles for each document

@@ -4,6 +4,8 @@ import 'dart:ui';
 import '../../config/theme.dart';
 
 class CallPage extends StatelessWidget {
+  const CallPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,7 +13,7 @@ class CallPage extends StatelessWidget {
         children: [
           // Background Image with Blur Effect
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(
                   'https://plus.unsplash.com/premium_photo-1670148434900-5f0af77ba500?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3BsYXNofGVufDB8fDB8fHww', // Replace with your background image URL
@@ -38,34 +40,34 @@ class CallPage extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back, color: AppColors.white),
+                        icon: const Icon(Icons.arrow_back, color: AppColors.white),
                         onPressed: () {
                           Navigator.pop(context);
                         },
                       ),
-                      Spacer(),
-                      Text(
+                      const Spacer(),
+                      const Text(
                         'Calling ...',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                         ),
                       ),
-                      Spacer(flex: 2),
+                      const Spacer(flex: 2),
                     ],
                   ),
                 ),
                 // Center Section with Profile Picture, Name, and Phone Number
                 Column(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 50,
                       backgroundImage: NetworkImage(
                         'https://plus.unsplash.com/premium_photo-1670148434900-5f0af77ba500?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3BsYXNofGVufDB8fDB8fHww', // Replace with your profile image URL
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Text(
+                    const SizedBox(height: 20),
+                    const Text(
                       'David Wayne',
                       style: TextStyle(
                         color: Colors.white,
@@ -73,7 +75,7 @@ class CallPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Text(
                       '(+44) 50 9285 3022',
                       style: TextStyle(
@@ -88,13 +90,13 @@ class CallPage extends StatelessWidget {
                   children: [
                     // Call Duration Timer
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 20.0),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
+                      child: const Text(
                         '03:45',
                         style: TextStyle(
                           color: Colors.white,
@@ -102,7 +104,7 @@ class CallPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Action Buttons (Mute, Speaker, End Call)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -113,14 +115,14 @@ class CallPage extends StatelessWidget {
                           iconColor: Colors.black,
                           onPressed: () {},
                         ),
-                        SizedBox(width: 30),
+                        const SizedBox(width: 30),
                         CircleButton(
                           icon: Icons.volume_up,
                           backgroundColor: Colors.white,
                           iconColor: Colors.black,
                           onPressed: () {},
                         ),
-                        SizedBox(width: 30),
+                        const SizedBox(width: 30),
                         CircleButton(
                           icon: Icons.call_end,
                           backgroundColor: Colors.red,
@@ -129,7 +131,7 @@ class CallPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ],
@@ -148,19 +150,19 @@ class CircleButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const CircleButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.backgroundColor,
     required this.iconColor,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onPressed,
       child: Container(
-        padding: EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(15.0),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: backgroundColor,

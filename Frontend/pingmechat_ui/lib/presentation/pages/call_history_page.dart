@@ -2,27 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class CallHistoryPage extends StatelessWidget {
+  const CallHistoryPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: Text('Calls', style: TextStyle(color: Colors.white)),
+        title: const Text('Calls', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.white),
+            icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {},
           ),
           IconButton(
-            icon: Icon(Icons.add_call, color: Colors.white),
+            icon: const Icon(Icons.add_call, color: Colors.white),
             onPressed: () {},
           ),
         ],
       ),
       body: ListView(
         children: [
-          ListTile(
+          const ListTile(
             title: Text('Recent',
                 style:
                     TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),

@@ -17,6 +17,8 @@ import 'chat_page.dart';
 import 'create_group_page.dart';
 
 class MessageTab extends StatefulWidget {
+  const MessageTab({super.key});
+
   @override
   State<MessageTab> createState() => _MessageTabState();
 }
@@ -45,7 +47,7 @@ class _MessageTabState extends State<MessageTab> {
       );
     };
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _chatProvider.loadChats(); // Load danh sách chat
 
       Provider.of<ContactProvider>(context, listen: false)
@@ -86,8 +88,8 @@ class _MessageTabState extends State<MessageTab> {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         return chatProvider.isLoading
-            ? Center(child: CircularProgressIndicator())
-            : SizedBox.shrink();
+            ? const Center(child: CircularProgressIndicator())
+            : const SizedBox.shrink();
       },
     );
   }
@@ -353,7 +355,7 @@ class _MessageTabState extends State<MessageTab> {
                         final currentUserId = authProvider.currentUser?.id;
                         final lastMessage = item.messages!.isNotEmpty ? item.messages!.last : null;
                         if (lastMessage == null) {
-                          return Text('');
+                          return const Text('');
                         }
                         final isCurrentUser = lastMessage.senderId == currentUserId;
                         final senderName = isCurrentUser ? 'You' : (lastMessage.sender?.fullName ?? 'Unknown');
@@ -379,7 +381,7 @@ class _MessageTabState extends State<MessageTab> {
               ),
             ),
             Text(
-              item.messages!.length >= 1
+              item.messages!.isNotEmpty
                   ? _showTimeOfChat(item.messages!.last.createdDate)
                   : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
               style: AppTypography.caption,
@@ -450,7 +452,7 @@ class _MessageTabState extends State<MessageTab> {
     if (_isAddOptionsVisible) {
       showMenu(
         context: context,
-        position: RelativeRect.fromLTRB(100, 100, 0, 0),
+        position: const RelativeRect.fromLTRB(100, 100, 0, 0),
         items: const [
           PopupMenuItem(
             value: 'new_chat',
@@ -458,7 +460,7 @@ class _MessageTabState extends State<MessageTab> {
             child: Row(
               children: [
                 Icon(Icons.account_circle),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text('Add New Chat'),
               ],
             ),
@@ -468,7 +470,7 @@ class _MessageTabState extends State<MessageTab> {
             child: Row(
               children: [
                 Icon(Icons.supervised_user_circle_outlined),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text('Create Group'),
               ],
             ),
@@ -482,9 +484,9 @@ class _MessageTabState extends State<MessageTab> {
           // Handle add new chat
           //Show snack bar
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Add New Chat'),
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         } else if (value == 'new_group') {
@@ -492,7 +494,7 @@ class _MessageTabState extends State<MessageTab> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateGroupPage(),
+              builder: (context) => const CreateGroupPage(),
             ),
           );
         }

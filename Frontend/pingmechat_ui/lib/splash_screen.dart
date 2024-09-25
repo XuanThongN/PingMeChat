@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkLoginStatus();
     });
   }
@@ -48,8 +48,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     // Half of height to make it ellipse
                     gradient: LinearGradient(
                       colors: [
-                        Color(0xFF43116A).withOpacity(0),
-                        Color(0xFF0A1832).withOpacity(1),
+                        const Color(0xFF43116A).withOpacity(0),
+                        const Color(0xFF0A1832).withOpacity(1),
                       ],
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,
@@ -139,12 +139,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             'Existing account ?',
                             style: AppTypography.subH3,
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.only(left: 8),
                             child: Text(
                               'Log in',
                               style: AppTypography.subH3.copyWith(

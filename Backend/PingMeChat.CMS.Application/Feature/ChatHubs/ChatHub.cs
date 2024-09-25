@@ -5,6 +5,7 @@ using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages;
+using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Entities.Feature;
 using PingMeChat.Shared.Utils;
 using System;
@@ -108,21 +109,21 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             }
         }
 
-        public async Task SendMessage(string chatId, string message)
+        public async Task SendMessage(MessageCreateDto messageCreateDto)
         {
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
                 throw new AppException("User not authenticated");
             }
-            if (!await HasChatAccess(chatId))
+            if (!await HasChatAccess(messageCreateDto.ChatId))
             {
                 throw new AppException("Access denied");
             }
             // Gửi realtime tới những người tham gia đoạn chat
             //await _chatHubService.SendMessageAsync(chatId, userId, message, DateTime.UtcNow);
             // Lưu tin nhắn vào database
-            await _messageService.SendMessageAsync(chatId, userId, message);
+            await _messageService.SendMessageAsync(messageCreateDto);
         }
 
         public async Task JoinChat(string chatId)

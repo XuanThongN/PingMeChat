@@ -16,7 +16,7 @@ import 'home.dart';
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
 
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
             vertical: 12.0, horizontal: 24), // Khoảng cách giữa các cạnh
@@ -198,8 +198,8 @@ class _LoginPageState extends State<LoginPage> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final success = await authProvider.login(
-          _emailController.text,
-          _passwordController.text,
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
         );
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(

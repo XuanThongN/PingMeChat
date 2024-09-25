@@ -16,7 +16,7 @@ class ChatMessageWidget extends StatelessWidget {
   final bool isGroupMessage;
   final bool showTimestamp;
   const ChatMessageWidget({
-    Key? key,
+    super.key,
     required this.message,
     required this.isLastMessageFromSameSender,
     required this.shouldShowAvatar,
@@ -24,7 +24,7 @@ class ChatMessageWidget extends StatelessWidget {
     this.previousMessageDate,
     this.isGroupMessage = false,
     this.showTimestamp = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,7 @@ class ChatMessageWidget extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 8, bottom: 4),
                         child: Text(
                           message.sender?.fullName ?? 'Unknown',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,

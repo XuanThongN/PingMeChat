@@ -6,6 +6,8 @@ import '../../providers/auth_provider.dart';
 import 'login_page.dart';
 
 class SetttingTab extends StatefulWidget {
+  const SetttingTab({super.key});
+
   @override
   State<SetttingTab> createState() => _SetttingTabState();
 }
@@ -17,7 +19,7 @@ class _SetttingTabState extends State<SetttingTab> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -25,7 +27,7 @@ class _SetttingTabState extends State<SetttingTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (currentUser != null) ...[
-                Center(
+                const Center(
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: NetworkImage(
@@ -33,17 +35,17 @@ class _SetttingTabState extends State<SetttingTab> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Center(
                   child: Text(
                     currentUser.fullName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Center(
                   child: Text(
                     currentUser.email,
@@ -53,38 +55,38 @@ class _SetttingTabState extends State<SetttingTab> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
               ],
-              Divider(),
+              const Divider(),
               ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Account'),
+                leading: const Icon(Icons.person),
+                title: const Text('Account'),
                 onTap: () {
                   // Navigate to account settings
                 },
               ),
               ListTile(
-                leading: Icon(Icons.notifications),
-                title: Text('Notifications'),
+                leading: const Icon(Icons.notifications),
+                title: const Text('Notifications'),
                 onTap: () {
                   // Navigate to notification settings
                 },
               ),
               ListTile(
-                leading: Icon(Icons.lock),
-                title: Text('Privacy'),
+                leading: const Icon(Icons.lock),
+                title: const Text('Privacy'),
                 onTap: () {
                   // Navigate to privacy settings
                 },
               ),
               ListTile(
-                leading: Icon(Icons.help),
-                title: Text('Help & Support'),
+                leading: const Icon(Icons.help),
+                title: const Text('Help & Support'),
                 onTap: () {
                   // Navigate to help & support
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
                   onPressed: () async {
@@ -98,14 +100,14 @@ class _SetttingTabState extends State<SetttingTab> {
                       );
                     }
                   },
-                  child: Text('Logout'),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    textStyle: TextStyle(
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    textStyle: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  child: Text('Logout'),
                 ),
               ),
             ],

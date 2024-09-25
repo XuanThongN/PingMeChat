@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:pingmechat_ui/domain/models/message.dart';
-import 'package:provider/provider.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../providers/auth_provider.dart';
-import '../models/message_model.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;
@@ -95,7 +92,7 @@ class ChatHubService {
         return;
       } catch (e) {
         print('Reconnection attempt $attempt failed: $e');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
       }
     }
     print('Failed to reconnect after $maxAttempts attempts');
@@ -110,7 +107,7 @@ class ChatHubService {
   }
 
   Future<void> _disconnectHub() async {
-    await _hubConnection?.stop();
+    await _hubConnection.stop();
     _isConnected = false;
     print('Disconnected from SignalR hub');
   }
@@ -122,9 +119,9 @@ class ChatHubService {
     print('ChatHubService closed and resources cleaned up');
   }
 
-  Future<void> sendMessage(String chatId, String message) async {
+  Future<void> sendMessage(MessageSendDto message) async {
     await _connectionCompleter.future;
-    await _hubConnection.invoke('SendMessage', args: [chatId, message]);
+    await _hubConnection.invoke('SendMessage', args: [message]);
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
@@ -137,7 +134,7 @@ class ChatHubService {
     _hubConnection.on('ReceiveMessage', (arguments) {
       print('Received data: $arguments');
       if (arguments == null || arguments.isEmpty) return;
-      final messageData = arguments![0] as Map<String, dynamic>;
+      final messageData = arguments[0] as Map<String, dynamic>;
       final messsage = Message.fromJson(messageData);
       handler(messsage);
     });

@@ -91,6 +91,12 @@ namespace PingMeChat.CMS.API.Routes
                 public const string DeleteRoute = "api/contacts/delete/{id}";
                 public const string PaginationRoute = "api/contacts/pagination";
             }
+
+            // Attachment api routes
+            public static class Attachment
+            {
+                public const string UploadMultipleFilesRoute = "api/attachments/upload-multiple-files";
+            }
         }
     }
 }

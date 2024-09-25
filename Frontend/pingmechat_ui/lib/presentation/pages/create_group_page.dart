@@ -10,7 +10,7 @@ import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_button.dart';
 
 class CreateGroupPage extends StatefulWidget {
-  const CreateGroupPage({Key? key}) : super(key: key);
+  const CreateGroupPage({super.key});
 
   @override
   _CreateGroupPageState createState() => _CreateGroupPageState();
@@ -106,7 +106,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search members',
-                  prefixIcon: Icon(Icons.search, size: 24, color: AppColors.primary),
+                  prefixIcon: const Icon(Icons.search, size: 24, color: AppColors.primary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -250,13 +250,13 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.grey),
                         ),
-                        child: Icon(Icons.close, color: Colors.grey, size: 20),
+                        child: const Icon(Icons.close, color: Colors.grey, size: 20),
                       ),
                     ),
                   ),
                 ],
               );
-            }).toList(),
+            }),
             GestureDetector(
               onTap: () => _showAddMembersModal(context),
               child: const CircleAvatar(

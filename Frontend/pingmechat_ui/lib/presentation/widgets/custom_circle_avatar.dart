@@ -6,16 +6,16 @@ class CustomCircleAvatar extends StatelessWidget {
   final Widget? child;
 
   const CustomCircleAvatar({
-    Key? key,
+    super.key,
     this.backgroundImage,
     this.radius = 20.0,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      backgroundImage: backgroundImage ?? AssetImage('assets/images/default_avatar.png'),
+      backgroundImage: backgroundImage ?? const AssetImage('assets/images/default_avatar.png'),
       radius: radius,
       child: child,
     );

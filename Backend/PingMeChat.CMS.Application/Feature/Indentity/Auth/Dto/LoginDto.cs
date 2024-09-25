@@ -7,7 +7,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto
     public class LoginDto
     {
         [Required]
-        [Username(6, 225)] // UsernameAttribute
+        //[Username(6, 225)] // UsernameAttribute
+        [UsernameOrEmail(6, 225)] // Username or Email Attribute
         public string UserName { get; set; }
 
         [Required]

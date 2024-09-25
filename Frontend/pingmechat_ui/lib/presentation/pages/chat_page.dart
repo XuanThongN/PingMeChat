@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/domain/models/account.dart';
 import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
@@ -33,12 +39,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
   bool _isComposing = false;
-  String? _selectedImage;
-  String? _selectedVideo;
 
-  // late AudioPlayer _audioPlayer =
-  //     AudioPlayer(); // Dùng để làm gì trong đây? // Để phát audio từ URL
-  // final PlayerController _playerController = PlayerController();
+  // Biến để lưu ảnh/ video/ audio/ file được chọn
+  List<File>? _selectedAttachments = [];
 
   @override
   void initState() {
@@ -47,9 +50,6 @@ class _ChatScreenState extends State<ChatScreen> {
     // Lấy ra các provider cần thiết
     _chatProvider = Provider.of<ChatProvider>(context, listen: false);
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    // _audioPlayer = AudioPlayer();
-    // _audioPlayer.setReleaseMode(ReleaseMode.stop);
 
     // Load messages when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _scrollToBottom() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
   }
@@ -78,21 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    // _audioPlayer.dispose();
-    // _playerController.dispose();
     super.dispose();
-  }
-
-  void _playPauseAudio(String url) async {
-    // try {
-    //   if (_audioPlayer.state == audioplayers.PlayerState.playing) {
-    //     await _audioPlayer.pause();
-    //   } else {
-    //     // await _audioPlayer.play(UrlSource(url));
-    //   }
-    // } catch (e) {
-    //   print('Error playing audio: $e');
-    // }
   }
 
   @override
@@ -127,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _getFormattedDate(DateTime date) {
     final now = DateTime.now();
-    final yesterday = now.subtract(Duration(days: 1));
+    final yesterday = now.subtract(const Duration(days: 1));
 
     if (_isSameDay(date, now)) {
       return 'Hôm nay';
@@ -149,8 +135,8 @@ class _ChatScreenState extends State<ChatScreen> {
             // Hiển thị một widget loading khi đang tải tin nhắn cũ hơn
             if (index == 0) {
               chatProvider.isLoadingMessages(widget.chatId)
-                  ? Center(child: CircularProgressIndicator())
-                  : SizedBox.shrink();
+                  ? const Center(child: CircularProgressIndicator())
+                  : const SizedBox.shrink();
             }
             final message = messages.elementAt(index);
             final showAvatar = _shouldShowAvatar(messages, index);
@@ -177,38 +163,9 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageComposer() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.0),
-      decoration: BoxDecoration(color: Theme.of(context).cardColor),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: TextField(
-              controller: _textController,
-              onChanged: (text) {
-                setState(() {
-                  _isComposing = text.isNotEmpty;
-                });
-              },
-              onSubmitted: _isComposing ? _handleSubmitted : (String a) {},
-              decoration: InputDecoration.collapsed(hintText: "Send a message"),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: _isComposing
-                ? () => _handleSubmitted(_textController.text)
-                : null,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMessageInput() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -216,7 +173,7 @@ class _ChatScreenState extends State<ChatScreen> {
             color: Colors.grey.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 3,
-            offset: Offset(0, -1),
+            offset: const Offset(0, -1),
           ),
         ],
       ),
@@ -248,14 +205,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 fillColor: AppColors.surface,
                 // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 suffixIcon: IconButton(
                   icon: CustomSvgIcon(
                     svgPath: 'assets/icons/files_in_message.svg',
                     color: AppColors.tertiary,
                     size: 24,
                   ),
-                  onPressed: _pickSticker,
+                  onPressed: _pickIcon,
                 ),
               ),
             ),
@@ -276,7 +233,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: AppColors.secondary,
                 size: 24,
               ),
-              onPressed: _pickVideo,
+              onPressed: _pickRecording,
             ),
           ],
           if (_isComposing)
@@ -285,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 svgPath: 'assets/icons/Send_in_message.svg',
                 color: AppColors.primary,
               ),
-              onPressed: () => _handleSubmitted(_textController.text),
+              onPressed: () => _handleSubmitted,
             ),
         ],
       ),
@@ -315,7 +272,8 @@ class _ChatScreenState extends State<ChatScreen> {
           size: 30,
         ),
         onPressed: () {
-          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
         },
       ),
       title: GestureDetector(
@@ -365,7 +323,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
+                  const Text(
                     'Active now',
                     style: AppTypography.caption,
                   ),
@@ -408,7 +366,7 @@ class _ChatScreenState extends State<ChatScreen> {
       String currentUserId, bool showDateDivider) {
     final isMe = message.senderId == currentUserId;
     return Padding(
-      padding: EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         children: [
           if (showDateDivider)
@@ -417,7 +375,8 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Center(
                 child: Text(
                   _getFormattedDate(message.createdDate),
-                  style: TextStyle(color: const Color.fromARGB(255, 61, 58, 58)),
+                  style:
+                      const TextStyle(color: Color.fromARGB(255, 61, 58, 58)),
                 ),
               ),
             ),
@@ -429,12 +388,12 @@ class _ChatScreenState extends State<ChatScreen> {
               if (!isMe && showAvatar) ...[
                 CustomCircleAvatar(
                   backgroundImage:
-                      NetworkImage('https://i.sstatic.net/B7tGA.gif?s=256'),
+                      NetworkImage(message.sender!.avatarUrl ?? ''),
                   radius: 16,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
               ],
-              if (!isMe && !showAvatar) SizedBox(width: 40),
+              if (!isMe && !showAvatar) const SizedBox(width: 40),
               Column(
                 crossAxisAlignment:
                     isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -442,7 +401,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Container(
                     constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width * 0.7),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       color: isMe ? AppColors.primary_chat : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
@@ -458,7 +417,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
                                   image: DecorationImage(
-                                    image: NetworkImage(attachment.filePath),
+                                    image: NetworkImage(attachment.fileUrl),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -466,11 +425,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (message.attachments != null)
                           for (var attachment in message.attachments!)
                             if (attachment.fileType == 'video')
-                              Container(
+                              SizedBox(
                                 width: 200,
                                 height: 150,
-                                child:
-                                    VideoPlayerWidget(url: attachment.filePath),
+                                // child:
+                                //     VideoPlayerWidget(url: attachment.filePath),
                               ),
                         if (message.content != null)
                           Text(
@@ -500,250 +459,138 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // Widget _buildAudioMessage(String duration) {
-  //   return Row(
-  //     mainAxisSize: MainAxisSize.min,
-  //     children: [
-  //       Icon(Icons.play_arrow, color: AppColors.white, size: 20),
-  //       SizedBox(width: 8),
-  //       Container(
-  //         width: 100,
-  //         height: 4,
-  //         decoration: BoxDecoration(
-  //           color: AppColors.white.withOpacity(0.5),
-  //           borderRadius: BorderRadius.circular(2),
-  //         ),
-  //       ),
-  //       SizedBox(width: 8),
-  //       Text(
-  //         duration,
-  //         style: TextStyle(color: AppColors.white, fontSize: 12),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  Widget _buildAudioMessage(String duration, String url) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(Icons.play_arrow, color: AppColors.white, size: 20),
-          onPressed: () => _playPauseAudio(url),
-        ),
-        SizedBox(width: 8),
-        Container(
-          width: 100,
-          height: 30,
-          // child: AudioFileWaveforms(
-          //   playerWaveStyle: const PlayerWaveStyle(
-          //     fixedWaveColor: AppColors.white,
-          //     liveWaveColor: AppColors.primary,
-          //     spacing: 6,
-          //   ),
-          //   size: Size(MediaQuery.of(context).size.width, 100.0),
-          //   playerController: _playerController,
-          //   waveformType: WaveformType.long,
-          //   enableSeekGesture: true,
-          //   waveformData: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-          // ),
-        ),
-        SizedBox(width: 8),
-        Text(
-          duration,
-          style: TextStyle(color: AppColors.white, fontSize: 12),
-        ),
-      ],
-    );
-  }
-
-  // Widget _buildMessageInput() {
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withOpacity(0.1),
-  //           spreadRadius: 1,
-  //           blurRadius: 3,
-  //           offset: Offset(0, -1),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         IconButton(
-  //           icon: CustomSvgIcon(
-  //             svgPath: 'assets/icons/Clip, Attachment.svg',
-  //             color: AppColors.secondary,
-  //           ),
-  //           onPressed: _pickAction,
-  //         ),
-  //         Expanded(
-  //           child: TextField(
-  //             controller: _textController,
-  //             onChanged: (text) {
-  //               setState(() {
-  //                 _isComposing = text.isNotEmpty;
-  //               });
-  //             },
-  //             decoration: InputDecoration(
-  //               hintText: 'Aa',
-  //               hintStyle: TextStyle(color: Colors.grey[400]),
-  //               border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.circular(25),
-  //                 borderSide: BorderSide.none,
-  //               ),
-  //               filled: true,
-  //               fillColor: AppColors.surface,
-  //               // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
-  //               contentPadding:
-  //                   EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //               suffixIcon: IconButton(
-  //                 icon: CustomSvgIcon(
-  //                   svgPath: 'assets/icons/files_in_message.svg',
-  //                   color: AppColors.tertiary,
-  //                   size: 24,
-  //                 ),
-  //                 onPressed: _pickSticker,
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         if (!_isComposing) ...[
-  //           // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/camera 01_in_message.svg',
-  //               color: AppColors.secondary,
-  //               size: 24,
-  //             ),
-  //             onPressed: () {},
-  //           ),
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/microphone_in_message.svg',
-  //               color: AppColors.secondary,
-  //               size: 24,
-  //             ),
-  //             onPressed: _pickVideo,
-  //           ),
-  //         ],
-  //         if (_isComposing)
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/Send_in_message.svg',
-  //               color: AppColors.primary,
-  //             ),
-  //             onPressed: _handleSubmitted,
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildMessageInput() {
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withOpacity(0.1),
-  //           spreadRadius: 1,
-  //           blurRadius: 3,
-  //           offset: Offset(0, -1),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         IconButton(
-  //           icon: Icon(Icons.image),
-  //           onPressed: _pickImage,
-  //         ),
-  //         IconButton(
-  //           icon: Icon(Icons.videocam),
-  //           onPressed: _pickVideo,
-  //         ),
-  //         IconButton(
-  //           icon: Icon(Icons.emoji_emotions),
-  //           onPressed: _pickSticker,
-  //         ),
-  //         Expanded(
-  //           child: TextField(
-  //             controller: _textController,
-  //             onChanged: (text) {
-  //               setState(() {
-  //                 _isComposing = text.isNotEmpty;
-  //               });
-  //             },
-  //             decoration: InputDecoration(
-  //               hintText: 'Aa',
-  //               hintStyle: TextStyle(color: Colors.grey[400]),
-  //               border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.circular(25),
-  //                 borderSide: BorderSide.none,
-  //               ),
-  //               filled: true,
-  //               fillColor: AppColors.surface,
-  //               contentPadding:
-  //                   EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //               suffixIcon: IconButton(
-  //                 icon: Icon(Icons.send),
-  //                 onPressed: _handleSubmitted,
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  void _handleSubmitted(String text) {
-    // final text = _textController.text;
-    if (text.isNotEmpty || _selectedImage != null || _selectedVideo != null) {
-      setState(() {
-        // Gọi hàm gửi tin nhắn tới server ở đây
-        _chatProvider.sendMessage(widget.chatId, text);
-
+  Future<void> _handleSubmitted() async {
+    final text = _textController.text;
+    if (text.isNotEmpty || _selectedAttachments!.isNotEmpty) {
+      try {
+        await _chatProvider.sendMessage(
+          chatId: widget.chatId,
+          message: text.isNotEmpty ? text : '',
+          attachments: _selectedAttachments!,
+        );
         _textController.clear();
-        _isComposing = false;
-        _selectedImage = null;
-        _selectedVideo = null;
-      });
-      _scrollToBottom();
+        setState(() {
+          _isComposing = false;
+          _selectedAttachments = [];
+        });
+        _scrollToBottom();
+      } catch (e) {
+        // Handle error (e.g., show an error message)
+        print('Error sending message: $e');
+      }
     }
   }
 
-  void _pickImage() async {
-    // Implement image picker logic
+  Future<void> _pickImage() async {
+    // Xin quyền truy cập vào bộ nhớ
+    var status = await Permission.storage.request();
+
+    if (status.isGranted) {
+      // Nếu quyền được cấp, mở image picker
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      setState(() {
+        _selectedAttachments!.add(File(image!.path));
+      });
+    } else if (status.isDenied) {
+      // Nếu quyền bị từ chối, hiển thị thông báo
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.')),
+      );
+    } else if (status.isPermanentlyDenied) {
+      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
+      openAppSettings();
+    }
   }
 
-  void _pickVideo() async {
-    // Implement video picker logic
-  }
+  // Hàm chọn media từ thư viện
+  void _pickMedia() async {
+  // Xin quyền truy cập vào bộ nhớ
+  var status = await Permission.storage.request();
 
-  void _pickSticker() async {
-    // Hiển thị một modal bottom sheet để chọn sticker
-    final selectedSticker = await showModalBottomSheet<String>(
+  if (status.isGranted) {
+    // Nếu quyền được cấp, mở media picker cho ảnh hoặc video
+    final ImagePicker picker = ImagePicker();
+    
+    // Hiển thị modal cho phép người dùng chọn ảnh hoặc video
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo),
+              title: const Text('Chọn ảnh'),
+              onTap: () async {
+                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                if (image != null) {
+                  setState(() {
+                    _selectedAttachments!.add(File(image.path));
+                  });
+                }
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: const Text('Chọn video'),
+              onTap: () async {
+                final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+                if (video != null) {
+                  setState(() {
+                    _selectedAttachments!.add(File(video.path));
+                  });
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  } else if (status.isDenied) {
+    // Nếu quyền bị từ chối, hiển thị thông báo
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+      ),
+    );
+  } else if (status.isPermanentlyDenied) {
+    // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
+    openAppSettings();
+  }
+}
+
+
+  void _pickIcon() async {
+    // Hiển thị một modal bottom sheet để chọn emoji
+    final selectedEmoji = await showModalBottomSheet<Emoji>(
       context: context,
       builder: (context) {
-        return Container(
-          height: 200,
-          child: ListView(
-            children: [
-              // Hiển thị các sticker tại đây sử dụng telegram_stickers_importer để import sticker từ Telegram ở dưới đây
-            ],
+        return SizedBox(
+          height: 350, // Tăng chiều cao để có thêm không gian hiển thị
+          child: EmojiPicker(
+            onEmojiSelected: (category, emoji) {
+              Navigator.pop(context, emoji);
+            },
+            config: Config(
+              height: 256,
+              swapCategoryAndBottomBar: false,
+              checkPlatformCompatibility: true,
+              emojiSet: defaultEmojiSet,
+              emojiTextStyle: GoogleFonts.notoColorEmoji(fontSize: 20),
+            ),
           ),
         );
       },
     );
-    if (selectedSticker != null) {
+
+    if (selectedEmoji != null) {
       setState(() {
-        _textController.text = selectedSticker;
+        _textController.text += selectedEmoji.emoji;
         _isComposing = true;
       });
     }
@@ -755,7 +602,7 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
+        return SizedBox(
           //Chiều cao của modal bootom sheet vừa đủ để hiển thị các lựa chọn và không bị tràn ra
           // Modal phải có tiêu đề và có nút close để đóng modal
           height: 300,
@@ -765,7 +612,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Container(
                 height: 4,
                 width: 40,
-                margin: EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.tertiary,
                   borderRadius: BorderRadius.circular(2),
@@ -778,11 +625,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       svgPath: 'assets/icons/media_in_message.svg',
                       color: AppColors.tertiary,
                     ),
-                    title: Text('Media'),
-                    subtitle: Text('Share photos and videos'),
+                    title: const Text('Media'),
+                    subtitle: const Text('Share photos and videos'),
                     onTap: () {
                       Navigator.pop(context);
-                      _pickImage();
+                      _pickMedia();
                     },
                   ),
                   ListTile(
@@ -790,8 +637,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       svgPath: 'assets/icons/doc_in_message.svg',
                       color: AppColors.tertiary,
                     ),
-                    title: Text('File', style: AppTypography.p1),
-                    subtitle: Text('Share files, documents, and more'),
+                    title: const Text('File', style: AppTypography.p1),
+                    subtitle: const Text('Share files, documents, and more'),
                     onTap: () {
                       Navigator.pop(context);
                       // Implement file picker logic
@@ -802,11 +649,54 @@ class _ChatScreenState extends State<ChatScreen> {
                       svgPath: 'assets/icons/Pin, Location.svg',
                       color: AppColors.tertiary,
                     ),
-                    title: Text('Location'),
-                    subtitle: Text('Share your location'),
+                    title: const Text('Location'),
+                    subtitle: const Text('Share your location'),
                     onTap: () {
                       Navigator.pop(context);
                       // Implement location picker logic
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Thêm hàm pick recording khi thực hiện sẽ hiện thị thanh xử lý ghi âm từ người dùng và biến nó thành file sau đó thì thêm vào _selectedAttachments
+  void _pickRecording() {
+    // Hiển thị một modal bottom sheet để ghi âm
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SizedBox(
+          height: 200,
+          child: Column(
+            children: [
+              // Có một thanh ngang màu xám ở đầu modal dùng để kéo modal
+              Container(
+                height: 4,
+                width: 40,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Column(
+                children: [
+                  ListTile(
+                    leading: CustomSvgIcon(
+                      svgPath: 'assets/icons/microphone_in_message.svg',
+                      color: AppColors.tertiary,
+                    ),
+                    title: const Text('Record audio'),
+                    subtitle: const Text('Record a voice message'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Implement audio recording logic
                     },
                   ),
                 ],
@@ -834,97 +724,5 @@ class _ChatScreenState extends State<ChatScreen> {
             .difference(currentMessage.createdDate)
             .inMinutes >=
         1;
-  }
-}
-
-class VideoPlayerWidget extends StatefulWidget {
-  final String url;
-
-  VideoPlayerWidget({required this.url});
-
-  @override
-  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
-}
-
-class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  late VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        setState(() {});
-      });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Hiển thị hình ảnh tĩnh thay vì video và hiển thị một nút để phát video khi người dùng nhấn vào
-    // return Stack(
-    //   children: [
-    //     _controller.value.isInitialized
-    //         ? AspectRatio(
-    //             aspectRatio: _controller.value.aspectRatio, // 16:9
-    //             child: VideoPlayer(_controller),
-    //           )
-    //         : Center(child: CircularProgressIndicator()),
-    //     Center(
-    //       child: IconButton(
-    //         icon: Icon(
-    //           _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-    //           color: AppColors.white,
-    //           size: 40,
-    //         ),
-    //         onPressed: () {
-    //           setState(() {
-    //             if (_controller.value.isPlaying) {
-    //               _controller.pause();
-    //             } else {
-    //               _controller.play();
-    //             }
-    //           });
-    //         },
-    //       ),
-    //     ),
-    //   ],
-    // );
-    // Video hiển thị chiều cao chưa đúng khi dùng stack để chứa video player và nút play/pause, hãy sửa dưới đây
-    return _controller.value.isInitialized
-        ? AspectRatio(
-            aspectRatio: _controller.value.aspectRatio, // 16:9
-            child: Stack(
-              children: [
-                VideoPlayer(_controller),
-                Center(
-                  child: IconButton(
-                    icon: Icon(
-                      _controller.value.isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
-                      color: AppColors.white,
-                      size: 40,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        if (_controller.value.isPlaying) {
-                          _controller.pause();
-                        } else {
-                          _controller.play();
-                        }
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          )
-        : Center(child: CircularProgressIndicator());
   }
 }

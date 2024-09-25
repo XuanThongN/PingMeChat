@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
@@ -12,7 +13,6 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 
 import 'config/theme.dart';
 import 'data/datasources/chat_hub_service.dart';
-import 'package:http/http.dart' as http;
 
 import 'presentation/pages/login_page.dart';
 

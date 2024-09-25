@@ -72,7 +72,7 @@ class AuthProvider with ChangeNotifier {
       // Đăng ký thành công thì chuyển hướng về trang đăng nhập
       Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
     } catch (error) {
-      throw error;
+      rethrow;
     }
   }
 

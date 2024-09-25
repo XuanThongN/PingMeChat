@@ -79,27 +79,7 @@ namespace PingMeChat.Shared.Utils
             }
             #endregion
             #region feature
-            public static class BidaTable
-            {
-                public const string Created = "Tạo";
-                public const string Updated = "Đã cập nhật thành công chủ đề";
-                public const string Deleted = "Đã xóa thành công chủ đề";
-                public const string Readed = "Dữ liệu chủ đề";
-                public const string ReadedAll = "Danh sách bàn bida";
-                public const string GetEmpties = "Danh sách bàn bida còn trống";
-                public const string GetTotalWithStatus = "Danh sách số lượng trạng thái của bàn bida";
-            }
-            public static class PlayProcess
-            {
-                public const string Start = "Đã bắt đầu phiên chơi";
-                public const string Payment = "Đã thanh toán thành công";
-                public const string Debt = "Đã ghi nợ bàn {0} cho khách hàng {1}";
-                public const string AddProductSession = "Đã thêm các sản phẩm dùng thêm trong quá trình chơi";
-                public const string ChangeTable = "Bạn đã chuyển bàn thành công";
-                public const string SplitHour = "Bạn đã tách giờ chơi cũ, chuyển sang giờ chơi mới trên bàn hiện tại";
-                public const string GetAllProductSession = "Danh sách dịch vụ hiện tại đang sử dụng trên mã bàn {0}";
-
-            }
+            
             #endregion
         }
 

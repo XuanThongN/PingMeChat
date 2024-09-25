@@ -8,7 +8,7 @@ using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Entities.Feature;
 using PingMeChat.CMS.Entities.Users;
 
-namespace PingMeChat.CMS.Application.Feature.Service.CallParticipants
+namespace PingMeChat.CMS.Application.Feature.Service.Attachments
 {
     public class AttachmentMapper : Profile
     {
