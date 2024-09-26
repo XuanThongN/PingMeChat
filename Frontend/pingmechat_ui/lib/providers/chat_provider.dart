@@ -87,7 +87,7 @@ class ChatProvider extends ChangeNotifier {
           // Thêm đoạn chat vào đầu danh sách chats
           _chats.insert(0, newChat);
           _messagesByChatId[message.chatId]?.add(message);
-                } catch (error) {
+        } catch (error) {
           print('Error fetching chat: $error');
         }
       } else {
@@ -153,7 +153,10 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage({required String chatId, required String message, List<File> files = const []}) async {
+  Future<void> sendMessage(
+      {required String chatId,
+      required String message,
+      List<File> files = const []}) async {
     // Thêm tin nhắn vào danh sách local
     // _messages.add(Message(
     //   chatId: chatId,
@@ -182,11 +185,13 @@ class ChatProvider extends ChangeNotifier {
         uploadedAttachments = await _chatService.uploadFiles(files);
       }
       print("uploadedAttachments: $uploadedAttachments");
-      attachments = uploadedAttachments.map((e) => Attachment(
-        fileName: e.fileName!, 
-        fileUrl: e.url!,
-         fileType: e.fileType!, 
-         fileSize: e.fileSize!)).toList();
+      attachments = uploadedAttachments
+          .map((e) => Attachment(
+              fileName: e.publicId,
+              fileUrl: e.url,
+              fileType: e.fileType,
+              fileSize: e.fileSize))
+          .toList();
       MessageSendDto messageDto = MessageSendDto(
         chatId: chatId,
         content: message,

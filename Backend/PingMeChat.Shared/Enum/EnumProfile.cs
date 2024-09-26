@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using PingMeChat.Shared.Enum;
 
 namespace PingMeChat.Shared.Enum
 {
@@ -244,8 +245,42 @@ namespace PingMeChat.Shared.Enum
 
     public enum StatisticalData
     {
-       Year = 1, // 
-       Quarter = 2, // quý
-       Day = 3,
+        Year = 1, // 
+        Quarter = 2, // quý
+        Day = 3,
+    }
+}
+
+
+public static class FileTypeHelper
+{
+    private static readonly Dictionary<string, FileType> MimeTypeToFileTypeMap = new Dictionary<string, FileType>
+    {
+        { "image/jpeg", FileType.Image },
+        { "image/png", FileType.Image },
+        { "image/gif", FileType.Image },
+        { "image/bmp", FileType.Image },
+        { "image/webp", FileType.Image },
+        { "application/pdf", FileType.Document },
+        { "application/msword", FileType.Document },
+        { "application/vnd.openxmlformats-officedocument.wordprocessingml.document", FileType.Document },
+        { "text/plain", FileType.Document },
+        { "video/mp4", FileType.Video },
+        { "video/x-msvideo", FileType.Video },
+        { "video/x-matroska", FileType.Video },
+        { "video/webm", FileType.Video },
+        { "audio/mpeg", FileType.Audio },
+        { "audio/wav", FileType.Audio },
+        { "audio/ogg", FileType.Audio },
+        { "audio/webm", FileType.Audio },
+    };
+
+    public static FileType GetFileTypeFromMimeType(string mimeType)
+    {
+        if (MimeTypeToFileTypeMap.TryGetValue(mimeType, out var fileType))
+        {
+            return fileType;
+        }
+        return FileType.Document; // hoặc bạn có thể trả về một giá trị mặc định như FileType.Document
     }
 }

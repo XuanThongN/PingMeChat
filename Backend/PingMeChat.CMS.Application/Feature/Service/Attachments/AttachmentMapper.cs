@@ -14,7 +14,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments
     {
         public AttachmentMapper()
         {
-            CreateMap<Attachment, AttachmentDto>().ReverseMap();
+            CreateMap<Attachment, AttachmentDto>().ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FileUrl)).ReverseMap();
             CreateMap<Attachment, AttachmentCreateDto>().ReverseMap();
             CreateMap<Attachment, AttachmentUpdateDto>().ReverseMap();
         }

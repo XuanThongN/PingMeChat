@@ -1,12 +1,12 @@
 class Attachment {
-  final String fileName;
+  final String? fileName;
   final String fileUrl;
   final String fileType;
   final int fileSize;
   final String? messageId;
 
   Attachment({
-    required this.fileName,
+    this.fileName,
     required this.fileUrl,
     required this.fileType,
     required this.fileSize,
@@ -15,8 +15,8 @@ class Attachment {
 
   factory Attachment.fromJson(Map<String, dynamic> json) {
     return Attachment(
-      fileName: json['fileName'],
-      fileUrl: json['fileUrl'],
+      fileName: json['fileName'] ?? '',
+      fileUrl: json['filePath'],
       fileType: json['fileType'],
       fileSize: json['fileSize'],
       messageId: json['messageId'],

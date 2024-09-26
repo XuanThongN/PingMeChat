@@ -15,7 +15,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
     {
         public MessageMapper()
         {
-            CreateMap<Message, MessageDto>().ReverseMap();
+            // CreateMap<Message, MessageDto>().ReverseMap();
+            CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.Attachments, opt => opt.MapFrom(src => src.Attachments))
+                .ReverseMap();
             CreateMap<Message, MessageCreateDto>().ReverseMap();
             CreateMap<Message, MessageUpdateDto>().ReverseMap();
         }

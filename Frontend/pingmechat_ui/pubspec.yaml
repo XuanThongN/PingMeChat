@@ -47,10 +47,12 @@ dependencies:
   signalr_core: ^1.1.2 #Hỗ trợ kết nối server
   flutter_secure_storage: ^9.2.2 #Hỗ trợ lưu trữ token
   shared_preferences: ^2.3.2
-  image_picker: ^1.1.2
-  emoji_picker_flutter: ^2.0.0
-  google_fonts: ^6.2.1
+  emoji_picker_flutter: ^2.0.0 #Hỗ trợ chọn emoji
+  google_fonts: ^6.2.1 #Hỗ trợ font chữ
+  image_picker: ^1.1.2 #Hỗ trợ chọn ảnh từ thư viện
   permission_handler: ^11.3.1
+  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
+  # permission_handler: ^10.2.0  #Hỗ trợ quyền truy cập
 
 
 

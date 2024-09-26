@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
+import 'package:mime/mime.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
@@ -129,7 +131,7 @@ class ChatService {
   }
 
   // Thêm các phương thức mở rộng
- Future<List<UploadResult>> uploadFiles(List<File> files) async {
+  Future<List<UploadResult>> uploadFiles(List<File> files) async {
     final uri = Uri.parse(ApiConstants.uploadFileEndpoint);
 
     // Tạo request Multipart
@@ -137,7 +139,15 @@ class ChatService {
 
     // Thêm các file vào request
     for (var file in files) {
-      request.files.add(await http.MultipartFile.fromPath('files', file.path));
+      // Lấy ContentType của file
+      final mimeType = lookupMimeType(file.path);
+
+      // Thêm file vào request với ContentType
+      request.files.add(await http.MultipartFile.fromPath(
+        'files',
+        file.path,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+      ));
     }
 
     // Thêm headers (authentication, etc.)
@@ -152,8 +162,8 @@ class ChatService {
 
       // Xử lý response cho từng file (giả sử server trả về danh sách các kết quả upload)
       List<UploadResult> results = [];
-      for (var fileJson in jsonResponse['files']) {
-        results.add(UploadResult(url: fileJson['url']));
+      for (var fileJson in jsonResponse['result']) {
+        results.add(UploadResult(publicId: fileJson['publicId'], url: fileJson['url'], fileName: fileJson['fileName'], fileType: fileJson['fileType'], fileSize: fileJson['fileSize']));
       }
       return results;
     } else {

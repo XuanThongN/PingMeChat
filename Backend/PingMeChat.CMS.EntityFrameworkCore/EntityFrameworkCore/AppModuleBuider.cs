@@ -144,6 +144,13 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
                             JsonSerializer.Deserialize<List<MessageReader>>(v, (JsonSerializerOptions)null) : null
                     )
                     .HasColumnType("text");
+                e.Property(o => o.Attachments)
+                    .HasConversion(
+                        v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions)null) : null,
+                        v => !string.IsNullOrEmpty(v) ?
+                            JsonSerializer.Deserialize<List<Attachment>>(v, (JsonSerializerOptions)null) : null
+                    )
+                    .HasColumnType("text");
             });
         }
     }

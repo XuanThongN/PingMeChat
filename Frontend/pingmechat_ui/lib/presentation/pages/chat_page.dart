@@ -165,91 +165,219 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // Widget _buildMessageInput() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.1),
+  //           spreadRadius: 1,
+  //           blurRadius: 3,
+  //           offset: const Offset(0, -1),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         IconButton(
+  //           icon: CustomSvgIcon(
+  //             svgPath: 'assets/icons/Clip, Attachment.svg',
+  //             color: AppColors.secondary,
+  //           ),
+  //           onPressed: _pickAction,
+  //         ),
+  //         Expanded(
+  //           child: TextField(
+  //             controller: _textController,
+  //             onChanged: (text) {
+  //               setState(() {
+  //                 _isComposing = text.isNotEmpty;
+  //               });
+  //             },
+  //             decoration: InputDecoration(
+  //               hintText: 'Aa',
+  //               hintStyle: TextStyle(color: Colors.grey[400]),
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(25),
+  //                 borderSide: BorderSide.none,
+  //               ),
+  //               filled: true,
+  //               fillColor: AppColors.surface,
+  //               // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
+  //               contentPadding:
+  //                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //               suffixIcon: IconButton(
+  //                 icon: CustomSvgIcon(
+  //                   svgPath: 'assets/icons/files_in_message.svg',
+  //                   color: AppColors.tertiary,
+  //                   size: 24,
+  //                 ),
+  //                 onPressed: _pickIcon,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //         if (!_isComposing) ...[
+  //           // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/camera 01_in_message.svg',
+  //               color: AppColors.secondary,
+  //               size: 24,
+  //             ),
+  //             onPressed: () {},
+  //           ),
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/microphone_in_message.svg',
+  //               color: AppColors.secondary,
+  //               size: 24,
+  //             ),
+  //             onPressed: _pickRecording,
+  //           ),
+  //         ],
+  //         if (_isComposing)
+  //           IconButton(
+  //             icon: CustomSvgIcon(
+  //               svgPath: 'assets/icons/Send_in_message.svg',
+  //               color: AppColors.primary,
+  //             ),
+  //             onPressed: () => _handleSubmitted(),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildMessageInput() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: CustomSvgIcon(
-              svgPath: 'assets/icons/Clip, Attachment.svg',
-              color: AppColors.secondary,
-            ),
-            onPressed: _pickAction,
-          ),
-          Expanded(
-            child: TextField(
-              controller: _textController,
-              onChanged: (text) {
-                setState(() {
-                  _isComposing = text.isNotEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Aa',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: AppColors.surface,
-                // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                suffixIcon: IconButton(
-                  icon: CustomSvgIcon(
-                    svgPath: 'assets/icons/files_in_message.svg',
-                    color: AppColors.tertiary,
-                    size: 24,
+  return Column(
+    children: [
+      if (_selectedAttachments!.isNotEmpty)
+        Container(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectedAttachments!.length,
+            itemBuilder: (context, index) {
+              return Stack(
+                children: [
+                  Container(
+                    margin: EdgeInsets.all(8),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: DecorationImage(
+                        image: FileImage(_selectedAttachments![index]),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  onPressed: _pickIcon,
-                ),
-              ),
-            ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          _selectedAttachments!.removeAt(index);
+                          if (_selectedAttachments!.isEmpty) {
+                            _isComposing = false;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          if (!_isComposing) ...[
-            // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/camera 01_in_message.svg',
-                color: AppColors.secondary,
-                size: 24,
-              ),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/microphone_in_message.svg',
-                color: AppColors.secondary,
-                size: 24,
-              ),
-              onPressed: _pickRecording,
+        ),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, -1),
             ),
           ],
-          if (_isComposing)
+        ),
+        child: Row(
+          children: [
             IconButton(
               icon: CustomSvgIcon(
-                svgPath: 'assets/icons/Send_in_message.svg',
-                color: AppColors.primary,
+                svgPath: 'assets/icons/Clip, Attachment.svg',
+                color: AppColors.secondary,
               ),
-              onPressed: () => _handleSubmitted(),
+              onPressed: _pickAction,
             ),
-        ],
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                onChanged: (text) {
+                  setState(() {
+                    _isComposing = text.isNotEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Aa',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  suffixIcon: IconButton(
+                    icon: CustomSvgIcon(
+                      svgPath: 'assets/icons/files_in_message.svg',
+                      color: AppColors.tertiary,
+                      size: 24,
+                    ),
+                    onPressed: _pickIcon,
+                  ),
+                ),
+              ),
+            ),
+            if (!_isComposing) ...[
+              IconButton(
+                icon: CustomSvgIcon(
+                  svgPath: 'assets/icons/camera 01_in_message.svg',
+                  color: AppColors.secondary,
+                  size: 24,
+                ),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: CustomSvgIcon(
+                  svgPath: 'assets/icons/microphone_in_message.svg',
+                  color: AppColors.secondary,
+                  size: 24,
+                ),
+                onPressed: _pickRecording,
+              ),
+            ],
+            if (_isComposing)
+              IconButton(
+                icon: CustomSvgIcon(
+                  svgPath: 'assets/icons/Send_in_message.svg',
+                  color: AppColors.primary,
+                ),
+                onPressed: () => _handleSubmitted(),
+              ),
+          ],
+        ),
       ),
-    );
-  }
+    ],
+  );
+}
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
     final chatName = chat!.isGroup
@@ -336,23 +464,51 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
       actions: [
-        IconButton(
-          icon: CustomSvgIcon(
-            svgPath: 'assets/icons/Call_in_message.svg',
-            color: AppColors.tertiary,
-            size: 24,
-          ),
-          onPressed: () => _initiateCall(context, false),
-        ),
-        IconButton(
-          icon: CustomSvgIcon(
-            svgPath: 'assets/icons/Video_in_message.svg',
-            color: AppColors.tertiary,
-            size: 24,
-          ),
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => VideoCallPage()));
+        Consumer<CallProvider>(
+          builder: (context, callProvider, child) {
+            if (callProvider.isInCall) {
+              return Row(
+                children: [
+                  IconButton(
+                    icon: CustomSvgIcon(
+                      svgPath: 'assets/icons/Call_in_message.svg',
+                      color: AppColors.tertiary,
+                      size: 24,
+                    ),
+                    onPressed: () => callProvider.endCall(),
+                  ),
+                  IconButton(
+                    icon: CustomSvgIcon(
+                      svgPath: 'assets/icons/Video_in_message.svg',
+                      color: AppColors.tertiary,
+                      size: 24,
+                    ),
+                    onPressed: () => callProvider.endCall(),
+                  ),
+                ],
+              );
+            } else {
+              return Row(
+                children: [
+                  IconButton(
+                    icon: CustomSvgIcon(
+                      svgPath: 'assets/icons/Call_in_message.svg',
+                      color: AppColors.tertiary,
+                      size: 24,
+                    ),
+                    onPressed: () => callProvider.startCall(chat.id),
+                  ),
+                  IconButton(
+                    icon: CustomSvgIcon(
+                      svgPath: 'assets/icons/Video_in_message.svg',
+                      color: AppColors.tertiary,
+                      size: 24,
+                    ),
+                    onPressed: () => callProvider.startCall(chat.id),
+                  ),
+                ],
+              );
+            }
           },
         ),
       ],
@@ -360,21 +516,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 // Hàm này dùng để gọi cuộc gọi video
-  void _initiateCall(BuildContext context, bool isVideo) {
-    final callProvider = Provider.of<CallProvider>(context, listen: false);
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final chat = chatProvider.chats.firstWhere((chat) => chat.id == widget.chatId);
-    callProvider.initiateCall(chat, isVideo).then((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CallPage(
-            isIncoming: false,
-          ),
-        ),
-      );
-    });
-  }
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
       String currentUserId, bool showDateDivider) {
@@ -522,52 +663,22 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // Hàm chọn media từ thư viện
+  // Hàm chọn media từ thư viện
   void _pickMedia() async {
-    // Xin quyền truy cập vào bộ nhớ
-    var status = await Permission.storage.request();
+    await _getPermission();
+    var status = await Permission.storage.status;
 
     if (status.isGranted) {
-      // Nếu quyền được cấp, mở media picker cho ảnh hoặc video
       final ImagePicker picker = ImagePicker();
+      final List<XFile>? mediaFiles = await picker.pickMultiImage();
 
-      // Hiển thị modal cho phép người dùng chọn ảnh hoặc video
-      showModalBottomSheet(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo),
-                title: const Text('Chọn ảnh'),
-                onTap: () async {
-                  final XFile? image =
-                      await picker.pickImage(source: ImageSource.gallery);
-                  if (image != null) {
-                    setState(() {
-                      _selectedAttachments!.add(File(image.path));
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.videocam),
-                title: const Text('Chọn video'),
-                onTap: () async {
-                  final XFile? video =
-                      await picker.pickVideo(source: ImageSource.gallery);
-                  if (video != null) {
-                    setState(() {
-                      _selectedAttachments!.add(File(video.path));
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      );
+      if (mediaFiles != null && mediaFiles.isNotEmpty) {
+        setState(() {
+          _selectedAttachments!
+              .addAll(mediaFiles.map((file) => File(file.path)).toList());
+          _isComposing = true;
+        });
+      }
     } else if (status.isDenied) {
       // Nếu quyền bị từ chối, hiển thị thông báo
       ScaffoldMessenger.of(context).showSnackBar(
@@ -579,6 +690,13 @@ class _ChatScreenState extends State<ChatScreen> {
     } else if (status.isPermanentlyDenied) {
       // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
       openAppSettings();
+    }
+  }
+
+  Future<void> _getPermission() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
     }
   }
 

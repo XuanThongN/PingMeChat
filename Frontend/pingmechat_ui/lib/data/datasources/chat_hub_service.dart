@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:pingmechat_ui/domain/models/message.dart';
@@ -192,8 +193,27 @@ class ChatHubService {
     });
   }
 
-  Future<void> sendIceCandidate(Map<String, dynamic> candidate) async {
-    await _hubConnection.invoke('IceCandidate', args: [candidate]);
+  Future<void> sendIceCandidate(
+      String chatId, Map<String, dynamic> candidate) async {
+    try {
+      // Kiểm tra cấu trúc của candidate
+      if (candidate.containsKey('candidate') &&
+          candidate.containsKey('sdpMid') &&
+          candidate.containsKey('sdpMLineIndex')) {
+        // Chuyển đổi candidate từ Map thành String
+        String candidateString = jsonEncode(candidate);
+        // Ghi lại giá trị của candidate
+        print('Sending IceCandidate: $candidateString');
+        await _hubConnection
+            .invoke('IceCandidate', args: [chatId, candidateString]);
+      } else {
+        throw Exception('Invalid candidate structure');
+      }
+    } catch (e) {
+      // Ghi lại chi tiết lỗi
+      print('Failed to invoke IceCandidate: $e');
+      // Bạn có thể thêm xử lý lỗi khác tại đây nếu cần
+    }
   }
 
   Future<void> sendOffer(String chatId, String sdp) async {
@@ -206,7 +226,7 @@ class ChatHubService {
 
   Future<void> endCall(String chatId) async {
     await _hubConnection.invoke('EndCall', args: [chatId]);
-  } 
+  }
 
   void onIncomingCall(
       void Function(String callerId, String chatId, bool isVideo) handler) {
@@ -219,7 +239,8 @@ class ChatHubService {
   }
 
   // Thêm các phương thức tương tự cho CallAnswered, IceCandidate, Offer, Answer, CallEnded
-  void onCallAnswered(void Function(String callerId, String chatId, bool isVideo) handler) {
+  void onCallAnswered(
+      void Function(String callerId, String chatId, bool isVideo) handler) {
     _hubConnection.on('CallAnswered', (arguments) {
       if (arguments != null && arguments.length >= 3) {
         handler(arguments[0] as String, arguments[1] as String,

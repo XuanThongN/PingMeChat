@@ -75,8 +75,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                 pageSize,
                 predicate: m => m.ChatId == chatId,
                 orderBy: q => q.OrderByDescending(m => m.SentAt),
-                include: m => m.Include(o => o.Sender)
-                                .Include(o => o.Attachments),
+                include: m => m.Include(o => o.Sender),
                 route: route
                 );
         }
@@ -102,7 +101,16 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         var attachments = new List<Attachment>();
                         if (messageCreateDto.Attachments.Any())
-                            attachments = _mapper.Map<List<Attachment>>(messageCreateDto.Attachments);
+                            attachments = messageCreateDto.Attachments.Select(a =>
+                            {
+                                return new Attachment
+                                {
+                                    FileUrl = a.FileUrl,
+                                    FileName = a.FileName,
+                                    FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType),
+                                    FileSize = a.FileSize
+                                };
+                            }).ToList();
                         var message = new Message
                         {
                             ChatId = messageCreateDto.ChatId,
