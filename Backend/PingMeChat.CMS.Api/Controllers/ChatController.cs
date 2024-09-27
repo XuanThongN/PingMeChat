@@ -13,7 +13,7 @@ using PingMeChat.Shared.Utils;
 
 namespace PingMeChat.CMS.Api.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class ChatController : BaseController
     {
         private readonly IChatService _chatService;

@@ -97,6 +97,12 @@ namespace PingMeChat.CMS.API.Routes
             {
                 public const string UploadMultipleFilesRoute = "api/attachments/upload-multiple-files";
             }
+
+            // Search api routes
+            public static class Search
+            {
+                public const string SearchRoute = "api/search";
+            }
         }
     }
 }

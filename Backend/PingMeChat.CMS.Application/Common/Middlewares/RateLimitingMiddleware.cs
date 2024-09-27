@@ -16,7 +16,7 @@ namespace PingMeChat.CMS.Application.Common.Middlewares
         // Hàm khởi tạo middleware
         // maxRequests: Số lượng lệnh tối đa trong khoảng thời gian
         // intervalInSeconds: Khoảng thời gian tính bằng giây
-        public RateLimitingMiddleware(RequestDelegate next, IMemoryCache cache, int maxRequests = 10, int intervalInSeconds = 60)
+        public RateLimitingMiddleware(RequestDelegate next, IMemoryCache cache, int maxRequests = 100, int intervalInSeconds = 60)
         {
             _next = next;
             _cache = cache;

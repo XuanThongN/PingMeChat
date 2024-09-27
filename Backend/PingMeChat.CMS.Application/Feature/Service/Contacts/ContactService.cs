@@ -22,6 +22,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
     public interface IContactService : IServiceBase<Contact, ContactCreateDto, ContactUpdateDto, ContactDto, IContactRepository>
     {
         Task<IEnumerable<ContactDto>> GetUserContacts(string userId);
+        // Get tất cả id liên hệ của user
+        Task<IEnumerable<string>> GetAllContactIds(string userId);
     }
     public class ContactService : ServiceBase<Contact, ContactCreateDto, ContactUpdateDto, ContactDto, IContactRepository>, IContactService
     {
@@ -50,6 +52,12 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
                 User = _mapper.Map<AccountDto>(c.User),
                 //Status = c.Status
             }).ToList();
+        }
+
+        public async Task<IEnumerable<string>> GetAllContactIds(string userId)
+        {
+            var contacts = await _contactRepository.FindAll(c => c.UserId == userId || c.ContactUserId == userId);
+            return contacts.Select(c => c.UserId == userId ? c.ContactUserId : c.UserId);
         }
 
     }

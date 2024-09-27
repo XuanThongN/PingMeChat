@@ -39,6 +39,9 @@ class ApiConstants {
   // File upload
   static const String uploadFileEndpoint =
       '$baseApiUrl/attachments/upload-multiple-files';
+
+  // Search
+  static const String searchEndpoint = '$baseApiUrl/search';
 }
 
 // ChatHub

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
+import 'package:pingmechat_ui/data/datasources/search_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/presentation/pages/search_page.dart';
@@ -17,6 +18,7 @@ import 'config/theme.dart';
 import 'data/datasources/chat_hub_service.dart';
 
 import 'presentation/pages/login_page.dart';
+import 'providers/search_provider.dart';
 
 void main() {
   runApp(
@@ -49,6 +51,11 @@ void main() {
           create: (context) => CallProvider(context.read<ChatHubService>()),
           update: (context, chatHubService, previous) =>
               previous ?? CallProvider(chatHubService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SearchProvider(
+              SearchService(authProvider: context.read<AuthProvider>())),
+          child: SearchResultsScreen(),
         ),
       ],
       child: const MyApp(),

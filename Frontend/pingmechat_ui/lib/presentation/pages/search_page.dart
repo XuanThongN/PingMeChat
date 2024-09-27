@@ -1,44 +1,36 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_circle_avatar.dart';
+import 'package:pingmechat_ui/providers/search_provider.dart';
+import 'package:provider/provider.dart';
+
+import '../../config/theme.dart';
+import '../../data/models/search_result.dart';
 
 class SearchResultsScreen extends StatefulWidget {
-    static const routeName = '/search';
+  static const routeName = '/search';
   @override
   _SearchResultsScreenState createState() => _SearchResultsScreenState();
 }
 
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Person> _people = [
-    Person('Adil Adnan', 'Be your own hero 💪', Color(0xFFFFD54F)),
-    Person('Bristy Haque', 'Keep working ✍️', Colors.white),
-    Person('John Borino', 'Make yourself proud 🤩', Color(0xFFBDBDBD)),
-  ];
-  List<Group> _groups = [
-    Group('Team Align-Practise', 4, [Color(0xFFFFA726), Color(0xFF42A5F5), Color(0xFF66BB6A)]),
-    Group('Team Align', 8, [Color(0xFF42A5F5), Color(0xFFBDBDBD), Color(0xFFFFEE58)]),
-  ];
-
-  List<Person> _filteredPeople = [];
-  List<Group> _filteredGroups = [];
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    _filteredPeople = _people;
-    _filteredGroups = _groups;
-    _searchController.addListener(_performSearch);
+    _searchController.addListener(_onSearchChanged);
   }
 
-  void _performSearch() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredPeople = _people.where((person) => 
-        person.name.toLowerCase().contains(query) || 
-        person.status.toLowerCase().contains(query)
-      ).toList();
-      _filteredGroups = _groups.where((group) => 
-        group.name.toLowerCase().contains(query)
-      ).toList();
+  _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
+      if (_searchController.text.isNotEmpty) {
+        Provider.of<SearchProvider>(context, listen: false)
+            .search(_searchController.text.trim());
+      }
     });
   }
 
@@ -50,21 +42,35 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SearchBar(controller: _searchController),
+            SearchBar(
+                controller: _searchController,
+                onBackPressed: () => Navigator.pop(context),
+                onChanged: (value) => _onSearchChanged()),
             Expanded(
-              child: ListView(
-                children: [
-                  if (_filteredPeople.isNotEmpty) ...[
-                    SectionTitle(title: 'People'),
-                    ..._filteredPeople.map((person) => PersonTile(person: person)),
-                  ],
-                  if (_filteredGroups.isNotEmpty) ...[
-                    SectionTitle(title: 'Group Chat'),
-                    ..._filteredGroups.map((group) => GroupTile(group: group)),
-                  ],
-                  if (_filteredPeople.isEmpty && _filteredGroups.isEmpty)
-                    Center(child: Text('No results found')),
-                ],
+              child: Consumer<SearchProvider>(
+                builder: (context, searchProvider, child) {
+                  if (searchProvider.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (searchProvider.searchResult == null) {
+                    return Center(child: Text('No results found'));
+                  }
+                  return ListView(
+                    children: [
+                      if (searchProvider.searchResult!.users.isNotEmpty) ...[
+                        SectionTitle(title: 'People'),
+                        ...searchProvider.searchResult!.users
+                            .map((user) => UserTile(user: user)),
+                      ],
+                      if (searchProvider
+                          .searchResult!.groupChats.isNotEmpty) ...[
+                        SectionTitle(title: 'Group Chat'),
+                        ...searchProvider.searchResult!.groupChats
+                            .map((chat) => GroupTile(groupChat: chat)),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -75,43 +81,67 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 }
 
 class SearchBar extends StatelessWidget {
   final TextEditingController controller;
+  final VoidCallback onBackPressed;
+  final ValueChanged<String> onChanged;
 
-  SearchBar({required this.controller});
+  SearchBar({
+    required this.controller,
+    required this.onBackPressed,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: Colors.grey),
-          SizedBox(width: 8),
+          IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.primary),
+            onPressed: onBackPressed,
+          ),
           Expanded(
             child: TextField(
               controller: controller,
+              onChanged: onChanged,
               decoration: InputDecoration(
-                hintText: 'People',
+                hintText: 'Search people...',
                 border: InputBorder.none,
-                hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+                hintStyle: TextStyle(color: AppColors.tertiary, fontSize: 16),
               ),
-              style: TextStyle(color: Colors.black, fontSize: 16),
+              style: TextStyle(color: AppColors.primary, fontSize: 16),
             ),
           ),
-          GestureDetector(
-            onTap: () => controller.clear(),
-            child: Icon(Icons.close, color: Colors.grey),
+          AnimatedOpacity(
+            opacity: controller.text.isNotEmpty ? 1.0 : 0.0,
+            duration: Duration(milliseconds: 200),
+            child: IconButton(
+              icon: Icon(Icons.close, color: AppColors.primary),
+              onPressed: () {
+                controller.clear();
+                onChanged('');
+              },
+            ),
           ),
         ],
       ),
@@ -136,25 +166,38 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-class PersonTile extends StatelessWidget {
-  final Person person;
+class UserTile extends StatelessWidget {
+  final User user;
 
-  PersonTile({required this.person});
+  UserTile({required this.user});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        backgroundColor: person.avatarColor,
+      leading: CustomCircleAvatar(
         radius: 28,
-        backgroundImage: NetworkImage('https://example.com/placeholder.jpg'),
+        backgroundImage: user.avatarUrl!.isNotEmpty
+            ? NetworkImage(user.avatarUrl!)
+            : null,
       ),
-      title: Text(person.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      subtitle: Text(person.status, style: TextStyle(fontSize: 14)),
+      title: Text(user.fullName,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+      subtitle: Text(user.userName, style: TextStyle(fontSize: 14)),
+      trailing: !user.isFriend
+          ? IconButton(
+              icon: Icon(Icons.person_add),
+              onPressed: () {
+                // TODO: Implement add friend functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Add friend request sent to ${user.fullName}')),
+                );
+              },
+            )
+          : null,
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected ${person.name}')),
+          SnackBar(content: Text('Selected ${user.fullName}')),
         );
       },
     );
@@ -162,9 +205,9 @@ class PersonTile extends StatelessWidget {
 }
 
 class GroupTile extends StatelessWidget {
-  final Group group;
+  final GroupChat groupChat;
 
-  GroupTile({required this.group});
+  GroupTile({required this.groupChat});
 
   @override
   Widget build(BuildContext context) {
@@ -173,28 +216,72 @@ class GroupTile extends StatelessWidget {
       leading: SizedBox(
         width: 56,
         height: 56,
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              child: CircleAvatar(backgroundColor: group.avatarColors[0], radius: 20),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: CircleAvatar(backgroundColor: group.avatarColors[1], radius: 20),
-            ),
-            Positioned(
-              left: 8,
-              bottom: 0,
-              child: CircleAvatar(backgroundColor: group.avatarColors[2], radius: 20),
-            ),
-          ],
-        ),
+        child: groupChat.avatarUrl != null
+            ? CustomCircleAvatar(
+                backgroundImage: NetworkImage(groupChat.avatarUrl!),
+              )
+            : Stack(
+                children: [
+                  if (groupChat.userChats.length >= 3) ...[
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: CustomCircleAvatar(
+                        backgroundImage:
+                            NetworkImage(groupChat.userChats[0].avatarUrl!),
+                        radius: 20,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: CustomCircleAvatar(
+                        backgroundImage:
+                            NetworkImage(groupChat.userChats[1].avatarUrl!),
+                        radius: 20,
+                      ),
+                    ),
+                    Positioned(
+                      left: 8,
+                      bottom: 0,
+                      child: CustomCircleAvatar(
+                        backgroundImage:
+                            NetworkImage(groupChat.userChats[2].avatarUrl!),
+                        radius: 20,
+                      ),
+                    ),
+                    if (groupChat.userChats.length >= 4)
+                      Positioned(
+                        right: 8,
+                        bottom: 0,
+                        child: CustomCircleAvatar(
+                          backgroundImage:
+                              NetworkImage(groupChat.userChats[3].avatarUrl!),
+                          radius: 20,
+                        ),
+                      ),
+                  ] else ...[
+                    CustomCircleAvatar(
+                      backgroundImage:
+                          NetworkImage(groupChat.userChats[0].avatarUrl!),
+                      radius: 28,
+                    ),
+                  ],
+                ],
+              ),
       ),
-      title: Text(group.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      subtitle: Text('${group.participants} participants', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+      title: Text(
+        // if groupChat.name is not empty, use it, otherwise use the first name of the participants
+        groupChat.name.isNotEmpty
+            ? groupChat.name
+            : groupChat.userChats
+                .map((user) => user.fullName.split(' ').first)
+                .join(', '),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text('${groupChat.userChats.length} participants',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600])),
       trailing: Container(
         width: 10,
         height: 10,
@@ -205,25 +292,9 @@ class GroupTile extends StatelessWidget {
       ),
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected ${group.name}')),
+          SnackBar(content: Text('Selected ${groupChat.name}')),
         );
       },
     );
   }
-}
-
-class Person {
-  final String name;
-  final String status;
-  final Color avatarColor;
-
-  Person(this.name, this.status, this.avatarColor);
-}
-
-class Group {
-  final String name;
-  final int participants;
-  final List<Color> avatarColors;
-
-  Group(this.name, this.participants, this.avatarColors);
 }
