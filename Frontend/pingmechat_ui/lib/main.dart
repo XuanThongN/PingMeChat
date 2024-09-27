@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
+import 'package:pingmechat_ui/presentation/pages/search_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
@@ -65,9 +66,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const OnboardingScreen(),
       routes: {
+        OnboardingScreen.routeName: (context) => const OnboardingScreen(),
         LoginPage.routeName: (context) => const LoginPage(),
         RegisterPage.routeName: (context) => const RegisterPage(),
         HomePage.routeName: (context) => const HomePage(),
+        SearchResultsScreen.routeName: (context) => SearchResultsScreen(),
       },
       localizationsDelegates: [
         AppLocalizations.delegate,

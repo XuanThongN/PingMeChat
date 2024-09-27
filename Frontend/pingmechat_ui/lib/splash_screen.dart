@@ -11,6 +11,7 @@ import 'presentation/pages/home.dart';
 import 'providers/auth_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  static const routeName = '/onboarding';
   const OnboardingScreen({super.key});
 
   @override
@@ -170,8 +171,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         await Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
     if (isAuth) {
       Navigator.of(context).pushReplacementNamed(HomePage.routeName);
-    } else {
-      Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
-    }
+    } 
+    // else {
+    //   Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
+    // }
   }
 }

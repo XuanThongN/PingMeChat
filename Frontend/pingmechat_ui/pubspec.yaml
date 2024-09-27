@@ -52,7 +52,7 @@ dependencies:
   image_picker: ^1.1.2 #Hỗ trợ chọn ảnh từ thư viện
   permission_handler: ^11.3.1
   audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
-  # permission_handler: ^10.2.0  #Hỗ trợ quyền truy cập
+  badges: ^2.0.1 #Hỗ trợ hiển thị badge
 
 
 

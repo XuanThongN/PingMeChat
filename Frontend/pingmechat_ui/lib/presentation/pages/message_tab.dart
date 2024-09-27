@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../data/models/chat_model.dart';
 import '../../domain/models/account.dart';
+import '../../domain/models/attachment.dart';
+import '../../domain/models/message.dart';
 import '../../providers/contact_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
@@ -206,7 +208,8 @@ class _MessageTabState extends State<MessageTab> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildCircularButton(Icons.search, () {
-            // Handle search button press
+            // Chuyển hướng tới trang tìm kiếm
+            Navigator.pushNamed(context, '/search');
           }),
           Text(
             AppLocalizations.of(context)!.home,
@@ -315,7 +318,8 @@ class _MessageTabState extends State<MessageTab> {
           CustomCircleAvatar(
             radius: 24,
             backgroundImage:
-                item.avatarUrl != null ? NetworkImage(item.avatarUrl!) : null,
+               item.avatarUrl!.isNotEmpty ? NetworkImage(item.avatarUrl!) : null,
+            isGroupChat: item.isGroup,
           ),
           // if (item.isActive) // Người dùng hoạt động
           if (!item
@@ -343,8 +347,7 @@ class _MessageTabState extends State<MessageTab> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle:
-        Row(
+        subtitle: Row(
           children: [
             Expanded(
               child: Row(
@@ -353,14 +356,19 @@ class _MessageTabState extends State<MessageTab> {
                     child: Consumer<AuthProvider>(
                       builder: (context, authProvider, child) {
                         final currentUserId = authProvider.currentUser?.id;
-                        final lastMessage = item.messages!.isNotEmpty ? item.messages!.last : null;
+                        final lastMessage = item.messages!.isNotEmpty
+                            ? item.messages!.last
+                            : null;
                         if (lastMessage == null) {
                           return const Text('');
                         }
-                        final isCurrentUser = lastMessage.senderId == currentUserId;
-                        final senderName = isCurrentUser ? 'You' : (lastMessage.sender?.fullName ?? 'Unknown');
+                        final isCurrentUser =
+                            lastMessage.senderId == currentUserId;
+                        final senderName = isCurrentUser
+                            ? 'You'
+                            : (lastMessage.sender?.fullName ?? 'Unknown');
                         return Text(
-                          '$senderName: ${lastMessage.content}',
+                          '$senderName: ${_createMessageContent(lastMessage)}',
                           style: AppTypography.chatMessage,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -412,6 +420,45 @@ class _MessageTabState extends State<MessageTab> {
         ),
       ),
     );
+  }
+
+  String _createMessageContent(Message message) {
+    if (message.content != null && message.content!.isNotEmpty) {
+      return message.content!;
+    }
+    final attachmentCounts = _countAttachments(message.attachments!);
+    final attachmentDescriptions = attachmentCounts.entries.map((entry) {
+      final type = entry.key;
+      final count = entry.value;
+      return '$count ${_getAttachmentTypeDescription(type)}';
+    }).join(' and ');
+
+    return 'Sent $attachmentDescriptions';
+  }
+
+  Map<String, int> _countAttachments(List<Attachment> attachments) {
+    final counts = <String, int>{};
+
+    for (var attachment in attachments) {
+      counts[attachment.fileType] = (counts[attachment.fileType] ?? 0) + 1;
+    }
+
+    return counts;
+  }
+
+  String _getAttachmentTypeDescription(String type) {
+    switch (type) {
+      case 'Image':
+        return 'image${type == 'Image' && 1 > 1 ? 's' : ''}';
+      case 'Video':
+        return 'video${type == 'Video' && 1 > 1 ? 's' : ''}';
+      case 'Audio':
+        return 'audio${type == 'Audio' && 1 > 1 ? 's' : ''}';
+      case 'File':
+        return 'file${type == 'File' && 1 > 1 ? 's' : ''}';
+      default:
+        return 'attachment${type == 'Attachment' && 1 > 1 ? 's' : ''}';
+    }
   }
 
   String _showTimeOfChat(DateTime lastMessageTime) {

@@ -252,132 +252,133 @@ class _ChatScreenState extends State<ChatScreen> {
   // }
 
   Widget _buildMessageInput() {
-  return Column(
-    children: [
-      if (_selectedAttachments!.isNotEmpty)
-        Container(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _selectedAttachments!.length,
-            itemBuilder: (context, index) {
-              return Stack(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(8),
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: FileImage(_selectedAttachments![index]),
-                        fit: BoxFit.cover,
+    return Column(
+      children: [
+        if (_selectedAttachments!.isNotEmpty)
+          Container(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedAttachments!.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.all(8),
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: FileImage(_selectedAttachments![index]),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: Colors.red),
-                      onPressed: () {
-                        setState(() {
-                          _selectedAttachments!.removeAt(index);
-                          if (_selectedAttachments!.isEmpty) {
-                            _isComposing = false;
-                          }
-                        });
-                      },
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: Icon(Icons.close, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _selectedAttachments!.removeAt(index);
+                            if (_selectedAttachments!.isEmpty) {
+                              _isComposing = false;
+                            }
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, -1),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              icon: CustomSvgIcon(
-                svgPath: 'assets/icons/Clip, Attachment.svg',
-                color: AppColors.secondary,
-              ),
-              onPressed: _pickAction,
-            ),
-            Expanded(
-              child: TextField(
-                controller: _textController,
-                onChanged: (text) {
-                  setState(() {
-                    _isComposing = text.isNotEmpty;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Aa',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  suffixIcon: IconButton(
-                    icon: CustomSvgIcon(
-                      svgPath: 'assets/icons/files_in_message.svg',
-                      color: AppColors.tertiary,
-                      size: 24,
-                    ),
-                    onPressed: _pickIcon,
-                  ),
-                ),
-              ),
-            ),
-            if (!_isComposing) ...[
-              IconButton(
-                icon: CustomSvgIcon(
-                  svgPath: 'assets/icons/camera 01_in_message.svg',
-                  color: AppColors.secondary,
-                  size: 24,
-                ),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: CustomSvgIcon(
-                  svgPath: 'assets/icons/microphone_in_message.svg',
-                  color: AppColors.secondary,
-                  size: 24,
-                ),
-                onPressed: _pickRecording,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, -1),
               ),
             ],
-            if (_isComposing)
+          ),
+          child: Row(
+            children: [
               IconButton(
                 icon: CustomSvgIcon(
-                  svgPath: 'assets/icons/Send_in_message.svg',
-                  color: AppColors.primary,
+                  svgPath: 'assets/icons/Clip, Attachment.svg',
+                  color: AppColors.secondary,
                 ),
-                onPressed: () => _handleSubmitted(),
+                onPressed: _pickAction,
               ),
-          ],
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  onChanged: (text) {
+                    setState(() {
+                      _isComposing = text.isNotEmpty;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Aa',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    suffixIcon: IconButton(
+                      icon: CustomSvgIcon(
+                        svgPath: 'assets/icons/files_in_message.svg',
+                        color: AppColors.tertiary,
+                        size: 24,
+                      ),
+                      onPressed: _pickIcon,
+                    ),
+                  ),
+                ),
+              ),
+              if (!_isComposing) ...[
+                IconButton(
+                  icon: CustomSvgIcon(
+                    svgPath: 'assets/icons/camera 01_in_message.svg',
+                    color: AppColors.secondary,
+                    size: 24,
+                  ),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: CustomSvgIcon(
+                    svgPath: 'assets/icons/microphone_in_message.svg',
+                    color: AppColors.secondary,
+                    size: 24,
+                  ),
+                  onPressed: _pickRecording,
+                ),
+              ],
+              if (_isComposing)
+                IconButton(
+                  icon: CustomSvgIcon(
+                    svgPath: 'assets/icons/Send_in_message.svg',
+                    color: AppColors.primary,
+                  ),
+                  onPressed: () => _handleSubmitted(),
+                ),
+            ],
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
     final chatName = chat!.isGroup
@@ -419,10 +420,11 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Stack(
                 children: [
                   CustomCircleAvatar(
-                    backgroundImage: chatAvatarUrl != null
-                        ? NetworkImage(chatAvatarUrl)
-                        : null,
                     radius: 20,
+                    backgroundImage: chat.avatarUrl!.isNotEmpty
+                        ? NetworkImage(chat.avatarUrl!)
+                        : null,
+                    isGroupChat: chat.isGroup,
                   ),
                   Positioned(
                     right: 0,
