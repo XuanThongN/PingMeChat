@@ -79,7 +79,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
 
         public async Task<TokenDto> Login(LoginDto model, string deviceInfo, string ipAddress)
         {
-            var user = await _accountRepository.Find(x => x.UserName == model.UserName);
+            var userNameOrEmail = model.UserName.ToLower();
+            var user = await _accountRepository.Find(x => x.UserName.ToLower() == userNameOrEmail || x.Email.ToLower() == userNameOrEmail);
             if (user == null || !HelperMethod.VerifyPassword(model.Password, user.Password))
             {
                 throw new AppException("Tài khoản hoặc mật khẩu không hợp lệ", 404);

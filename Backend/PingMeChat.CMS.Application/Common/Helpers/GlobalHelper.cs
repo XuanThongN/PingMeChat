@@ -7,6 +7,7 @@ using PingMeChat.CMS.Application.App.Repositories;
 using PingMeChat.CMS.Application.Feature.ChatHubs;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth;
 using PingMeChat.CMS.Application.Feature.Indentity.RefreshTokens;
+using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
 using PingMeChat.CMS.Application.Feature.Service.Calls;
 using PingMeChat.CMS.Application.Feature.Service.Chats;

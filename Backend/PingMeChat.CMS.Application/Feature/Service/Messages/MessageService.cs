@@ -18,7 +18,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 {
     public interface IMessageService : IServiceBase<Message, MessageCreateDto, MessageUpdateDto, MessageDto, IMessageRepository>
     {
-        Task<MessageDto> SendMessageAsync(string chatId, string userId, string content);
+        Task<MessageDto> SendMessageAsync(MessageCreateDto messageCreateDto);
         Task<PagedResponse<List<MessageDto>>> GetChatMessagesAsync(string chatId, int pageNumber, int pageSize, string route = null);
     }
 
@@ -75,12 +75,11 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                 pageSize,
                 predicate: m => m.ChatId == chatId,
                 orderBy: q => q.OrderByDescending(m => m.SentAt),
-                include: m => m.Include(o => o.Sender)
-                                .Include( o => o.Attachments),
+                include: m => m.Include(o => o.Sender),
                 route: route
                 );
         }
-        public async Task<MessageDto> SendMessageAsync(string chatId, string userId, string content)
+        public async Task<MessageDto> SendMessageAsync(MessageCreateDto messageCreateDto)
         {
             // content = SanitizeContent(content);
 
@@ -93,17 +92,31 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                 {
                     try
                     {
-                        var userChat = await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId, include: uc => uc.Include(c => c.User));
+                        var userChat = await _userChatRepository.Find(uc => uc.ChatId == messageCreateDto.ChatId
+                                                                                && uc.UserId == messageCreateDto.SenderId, include: uc => uc.Include(c => c.User));
                         if (userChat == null)
                         {
                             throw new AppException("Người dùng không thuộc đoạn chat này", 403);
                         }
 
+                        var attachments = new List<Attachment>();
+                        if (messageCreateDto.Attachments.Any())
+                            attachments = messageCreateDto.Attachments.Select(a =>
+                            {
+                                return new Attachment
+                                {
+                                    FileUrl = a.FileUrl,
+                                    FileName = a.FileName,
+                                    FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType),
+                                    FileSize = a.FileSize
+                                };
+                            }).ToList();
                         var message = new Message
                         {
-                            ChatId = chatId,
-                            SenderId = userId,
-                            Content = content,
+                            ChatId = messageCreateDto.ChatId,
+                            SenderId = messageCreateDto.SenderId,
+                            Content = messageCreateDto.Content,
+                            Attachments = attachments,
                             SentAt = DateTime.UtcNow
                         };
 

@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
+import 'package:mime/mime.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
@@ -14,6 +18,10 @@ class ChatService {
   final AuthProvider authProvider;
 
   ChatService({required this.chatHubService, required this.authProvider});
+
+  String getCurrentUserId() {
+    return authProvider.currentUser?.id ?? '';
+  }
 
 // Hàm lấy danh sách các cuộc trò chuyện
   Future<List<Chat>> getChats({int page = 1, int pageSize = 20}) async {
@@ -106,8 +114,8 @@ class ChatService {
     await chatHubService.connect();
   }
 
-  Future<void> sendMessage(String chatId, String message) async {
-    await chatHubService.sendMessage(chatId, message);
+  Future<void> sendMessage(MessageSendDto input) async {
+    await chatHubService.sendMessage(input);
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
@@ -122,5 +130,44 @@ class ChatService {
     chatHubService.onNewPrivateChat(handler);
   }
 
-  // Thêm các phương thức khác tương ứng với các chức năng của ChatHub
+  // Thêm các phương thức mở rộng
+  Future<List<UploadResult>> uploadFiles(List<File> files) async {
+    final uri = Uri.parse(ApiConstants.uploadFileEndpoint);
+
+    // Tạo request Multipart
+    final request = http.MultipartRequest('POST', uri);
+
+    // Thêm các file vào request
+    for (var file in files) {
+      // Lấy ContentType của file
+      final mimeType = lookupMimeType(file.path);
+
+      // Thêm file vào request với ContentType
+      request.files.add(await http.MultipartFile.fromPath(
+        'files',
+        file.path,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+      ));
+    }
+
+    // Thêm headers (authentication, etc.)
+    request.headers.addAll(await authProvider.getCustomHeaders());
+
+    // Gửi request
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      final jsonResponse = json.decode(responseBody);
+
+      // Xử lý response cho từng file (giả sử server trả về danh sách các kết quả upload)
+      List<UploadResult> results = [];
+      for (var fileJson in jsonResponse['result']) {
+        results.add(UploadResult(publicId: fileJson['publicId'], url: fileJson['url'], fileName: fileJson['fileName'], fileType: fileJson['fileType'], fileSize: fileJson['fileSize']));
+      }
+      return results;
+    } else {
+      throw Exception('Failed to upload files');
+    }
+  }
 }

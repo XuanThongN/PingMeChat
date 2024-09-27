@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -13,6 +12,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.focusNode,
     this.onFieldSubmitted,
+    this.onChanged
   });
 
   final String label;
@@ -23,6 +23,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final FocusNode? focusNode;
   final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +36,16 @@ class CustomTextField extends StatelessWidget {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
+      onChanged: onChanged,
       decoration: InputDecoration(
         border: const UnderlineInputBorder(),
         labelText: label,
         labelStyle: const TextStyle(color: AppColors.primary),
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: AppColors.primary),
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: AppColors.tertiary),
         ),
       ),
     );

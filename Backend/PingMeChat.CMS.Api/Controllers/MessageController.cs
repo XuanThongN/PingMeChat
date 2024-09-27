@@ -24,17 +24,17 @@ namespace PingMeChat.CMS.Api.Controllers
             _messageService = messageService;
         }
 
-        [HttpPost]
-        [ValidateUserAndModel]
-        [ChatAccess]
-        [Route(ApiRoutes.Feature.Message.SendMessageRoute)]
-        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status201Created)]
-        public async Task<IActionResult> SendMessage(string chatId, [FromBody] string content)
-        {
-            var userId = GetUserId();
-            var result = await _messageService.SendMessageAsync(chatId, userId, content);
-            return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "message"), result, StatusCodes.Status201Created));
-        }
+        //[HttpPost]
+        //[ValidateUserAndModel]
+        //[ChatAccess]
+        //[Route(ApiRoutes.Feature.Message.SendMessageRoute)]
+        //[ProducesResponseType(typeof(MessageDto), StatusCodes.Status201Created)]
+        //public async Task<IActionResult> SendMessage(string chatId, [FromBody] string content)
+        //{
+        //    var userId = GetUserId();
+        //    var result = await _messageService.SendMessageAsync(chatId, userId, content);
+        //    return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "message"), result, StatusCodes.Status201Created));
+        //}
 
         // Get messages
         [HttpGet]

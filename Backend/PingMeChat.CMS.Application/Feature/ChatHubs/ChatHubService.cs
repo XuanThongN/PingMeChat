@@ -24,10 +24,6 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             await _hubContext.Groups.AddToGroupAsync(connectionId, groupName);
         }
 
-        public async Task SendMessageToGroupAsync(string chatId, string userId, string message)
-        {
-            await _hubContext.Clients.Group(chatId).SendAsync("ReceiveGroupMessage", userId, message);
-        }
     }
 
 }

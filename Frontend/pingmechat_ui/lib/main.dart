@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
+import 'package:pingmechat_ui/data/datasources/search_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
+import 'package:pingmechat_ui/presentation/pages/search_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:pingmechat_ui/splash_screen.dart';
@@ -12,9 +16,9 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 
 import 'config/theme.dart';
 import 'data/datasources/chat_hub_service.dart';
-import 'package:http/http.dart' as http;
 
 import 'presentation/pages/login_page.dart';
+import 'providers/search_provider.dart';
 
 void main() {
   runApp(
@@ -23,7 +27,8 @@ void main() {
         ChangeNotifierProvider(
             create: (_) => AuthProvider()), // Initialize AuthProvider
         ProxyProvider<AuthProvider, ChatHubService>(
-          update: (context, authProvider, previous) => ChatHubService(authProvider),
+          update: (context, authProvider, previous) =>
+              ChatHubService(authProvider),
         ),
         ProxyProvider2<AuthProvider, ChatHubService, ChatService>(
           update: (context, authProvider, chatHubService, previous) =>
@@ -41,8 +46,17 @@ void main() {
           create: (context) => ContactProvider(context.read<AuthProvider>()),
           update: (context, authProvider, previous) =>
               previous ?? ContactProvider(authProvider),
-        )
-
+        ),
+        ChangeNotifierProxyProvider<ChatHubService, CallProvider>(
+          create: (context) => CallProvider(context.read<ChatHubService>()),
+          update: (context, chatHubService, previous) =>
+              previous ?? CallProvider(chatHubService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SearchProvider(
+              SearchService(authProvider: context.read<AuthProvider>())),
+          child: SearchResultsScreen(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -59,9 +73,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const OnboardingScreen(),
       routes: {
+        OnboardingScreen.routeName: (context) => const OnboardingScreen(),
         LoginPage.routeName: (context) => const LoginPage(),
         RegisterPage.routeName: (context) => const RegisterPage(),
         HomePage.routeName: (context) => const HomePage(),
+        SearchResultsScreen.routeName: (context) => SearchResultsScreen(),
       },
       localizationsDelegates: [
         AppLocalizations.delegate,

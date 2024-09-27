@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_circle_avatar.dart';
 
 class GroupCallPage extends StatelessWidget {
+  const GroupCallPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -9,7 +11,7 @@ class GroupCallPage extends StatelessWidget {
         children: [
           // Background Image
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(
                     'https://via.placeholder.com/800x1600'), // Replace with the background image URL
@@ -25,7 +27,7 @@ class GroupCallPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Meeting Title and Organizer Info
-                  Text(
+                  const Text(
                     'Meeting with Lora Adom',
                     style: TextStyle(
                       color: Colors.white,
@@ -33,19 +35,19 @@ class GroupCallPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      CustomCircleAvatar(
+                      const CustomCircleAvatar(
                         backgroundImage: NetworkImage(
                             'https://via.placeholder.com/150'), // Replace with organizer's image URL
                         radius: 25,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Lora Adom',
                             style: TextStyle(
                               color: Colors.white,
@@ -64,13 +66,13 @@ class GroupCallPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Spacer(),
+                  const Spacer(),
                   // Chat Messages
                   _buildChatMessages(),
-                  Spacer(),
+                  const Spacer(),
                   // Call Control Buttons
                   _buildCallControlButtons(),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   // Participants Row
                   _buildParticipantsRow(),
                 ],
@@ -112,7 +114,7 @@ class GroupCallPage extends StatelessWidget {
           ),
           title: Text(
             msg['name']!,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
             msg['message']!,
@@ -145,10 +147,10 @@ class GroupCallPage extends StatelessWidget {
           radius: 30,
           child: Icon(icon, color: Colors.black, size: 28),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         Text(
           label,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
       ],
     );
@@ -180,7 +182,7 @@ class GroupCallPage extends StatelessWidget {
                   backgroundImage: NetworkImage(url),
                   radius: 30,
                 ),
-                Positioned(
+                const Positioned(
                   bottom: 0,
                   right: 0,
                   child: CircleAvatar(

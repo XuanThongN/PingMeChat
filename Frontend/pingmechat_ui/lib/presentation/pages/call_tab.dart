@@ -5,6 +5,8 @@ import '../../config/theme.dart';
 import '../widgets/custom_circle_avatar.dart'; // Assuming your theme settings are configured here
 
 class CallTab extends StatefulWidget {
+  const CallTab({super.key});
+
   @override
   _CallTabState createState() => _CallTabState();
 }
@@ -95,7 +97,7 @@ class _CallTabState extends State<CallTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: ListView.builder(
         itemCount: _callItems.length,
         itemBuilder: (context, index) => _buildCallItem(_callItems[index]),
@@ -106,7 +108,7 @@ class _CallTabState extends State<CallTab> {
   Widget _buildCallItem(CallItem item) {
     return Slidable(
       startActionPane: ActionPane(
-        motion: DrawerMotion(),
+        motion: const DrawerMotion(),
         children: [
           SlidableAction(
             onPressed: (context) => _deleteCall(item),
@@ -118,7 +120,7 @@ class _CallTabState extends State<CallTab> {
         ],
       ),
       endActionPane: ActionPane(
-        motion: DrawerMotion(),
+        motion: const DrawerMotion(),
         children: [
           SlidableAction(
             onPressed: (context) => _makeCall(item),

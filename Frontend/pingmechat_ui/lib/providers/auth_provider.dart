@@ -41,18 +41,11 @@ class AuthProvider with ChangeNotifier {
     return _currentUser;
   }
 
-  Future<void> signup(
-      BuildContext context,
-      String email,
-      String userName,
-      String password,
-      String confirmPassword,
-      String fullName,
-      String phone) async {
-    const url = ApiConstants.baseApiUrl + ApiConstants.registerEndpoint;
+  Future<bool> signup(String email, String userName, String password,
+      String confirmPassword, String fullName, String phone) async {
     try {
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse(ApiConstants.registerEndpoint),
         body: json.encode({
           'email': email,
           'userName': userName,
@@ -69,10 +62,13 @@ class AuthProvider with ChangeNotifier {
         throw Exception(responseData['message']);
       }
 
+      // Đăng ký thành công
+      return true;
+
       // Đăng ký thành công thì chuyển hướng về trang đăng nhập
-      Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
     } catch (error) {
-      throw error;
+      print('Signup error: $error');
+      return false; //Đăng ký thất bại
     }
   }
 

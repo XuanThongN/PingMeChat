@@ -1,81 +1,161 @@
 import 'package:flutter/material.dart';
-import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
+import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../data/models/chat_model.dart';
+import '../../domain/models/account.dart';
+import '../../providers/contact_provider.dart';
+import '../../providers/chat_provider.dart';
+import '../widgets/custom_circle_avatar.dart';
+import '../widgets/custom_button.dart';
 
 class CreateGroupPage extends StatefulWidget {
+  const CreateGroupPage({super.key});
+
   @override
   _CreateGroupPageState createState() => _CreateGroupPageState();
 }
 
 class _CreateGroupPageState extends State<CreateGroupPage> {
-  List<User> users = [
-    User(
-        id: 1,
-        name: 'Rashid Khan',
-        imageUrl: 'https://via.placeholder.com/150'),
-    User(
-        id: 2,
-        name: 'David Wayne',
-        imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 3, name: 'John Doe', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 4, name: 'Jane Doe', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 5, name: 'Alice', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 6, name: 'Bob', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 7, name: 'User 1', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 8, name: 'User 2', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 9, name: 'User 3', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 10, name: 'User 4', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 11, name: 'User 5', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 12, name: 'User 6', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 13, name: 'User 7', imageUrl: 'https://via.placeholder.com/150'),
-    User(id: 14, name: 'User 8', imageUrl: 'https://via.placeholder.com/150'),
-  ];
-
-  TextEditingController _searchController = TextEditingController();
-  Set<int> _selectedUserIds = Set<int>(); // Store selected user IDs
-  List<User> _filteredUsers = []; // Store filtered users based on search query
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _groupNameController = TextEditingController();
+  final ValueNotifier<Set<String>> _selectedContactIds = ValueNotifier<Set<String>>({});
+  final ValueNotifier<List<Account>> _filteredContactUsers = ValueNotifier<List<Account>>([]);
 
   @override
   void initState() {
     super.initState();
-    _filteredUsers = users;
-    _searchController.addListener(_filterUsers);
+    _searchController.addListener(_filterContacts);
   }
 
-  void _filterUsers() {
-    setState(() {
-      _filteredUsers = users.where((user) {
-        return user.name
-            .toLowerCase()
-            .contains(_searchController.text.toLowerCase());
-      }).toList();
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final contactProvider = Provider.of<ContactProvider>(context);
+    _filteredContactUsers.value = contactProvider.contactUsers;
   }
 
-  void _toggleUserSelection(int userId) {
-    setState(() {
-      if (_selectedUserIds.contains(userId)) {
-        _selectedUserIds.remove(userId);
-      } else {
-        _selectedUserIds.add(userId);
-      }
-    });
+  void _filterContacts() {
+    final searchTerm = _searchController.text.toLowerCase();
+    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    _filteredContactUsers.value = contactProvider.contactUsers
+        .where((user) => user.fullName.toLowerCase().contains(searchTerm))
+        .toList();
   }
 
-  void _toggleAllUserSelection() {
-    setState(() {
-      if (_selectedUserIds.length == users.length) {
-        _selectedUserIds.clear();
-      } else {
-        _selectedUserIds = users.map((user) => user.id).toSet();
-      }
-    });
+  void _toggleContactSelection(String contactId) {
+    final Set<String> updatedSelection = Set<String>.from(_selectedContactIds.value);
+    if (updatedSelection.contains(contactId)) {
+      updatedSelection.remove(contactId);
+    } else {
+      updatedSelection.add(contactId);
+    }
+    _selectedContactIds.value = updatedSelection;
+  }
+
+  Future<void> _createGroup() async {
+    if (_selectedContactIds.value.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least 2 members.')),
+      );
+      return;
+    }
+
+    final groupName = _groupNameController.text;
+    final groupMembers = _selectedContactIds.value.toList();
+
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final chatCreateDto = ChatCreateDto(
+      name: groupName,
+      isGroup: true,
+      userIds: groupMembers,
+    );
+
+    await chatProvider.startNewChat(chatCreateDto);
+    // Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+  }
+
+  void _showAddMembersModal(BuildContext context) {
+    _filterContacts();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            children: [
+              Container(
+                height: 4,
+                width: 40,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text(
+                'Add members to group',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search members',
+                  prefixIcon: const Icon(Icons.search, size: 24, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ValueListenableBuilder<List<Account>>(
+                  valueListenable: _filteredContactUsers,
+                  builder: (context, filteredUsers, child) {
+                    return ListView.builder(
+                      itemCount: filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = filteredUsers[index];
+                        return ValueListenableBuilder<Set<String>>(
+                          valueListenable: _selectedContactIds,
+                          builder: (context, selectedIds, child) {
+                            final isSelected = selectedIds.contains(user.id);
+                            return ListTile(
+                              leading: CustomCircleAvatar(
+                                backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                              ),
+                              title: Text(user.fullName),
+                              trailing: Checkbox(
+                                activeColor: AppColors.primary,
+                                value: isSelected,
+                                onChanged: (value) => _toggleContactSelection(user.id),
+                              ),
+                              onTap: () => _toggleContactSelection(user.id),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _groupNameController.dispose();
+    _selectedContactIds.dispose();
+    _filteredContactUsers.dispose();
     super.dispose();
   }
 
@@ -83,9 +163,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Group'),
+        title: const Text('Create Group'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         elevation: 0,
@@ -97,191 +177,97 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'Group Name',
               style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
-            // Group Name TextField
             TextField(
+              controller: _groupNameController,
               decoration: InputDecoration(
                 hintText: 'Enter group name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                // Add padding to the text field
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
-            SizedBox(height: 30),
-            Text(
+            const SizedBox(height: 30),
+            const Text(
               'Invited Members',
               style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _buildInvitedMembers(context),
-            Spacer(),
+            const Spacer(),
             SizedBox(
               width: double.infinity,
               child: CustomElevatedButton(
                 text: 'Create',
-                onPressed: () {},
+                onPressed: _createGroup,
                 foregroundColor: AppColors.white,
                 backgroundColor: AppColors.primary,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildChip(String label) {
-    return Chip(
-      label: Text(label),
-      backgroundColor: Colors.teal.shade50,
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    );
-  }
-
   Widget _buildInvitedMembers(BuildContext context) {
-    List<String> memberImages = users
-        .where((user) => _selectedUserIds.contains(user.id))
-        .map((user) => user.imageUrl)
-        .toList();
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: _selectedContactIds,
+      builder: (context, selectedIds, child) {
+        final contactProvider = Provider.of<ContactProvider>(context);
+        List<Account> selectedMembers = selectedIds
+            .map((id) => contactProvider.getContactUserById(id))
+            .where((user) => user != null)
+            .cast<Account>()
+            .toList();
 
-    return Wrap(
-      spacing: 15,
-      runSpacing: 10,
-      children: [
-        ...memberImages.map((imageUrl) {
-          return Stack(
-            children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(imageUrl),
-                radius: 30,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: CircleAvatar(
-                  backgroundColor: AppColors.grey,
-                  radius: 12,
-                  child: Icon(Icons.add, color: AppColors.secondary, size: 20),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
-        GestureDetector(
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) {
-                return StatefulBuilder(
-                  builder: (BuildContext context, StateSetter setState) {
-                    return Container(
-                      height: MediaQuery.of(context).size.height * 0.9,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 4,
-                            width: 40,
-                            margin: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.tertiary,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          const Text(
-                            'Add members to group',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Search members',
-                              prefixIcon: Icon(Icons.search,
-                                  size: 24, color: AppColors.primary),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  CheckboxListTile(
-                                    title: Text('Select all'),
-                                    // Check if all users are selected
-                                    value:
-                                        _selectedUserIds.length == users.length,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _toggleAllUserSelection();
-                                      });
-                                    },
-                                  ),
-                                  ..._filteredUsers.map((user) {
-                                    return ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundImage:
-                                            NetworkImage(user.imageUrl),
-                                      ),
-                                      title: Text(user.name),
-                                      trailing: Checkbox(
-                                        activeColor: AppColors.primary,
-                                        value:
-                                            _selectedUserIds.contains(user.id),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _toggleUserSelection(user.id);
-                                          });
-                                        },
-                                      ),
-                                    );
-                                  }).toList(),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+        return Wrap(
+          spacing: 15,
+          runSpacing: 10,
+          children: [
+            ...selectedMembers.map((user) {
+              return Stack(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                    radius: 30,
+                    child: user.avatarUrl == null ? Text(user.fullName[0]) : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () => _toggleContactSelection(user.id),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: const Icon(Icons.close, color: Colors.grey, size: 20),
                       ),
-                    );
-                  },
-                );
-              },
-            );
-          },
-          child: Column(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.grey.shade200,
+                    ),
+                  ),
+                ],
+              );
+            }),
+            GestureDetector(
+              onTap: () => _showAddMembersModal(context),
+              child: const CircleAvatar(
+                backgroundColor: Colors.grey,
                 radius: 30,
-                child: Icon(Icons.add, color: Colors.grey),
+                child: Icon(Icons.add, color: Colors.white),
               ),
-              SizedBox(height: 5),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
-}
-
-class User {
-  final int id;
-  final String name;
-  final String imageUrl;
-
-  User({required this.id, required this.name, required this.imageUrl});
 }

@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pingmechat_ui/providers/auth_provider.dart';
-import 'package:provider/provider.dart';
 import 'dart:convert';
 
 import '../core/constants/constant.dart';
+import '../domain/models/account.dart';
 import '../domain/models/contact.dart';
 
 class ContactProvider extends ChangeNotifier {
@@ -13,11 +13,13 @@ class ContactProvider extends ChangeNotifier {
   ContactProvider(this._authProvider);
 
   List<Contact> _contacts = [];
+  List<Account> _contactUsers = [];
   bool _isLoading = false;
 
   List<Contact> get contacts => _contacts;
+  List<Account> get contactUsers => _contactUsers;
   bool get isLoading => _isLoading;
-
+  Account get currentUser => _authProvider.currentUser!;
   Future<void> fetchContacts() async {
     _isLoading = true;
     notifyListeners();
@@ -35,6 +37,7 @@ class ContactProvider extends ChangeNotifier {
         final List<dynamic> data = jsonResponse['result'];
         if (data.isNotEmpty) {
           _contacts = data.map((data) => Contact.fromJson(data)).toList();
+          _updateContactUsers();  
         }else {
           _contacts = [];
         }
@@ -47,6 +50,13 @@ class ContactProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+ // Hàm mới để cập nhật danh sách contactUsers
+  void _updateContactUsers() {
+    _contactUsers = _contacts.map((contact) {
+      return contact.user?.id != currentUser.id ? contact.user! : contact.contactUser!;
+    }).toList();
   }
 
   Future<void> addContact(AddContactRequest input) async {
@@ -62,6 +72,7 @@ class ContactProvider extends ChangeNotifier {
         final responseData = json.decode(response.body);
         final contact = Contact.fromJson(responseData);
         _contacts.add(contact);
+        _updateContactUsers();
         notifyListeners();
       } else {
         throw Exception('Failed to add contact');
@@ -83,6 +94,7 @@ class ContactProvider extends ChangeNotifier {
         final responseData = json.decode(response.body);
         final removedContactId = responseData['contactId'];
         _contacts.removeWhere((contact) => contact.id == removedContactId);
+        _updateContactUsers();
         notifyListeners();
       } else {
         throw Exception('Failed to remove contact');
@@ -90,5 +102,10 @@ class ContactProvider extends ChangeNotifier {
     } catch (error) {
       print('Error removing contact: $error');
     }
+  }
+
+   // Hàm tiện ích để lấy contactUser dựa trên id
+  Account? getContactUserById(String id) {
+    return _contactUsers.firstWhere((user) => user.id == id, orElse: () => Account(id: '', fullName: '', email: ''));
   }
 }

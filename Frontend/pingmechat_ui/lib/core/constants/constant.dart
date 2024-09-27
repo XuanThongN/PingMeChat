@@ -19,20 +19,40 @@ class ApiConstants {
   static String getChatByIdEndpoint(String chatId) {
     return '$baseApiUrl/chats/get-chat-detail/$chatId';
   }
-  static const String startNewPrivateChatEndpoint = '$baseApiUrl/chats/start-new-private-chat';
+
+  static const String startNewPrivateChatEndpoint =
+      '$baseApiUrl/chats/start-new-private-chat';
   // Message
-  static String getMessagesEndpoint(String chatId, int pageNumber, int pageSize) {
+  static String getMessagesEndpoint(
+      String chatId, int pageNumber, int pageSize) {
     return '$baseApiUrl/messages/$chatId?pageNumber=$pageNumber&pageSize=$pageSize';
   }
 
   // Contact
-  static const String getContactListByCurrentUserEndpoint = '$baseApiUrl/contacts/get-all-by-current-user'; // Lấy danh sách contact của user hiện tại
-  static const String addContactEndpoint = '$baseApiUrl/contacts/add'; // Thêm contact
-  static const String removeContactEndpoint = '$baseApiUrl/contacts/remove'; // Xoá contact
+  static const String getContactListByCurrentUserEndpoint =
+      '$baseApiUrl/contacts/get-all-by-current-user'; // Lấy danh sách contact của user hiện tại
+  static const String addContactEndpoint =
+      '$baseApiUrl/contacts/add'; // Thêm contact
+  static const String removeContactEndpoint =
+      '$baseApiUrl/contacts/remove'; // Xoá contact
 
+  // File upload
+  static const String uploadFileEndpoint =
+      '$baseApiUrl/attachments/upload-multiple-files';
+
+  // Search
+  static const String searchEndpoint = '$baseApiUrl/search';
 }
 
 // ChatHub
 class ChatHubConstants {
   static const String chatHubUrl = '$baseUrl/chatHub';
+}
+
+// Ảnh tĩnh
+class ImageConstants {
+  // static const String defaultAvatar = 'assets/images/default_avatar.png';
+  static const String defaultAvatarUrl = 'https://thumbs.dreamstime.com/b/default-avatar-profile-icon-social-media-user-vector-image-icon-default-avatar-profile-icon-social-media-user-vector-image-209162840.jpg';
+  static const String defaultGroupAvatarUrl =
+      'https://static.vecteezy.com/system/resources/previews/026/019/617/original/group-profile-avatar-icon-default-social-media-forum-profile-photo-vector.jpg';
 }

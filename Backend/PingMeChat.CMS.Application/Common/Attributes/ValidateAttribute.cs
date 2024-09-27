@@ -143,4 +143,68 @@ namespace PingMeChat.CMS.Application.Common.Attributes
             return ValidationResult.Success;
         }
     }
+
+    // Trường linh hoạt
+    public class UsernameOrEmailAttribute : ValidationAttribute
+    {
+        private readonly int _minLength;
+        private readonly int _maxLength;
+
+        public UsernameOrEmailAttribute(int minLength = 8, int maxLength = 225)
+        {
+            _minLength = minLength;
+            _maxLength = maxLength;
+        }
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value != null)
+            {
+                string input = value.ToString();
+
+                // Kiểm tra nếu là email hợp lệ
+                if (IsValidEmail(input))
+                {
+                    return ValidationResult.Success;
+                }
+
+                // Kiểm tra nếu là username hợp lệ
+                if (IsValidUsername(input))
+                {
+                    return ValidationResult.Success;
+                }
+
+                return new ValidationResult("Giá trị phải là một tên người dùng hợp lệ hoặc một địa chỉ email hợp lệ.");
+            }
+
+            return new ValidationResult("Trường này không được để trống.");
+        }
+
+        // Kiểm tra email hợp lệ
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$"; // Email pattern cơ bản
+                return Regex.IsMatch(email, emailPattern);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Kiểm tra username hợp lệ
+        private bool IsValidUsername(string username)
+        {
+            if (username.Length < _minLength || username.Length > _maxLength)
+            {
+                return false;
+            }
+
+            // Username chỉ chứa chữ và số
+            string pattern = @"^[a-zA-Z0-9]+$";
+            return Regex.IsMatch(username, pattern);
+        }
+    }
 }

@@ -11,6 +11,7 @@ class Chat {
   List<Message>? messages;
   String id;
   DateTime? createdDate;
+  String? createdBy;
 
   Chat({
     this.name,
@@ -20,6 +21,7 @@ class Chat {
     this.messages,
     required this.id,
     this.createdDate,
+    this.createdBy,
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) {
@@ -35,7 +37,8 @@ class Chat {
         // Nếu không có createdDate thì gán giá trị mặc định là null
         createdDate: json['createdDate'] != null
             ? DateTime.parse(json['createdDate'])
-            : null);
+            : null,
+        createdBy: json['createdBy'] ?? '');
   }
   Map<String, dynamic> toJson() {
     return {

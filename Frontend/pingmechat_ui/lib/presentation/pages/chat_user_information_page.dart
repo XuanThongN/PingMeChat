@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'chat_media_links_document_page.dart';
 
 class UserInformationPage extends StatefulWidget {
+  const UserInformationPage({super.key});
+
   @override
   _UserInformationPageState createState() => _UserInformationPageState();
 }
 
 class _UserInformationPageState extends State<UserInformationPage> {
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class _UserInformationPageState extends State<UserInformationPage> {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -30,29 +32,29 @@ class _UserInformationPageState extends State<UserInformationPage> {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 50,
                     backgroundImage: //Image from internet
                         NetworkImage(
                             'https://plus.unsplash.com/premium_photo-1670148434900-5f0af77ba500?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3BsYXNofGVufDB8fDB8fHww'),
                   ),
-                  SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 10),
+                  const Text(
                     'David Wayne',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  Text(
+                  const Text(
                     '(+44) 20 1234 5689',
                     style: TextStyle(color: Colors.grey),
                   ),
                   IconButton(
-                    icon: Icon(Icons.copy, color: Colors.grey),
+                    icon: const Icon(Icons.copy, color: Colors.grey),
                     onPressed: () {},
                   ),
                 ],
               ),
             ),
-            Divider(),
+            const Divider(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -116,15 +118,15 @@ class _UserInformationPageState extends State<UserInformationPage> {
                     title: 'Custom Background Chat',
                     onTap: () {},
                   ),
-                  Divider(),
+                  const Divider(),
                   ListTile(
-                    leading: Icon(Icons.report, color: Colors.red),
-                    title: Text('Report', style: TextStyle(color: Colors.red)),
+                    leading: const Icon(Icons.report, color: Colors.red),
+                    title: const Text('Report', style: TextStyle(color: Colors.red)),
                     onTap: () {},
                   ),
                   ListTile(
-                    leading: Icon(Icons.block, color: Colors.red),
-                    title: Text('Block', style: TextStyle(color: Colors.red)),
+                    leading: const Icon(Icons.block, color: Colors.red),
+                    title: const Text('Block', style: TextStyle(color: Colors.red)),
                     onTap: () {},
                   ),
                 ],
@@ -143,8 +145,8 @@ class SettingsOption extends StatelessWidget {
   final String? trailing;
   final VoidCallback onTap;
 
-  SettingsOption(
-      {required this.icon,
+  const SettingsOption(
+      {super.key, required this.icon,
       required this.title,
       this.trailing,
       required this.onTap});
@@ -155,8 +157,8 @@ class SettingsOption extends StatelessWidget {
       leading: Icon(icon, color: Colors.black),
       title: Text(title),
       trailing: trailing != null
-          ? Text(trailing!, style: TextStyle(color: Colors.grey))
-          : Icon(Icons.arrow_forward_ios, size: 16),
+          ? Text(trailing!, style: const TextStyle(color: Colors.grey))
+          : const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
     );
   }
@@ -168,8 +170,8 @@ class SettingsSwitchOption extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  SettingsSwitchOption(
-      {required this.icon,
+  const SettingsSwitchOption(
+      {super.key, required this.icon,
       required this.title,
       required this.value,
       required this.onChanged});
@@ -193,8 +195,8 @@ class SettingsColorOption extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  SettingsColorOption(
-      {required this.icon,
+  const SettingsColorOption(
+      {super.key, required this.icon,
       required this.title,
       required this.color,
       required this.onTap});

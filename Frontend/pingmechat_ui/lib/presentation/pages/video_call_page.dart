@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
 class VideoCallPage extends StatefulWidget {
+  const VideoCallPage({super.key});
+
   @override
   _VideoCallPageState createState() => _VideoCallPageState();
 }
@@ -52,11 +54,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
                   child: CameraPreview(_cameraController!),
                 );
               } else {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
             },
           ),
-          Positioned(
+          const Positioned(
             top: 50,
             left: 20,
             child: Text(
@@ -84,14 +86,14 @@ class _VideoCallPageState extends State<VideoCallPage> {
                       child: CameraPreview(_cameraController!),
                     );
                   } else {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                 },
               ),
             ),
           ),
           // Thời gian cuộc gọi
-          Positioned(
+          const Positioned(
             bottom: 90,
             child: Center(
               child: Text(
@@ -109,25 +111,25 @@ class _VideoCallPageState extends State<VideoCallPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  icon: Icon(Icons.mic, color: Colors.white),
+                  icon: const Icon(Icons.mic, color: Colors.white),
                   onPressed: () {
                     // Xử lý tắt/bật mic
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.volume_up, color: Colors.white),
+                  icon: const Icon(Icons.volume_up, color: Colors.white),
                   onPressed: () {
                     // Xử lý tắt/bật loa
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.switch_camera, color: Colors.white),
+                  icon: const Icon(Icons.switch_camera, color: Colors.white),
                   onPressed: () {
                     // Chuyển đổi giữa camera trước và sau
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.call_end, color: Colors.red),
+                  icon: const Icon(Icons.call_end, color: Colors.red),
                   onPressed: () {
                     // Kết thúc cuộc gọi
                   },

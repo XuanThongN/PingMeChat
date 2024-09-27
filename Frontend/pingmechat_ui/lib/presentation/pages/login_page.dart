@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../splash_screen.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
 import 'home.dart';
@@ -16,7 +17,7 @@ import 'home.dart';
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
 
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -33,6 +34,9 @@ class _LoginPageState extends State<LoginPage> {
       ValueNotifier<bool>(false); // Để xác định trạng thái loading
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
+
+  bool _hasInteractedWithEmail = false;
+  bool _hasInteractedWithPassword = false;
 
   @override
   void initState() {
@@ -68,7 +72,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+        onBackButtonPressed: () {
+          // Navigate to onboarding screen with named route
+          Navigator.of(context).pushReplacementNamed(OnboardingScreen.routeName);
+
+        },
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
             vertical: 12.0, horizontal: 24), // Khoảng cách giữa các cạnh
@@ -162,18 +172,17 @@ class _LoginPageState extends State<LoginPage> {
       label: 'Email or Username',
       controller: _emailController,
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your email or username';
-        }
-        if (InputValidator.validateEmail(value) == null ||
-            InputValidator.validateUsername(value) == null) {
-          return null;
-        }
-        return 'Please enter a valid email or username';
+        if (!_hasInteractedWithEmail) return null;
+        return InputValidator.validateUsernameOrEmail(value);
       },
       keyboardType: TextInputType.emailAddress,
       autoFocus: true,
       focusNode: _emailFocusNode,
+      onChanged: (value) {
+        if (!_hasInteractedWithEmail) {
+          _hasInteractedWithEmail = true;
+        }
+      },
       onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(
           _passwordFocusNode), // Move focus to password field when Enter is pressed
     );
@@ -184,9 +193,17 @@ class _LoginPageState extends State<LoginPage> {
       label: 'Password',
       isPassword: true,
       controller: _passwordController,
-      validator: InputValidator.validatePassword,
+       validator: (value) {
+        if (!_hasInteractedWithPassword) return null;
+        return InputValidator.validatePassword(value);
+      },
       keyboardType: TextInputType.visiblePassword,
       focusNode: _passwordFocusNode,
+      onChanged: (value) {
+        if (!_hasInteractedWithPassword) {
+          _hasInteractedWithPassword = true;
+        }
+      },
       onFieldSubmitted: (_) =>
           _handleLogin(), // Gọi hàm _handleLogin khi nhấn Enter
     );
@@ -198,8 +215,8 @@ class _LoginPageState extends State<LoginPage> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final success = await authProvider.login(
-          _emailController.text,
-          _passwordController.text,
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
         );
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(

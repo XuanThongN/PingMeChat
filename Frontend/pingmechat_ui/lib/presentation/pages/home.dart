@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  int _contactsBadgeCount = 1;
   static final List<Widget> _tabs = <Widget>[
     MessageTab(),
     CallTab(),
@@ -69,10 +70,16 @@ class _HomePageState extends State<HomePage> {
           label: AppLocalizations.of(context)!.calls,
         ),
         BottomNavigationBarItem(
-          icon: CustomSvgIcon(svgPath: 'assets/icons/user.svg'),
-          activeIcon: CustomSvgIcon(svgPath: 'assets/icons/user.svg', color: AppColors.primary),
-          label: AppLocalizations.of(context)!.contacts,
-        ),
+            icon: Badge(
+              label: Text('$_contactsBadgeCount', style: TextStyle(color: Colors.white)),
+              child: CustomSvgIcon(svgPath: 'assets/icons/user.svg'),
+            ),
+            activeIcon: Badge(
+              label: Text('$_contactsBadgeCount', style: TextStyle(color: Colors.white)),
+              child: CustomSvgIcon(svgPath: 'assets/icons/user.svg', color: AppColors.primary),
+            ),
+            label: AppLocalizations.of(context)!.contacts,
+          ),
         BottomNavigationBarItem(
           icon: CustomSvgIcon(svgPath: 'assets/icons/settings.svg'),
           activeIcon: CustomSvgIcon(svgPath: 'assets/icons/settings.svg', color: AppColors.primary),

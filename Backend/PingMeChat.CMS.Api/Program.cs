@@ -12,6 +12,9 @@ using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 using PingMeChat.CMS.Application.Feature.ChatHubs;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
+using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -189,6 +192,17 @@ GlobalHelper.RegisterServiceLifetimer(builder.Services);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();  // Thêm dịch vụ bộ nhớ cache
 #endregion 
+
+#region Cloudinary
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddSingleton(cloud =>
+{
+    var config = cloud.GetService<IOptions<CloudinarySettings>>().Value;
+    var account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
+    return new Cloudinary(account);
+});
+#endregion
 
 var app = builder.Build();
 

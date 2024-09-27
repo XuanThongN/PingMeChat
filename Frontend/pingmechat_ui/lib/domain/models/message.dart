@@ -35,7 +35,7 @@ class Message {
       messageReaders: (json['messageReaders'] as List?)
           ?.map((i) => MessageReader.fromJson(i))
           .toList(),
-          // Map json['sender'] to Account object
+      // Map json['sender'] to Account object
       sender: json['sender'] != null ? Account.fromJson(json['sender']) : null,
     );
   }
@@ -77,6 +77,27 @@ class MessageReader {
       'messageId': messageId,
       'readerId': readerId,
       'readAt': readAt.toIso8601String(),
+    };
+  }
+}
+
+// Tạo class Message cho send message
+class MessageSendDto {
+  final String chatId;
+  final String? content;
+  final List<Attachment>? attachments;
+
+  MessageSendDto({
+    this.content,
+    required this.chatId,
+    this.attachments,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'chatId': chatId,
+      'content': content,
+      'attachments': attachments?.map((i) => i.toJson()).toList(),
     };
   }
 }

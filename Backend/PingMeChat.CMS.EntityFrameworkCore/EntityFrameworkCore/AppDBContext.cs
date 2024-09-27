@@ -28,7 +28,7 @@ namespace PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore
         #endregion
 
         // feature
-        DbSet<Attachment> Attachments { get; set; }
+        //DbSet<Attachment> Attachments { get; set; }
         DbSet<Call> Calls { get; set; }
         DbSet<CallParticipant> CallParticipants { get; set; }
         DbSet<Chat> Chats { get; set; }

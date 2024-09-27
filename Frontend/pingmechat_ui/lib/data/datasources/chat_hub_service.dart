@@ -1,15 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/data/models/chat_model.dart';
 import 'package:pingmechat_ui/domain/models/message.dart';
-import 'package:provider/provider.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../providers/auth_provider.dart';
-import '../models/message_model.dart';
 
 class ChatHubService {
   late HubConnection _hubConnection;
@@ -95,7 +93,7 @@ class ChatHubService {
         return;
       } catch (e) {
         print('Reconnection attempt $attempt failed: $e');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
       }
     }
     print('Failed to reconnect after $maxAttempts attempts');
@@ -110,7 +108,7 @@ class ChatHubService {
   }
 
   Future<void> _disconnectHub() async {
-    await _hubConnection?.stop();
+    await _hubConnection.stop();
     _isConnected = false;
     print('Disconnected from SignalR hub');
   }
@@ -122,9 +120,9 @@ class ChatHubService {
     print('ChatHubService closed and resources cleaned up');
   }
 
-  Future<void> sendMessage(String chatId, String message) async {
+  Future<void> sendMessage(MessageSendDto message) async {
     await _connectionCompleter.future;
-    await _hubConnection.invoke('SendMessage', args: [chatId, message]);
+    await _hubConnection.invoke('SendMessage', args: [message]);
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
@@ -137,7 +135,7 @@ class ChatHubService {
     _hubConnection.on('ReceiveMessage', (arguments) {
       print('Received data: $arguments');
       if (arguments == null || arguments.isEmpty) return;
-      final messageData = arguments![0] as Map<String, dynamic>;
+      final messageData = arguments[0] as Map<String, dynamic>;
       final messsage = Message.fromJson(messageData);
       handler(messsage);
     });
@@ -195,51 +193,87 @@ class ChatHubService {
     });
   }
 
-  Future<void> initiateCall(String targetUserId, bool isVideo) async {
-    await _connectionCompleter.future;
-    await _hubConnection.invoke('InitiateCall', args: [targetUserId, isVideo]);
+  Future<void> sendIceCandidate(
+      String chatId, Map<String, dynamic> candidate) async {
+    try {
+      // Kiểm tra cấu trúc của candidate
+      if (candidate.containsKey('candidate') &&
+          candidate.containsKey('sdpMid') &&
+          candidate.containsKey('sdpMLineIndex')) {
+        // Chuyển đổi candidate từ Map thành String
+        String candidateString = jsonEncode(candidate);
+        // Ghi lại giá trị của candidate
+        print('Sending IceCandidate: $candidateString');
+        await _hubConnection
+            .invoke('IceCandidate', args: [chatId, candidateString]);
+      } else {
+        throw Exception('Invalid candidate structure');
+      }
+    } catch (e) {
+      // Ghi lại chi tiết lỗi
+      print('Failed to invoke IceCandidate: $e');
+      // Bạn có thể thêm xử lý lỗi khác tại đây nếu cần
+    }
   }
 
-  void onCallInitiated(void Function(String callerId, bool isVideo) handler) {
-    _hubConnection.on('CallInitiated', (arguments) {
-      if (arguments != null && arguments.isNotEmpty) {
-        handler(arguments[0] as String, arguments[1] as bool);
+  Future<void> sendOffer(String chatId, String sdp) async {
+    await _hubConnection.invoke('Offer', args: [chatId, sdp]);
+  }
+
+  Future<void> sendAnswer(String sdp) async {
+    await _hubConnection.invoke('Answer', args: [sdp]);
+  }
+
+  Future<void> endCall(String chatId) async {
+    await _hubConnection.invoke('EndCall', args: [chatId]);
+  }
+
+  void onIncomingCall(
+      void Function(String callerId, String chatId, bool isVideo) handler) {
+    _hubConnection.on('IncomingCall', (arguments) {
+      if (arguments != null && arguments.length >= 3) {
+        handler(arguments[0] as String, arguments[1] as String,
+            arguments[2] as bool);
       }
     });
   }
 
-  Future<void> acceptCall(String callerId) async {
-    await _connectionCompleter.future;
-    await _hubConnection.invoke('AcceptCall', args: [callerId]);
+  // Thêm các phương thức tương tự cho CallAnswered, IceCandidate, Offer, Answer, CallEnded
+  void onCallAnswered(
+      void Function(String callerId, String chatId, bool isVideo) handler) {
+    _hubConnection.on('CallAnswered', (arguments) {
+      if (arguments != null && arguments.length >= 3) {
+        handler(arguments[0] as String, arguments[1] as String,
+            arguments[2] as bool);
+      }
+    });
   }
 
-  void onCallAccepted(void Function(String calleeId) handler) {
-    _hubConnection.on('CallAccepted', (arguments) {
+  void onIceCandidate(void Function(Map<String, dynamic> candidate) handler) {
+    _hubConnection.on('IceCandidate', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        handler(arguments[0] as Map<String, dynamic>);
+      }
+    });
+  }
+
+  void onOffer(void Function(String sdp) handler) {
+    _hubConnection.on('Offer', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);
       }
     });
   }
 
-  Future<void> rejectCall(String callerId) async {
-    await _connectionCompleter.future;
-    await _hubConnection.invoke('RejectCall', args: [callerId]);
-  }
-
-  void onCallRejected(void Function(String calleeId) handler) {
-    _hubConnection.on('CallRejected', (arguments) {
+  void onAnswer(void Function(String sdp) handler) {
+    _hubConnection.on('Answer', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);
       }
     });
   }
 
-  Future<void> endCall(String callId) async {
-    await _connectionCompleter.future;
-    await _hubConnection.invoke('EndCall', args: [callId]);
-  }
-
-  void onCallEnded(void Function(String callId) handler) {
+  void onCallEnded(void Function(String callerId) handler) {
     _hubConnection.on('CallEnded', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);

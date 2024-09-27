@@ -1,15 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/domain/models/attachment.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
 
 import '../data/datasources/chat_service.dart';
+import '../data/datasources/file_upload_service.dart';
 import '../data/models/chat_model.dart';
 import '../domain/models/chat.dart';
 import '../domain/models/message.dart';
 
 class ChatProvider extends ChangeNotifier {
   final ChatService _chatService;
-  List<Chat> _chats = [];
+  final List<Chat> _chats = [];
 
   final int _itemsPerPage = 20;
   //Các biến dùng cho phân trang
@@ -18,10 +22,10 @@ class ChatProvider extends ChangeNotifier {
   bool _hasMoreChats = true; // Có còn chats để load hay không
 
   // Các biến dùng cho phân trang tin nhắn
-  Map<String, List<Message>> _messagesByChatId = {};
-  Map<String, int> _currentPageByChatId = {};
-  Map<String, bool> _hasMoreMessagesByChatId = {};
-  Map<String, bool> _isLoadingMessagesByChatId = {};
+  final Map<String, List<Message>> _messagesByChatId = {};
+  final Map<String, int> _currentPageByChatId = {};
+  final Map<String, bool> _hasMoreMessagesByChatId = {};
+  final Map<String, bool> _isLoadingMessagesByChatId = {};
 
 // Callback để mở ChatPage
   void Function(Chat)? onOpenChatPage;
@@ -54,13 +58,18 @@ class ChatProvider extends ChangeNotifier {
 
   void _setupSignalRListeners() {
     _chatService.onNewGroupChat((chat) {
-      _chats.add(chat);
+      _chats.insert(0, chat);
       notifyListeners();
+
+      // Chỉ mở trang chat nếu người dùng hiện tại là người tạo nhóm
+      if (chat.createdBy == _chatService.getCurrentUserId()) {
+        onOpenChatPage?.call(chat);
+      }
     });
 
     _chatService.onNewPrivateChat((chat) {
       // Thêm cuộc trò chuyện mới vào danh sách chats
-      _chats.add(chat);
+      _chats.insert(0, chat);
       notifyListeners();
       // Mở ChatPage với cuộc trò chuyện mới
       onOpenChatPage?.call(chat);
@@ -74,11 +83,10 @@ class ChatProvider extends ChangeNotifier {
         // Chat not found, fetch it from the database
         try {
           final newChat = await _chatService.getChatById(message.chatId);
-          if (newChat != null) {
-            // Thêm đoạn chat vào đầu danh sách chats
-            _chats.insert(0, newChat);
-            _messagesByChatId[message.chatId] = [message];
-          }
+          _chats.clear();
+          // Thêm đoạn chat vào đầu danh sách chats
+          _chats.insert(0, newChat);
+          _messagesByChatId[message.chatId]?.add(message);
         } catch (error) {
           print('Error fetching chat: $error');
         }
@@ -145,7 +153,10 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage(String chatId, String message) async {
+  Future<void> sendMessage(
+      {required String chatId,
+      required String message,
+      List<File> files = const []}) async {
     // Thêm tin nhắn vào danh sách local
     // _messages.add(Message(
     //   chatId: chatId,
@@ -168,7 +179,25 @@ class ChatProvider extends ChangeNotifier {
     // notifyListeners(); // Thông báo cho UI để cập nhật giao diện
 
     try {
-      await _chatService.sendMessage(chatId, message);
+      List<UploadResult> uploadedAttachments = [];
+      List<Attachment> attachments = [];
+      if (files.isNotEmpty) {
+        uploadedAttachments = await _chatService.uploadFiles(files);
+      }
+      print("uploadedAttachments: $uploadedAttachments");
+      attachments = uploadedAttachments
+          .map((e) => Attachment(
+              fileName: e.publicId,
+              fileUrl: e.url,
+              fileType: e.fileType,
+              fileSize: e.fileSize))
+          .toList();
+      MessageSendDto messageDto = MessageSendDto(
+        chatId: chatId,
+        content: message,
+        attachments: attachments,
+      );
+      await _chatService.sendMessage(messageDto);
 
       // Cập nhật lại danh sách tin nhắn nếu cần
       notifyListeners();
@@ -225,8 +254,36 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Thêm các phương thức khác tương ứng với các chức năng của ChatHub
-  bool _shouldOpenChatPage(Chat chat) {
-    return chat.isGroup == false && chat.messages!.isEmpty;
+  // Hàm upload file đính kèm theo tin nhắn
+  // Future<List<Attachment>> uploadFile(List<File> attachments) async {
+  //   List<Attachment> uploadedAttachments = [];
+  //   try {
+  //     // Upload attachments
+  //     final uploadResult = await _chatService.uploadFiles(attachments);
+  //     uploadedAttachments = uploadResult.map((url) {
+  //       final file = attachments.firstWhere((file) => file.path == url);
+  //       return Attachment(
+  //         url: url,
+  //         type: _getFileType(file),
+  //       );
+  //     }).toList();
+  //   } catch (error) {
+  //     print('Error uploading file: $error');
+  //   }
+  //   return uploadedAttachments;
+  // }
+
+// Hàm xác định loại file
+  String _getFileType(File file) {
+    final extension = file.path.split('.').last.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif'].contains(extension)) {
+      return 'image';
+    } else if (['mp4', 'mov', 'avi'].contains(extension)) {
+      return 'video';
+    } else if (['mp3', 'wav', 'ogg'].contains(extension)) {
+      return 'audio';
+    } else {
+      return 'file';
+    }
   }
 }

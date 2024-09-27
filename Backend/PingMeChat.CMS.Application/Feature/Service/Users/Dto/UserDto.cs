@@ -17,6 +17,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users.Dto
         public bool IsLocked { get; set; }
         public string? FullName { get; set; } // tên chủ sở hữu
         public List<string>? GroupIds { get; set; }
+        public string? AvatarUrl { get; set; } // đường dẫn ảnh đại diện
 
     }
 }

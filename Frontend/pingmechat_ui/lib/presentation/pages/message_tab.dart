@@ -3,7 +3,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
-import 'package:pingmechat_ui/domain/models/contact.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +10,8 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../data/models/chat_model.dart';
 import '../../domain/models/account.dart';
+import '../../domain/models/attachment.dart';
+import '../../domain/models/message.dart';
 import '../../providers/contact_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
@@ -18,6 +19,8 @@ import 'chat_page.dart';
 import 'create_group_page.dart';
 
 class MessageTab extends StatefulWidget {
+  const MessageTab({super.key});
+
   @override
   State<MessageTab> createState() => _MessageTabState();
 }
@@ -46,7 +49,7 @@ class _MessageTabState extends State<MessageTab> {
       );
     };
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _chatProvider.loadChats(); // Load danh sách chat
 
       Provider.of<ContactProvider>(context, listen: false)
@@ -87,8 +90,8 @@ class _MessageTabState extends State<MessageTab> {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         return chatProvider.isLoading
-            ? Center(child: CircularProgressIndicator())
-            : SizedBox.shrink();
+            ? const Center(child: CircularProgressIndicator())
+            : const SizedBox.shrink();
       },
     );
   }
@@ -186,12 +189,13 @@ class _MessageTabState extends State<MessageTab> {
             ],
           ),
           const SizedBox(height: 4),
-            Text(
+          Text(
             contactUser.fullName,
-            style: AppTypography.caption, // Tránh tràn dòng và hiển thị dấu ba chấm
+            style: AppTypography
+                .caption, // Tránh tràn dòng và hiển thị dấu ba chấm
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            ),
+          ),
         ],
       ),
     );
@@ -204,7 +208,8 @@ class _MessageTabState extends State<MessageTab> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildCircularButton(Icons.search, () {
-            // Handle search button press
+            // Chuyển hướng tới trang tìm kiếm
+            Navigator.pushNamed(context, '/search');
           }),
           Text(
             AppLocalizations.of(context)!.home,
@@ -310,13 +315,14 @@ class _MessageTabState extends State<MessageTab> {
       },
       child: ListTile(
         leading: Stack(children: [
-          CircleAvatar(
+          CustomCircleAvatar(
             radius: 24,
             backgroundImage:
-                item.avatarUrl != null ? AssetImage(item.avatarUrl!) : null,
+               item.avatarUrl!.isNotEmpty ? NetworkImage(item.avatarUrl!) : null,
+            isGroupChat: item.isGroup,
           ),
           // if (item.isActive) // Người dùng hoạt động
-          if (item
+          if (!item
               .isGroup) // Tạm thời sử dụng trường isGroup để hiển thị người dùng hoạt động
             Positioned(
               bottom: 0,
@@ -341,40 +347,135 @@ class _MessageTabState extends State<MessageTab> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          item.messages!.length >= 1 ? item.messages!.last.content! : '',
-          style: AppTypography.chatMessage,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        subtitle: Row(
           children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        final currentUserId = authProvider.currentUser?.id;
+                        final lastMessage = item.messages!.isNotEmpty
+                            ? item.messages!.last
+                            : null;
+                        if (lastMessage == null) {
+                          return const Text('');
+                        }
+                        final isCurrentUser =
+                            lastMessage.senderId == currentUserId;
+                        final senderName = isCurrentUser
+                            ? 'You'
+                            : (lastMessage.sender?.fullName ?? 'Unknown');
+                        return Text(
+                          '$senderName: ${_createMessageContent(lastMessage)}',
+                          style: AppTypography.chatMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    '•',
+                    style: TextStyle(
+                      fontSize: 6,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                ],
+              ),
+            ),
             Text(
-              item.messages!.length >= 1
-                  ? DateFormat('hh:mm a')
-                      .format(item.messages!.last.createdDate)
+              item.messages!.isNotEmpty
+                  ? _showTimeOfChat(item.messages!.last.createdDate)
                   : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
-
               style: AppTypography.caption,
             ),
+          ],
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+              ),
+            ), // Hiển thị chấm tròn màu xanh nước biển nếu có tin nhắn chưa đọc
+            // Text(
+            //   item.messages!.length >= 1
+            //       ? _showTimeOfChat(item.messages!.last.createdDate)
+            //       : '', // Chỉ hiển thị giờ và ngày gửi tin nhắn cuối cùng
+
+            //   style: AppTypography.caption,
+            // ),
             // if (item.unreadCount != null && item.unreadCount! > 0)
-            //   Container(
-            //     padding: EdgeInsets.all(6),
-            //     decoration: const BoxDecoration(
-            //       color: AppColors.red,
-            //       shape: BoxShape.circle,
-            //     ),
-            //     child: Text(
-            //       item.unreadCount.toString(),
-            //       style: AppTypography.badge,
-            //     ),
-            //   ), // Hiển thị số lượng tin nhắn chưa đọc tạm thời chưa có dữ liệu
           ],
         ),
       ),
     );
+  }
+
+  String _createMessageContent(Message message) {
+    if (message.content != null && message.content!.isNotEmpty) {
+      return message.content!;
+    }
+    final attachmentCounts = _countAttachments(message.attachments!);
+    final attachmentDescriptions = attachmentCounts.entries.map((entry) {
+      final type = entry.key;
+      final count = entry.value;
+      return '$count ${_getAttachmentTypeDescription(type)}';
+    }).join(' and ');
+
+    return 'Sent $attachmentDescriptions';
+  }
+
+  Map<String, int> _countAttachments(List<Attachment> attachments) {
+    final counts = <String, int>{};
+
+    for (var attachment in attachments) {
+      counts[attachment.fileType] = (counts[attachment.fileType] ?? 0) + 1;
+    }
+
+    return counts;
+  }
+
+  String _getAttachmentTypeDescription(String type) {
+    switch (type) {
+      case 'Image':
+        return 'image${type == 'Image' && 1 > 1 ? 's' : ''}';
+      case 'Video':
+        return 'video${type == 'Video' && 1 > 1 ? 's' : ''}';
+      case 'Audio':
+        return 'audio${type == 'Audio' && 1 > 1 ? 's' : ''}';
+      case 'File':
+        return 'file${type == 'File' && 1 > 1 ? 's' : ''}';
+      default:
+        return 'attachment${type == 'Attachment' && 1 > 1 ? 's' : ''}';
+    }
+  }
+
+  String _showTimeOfChat(DateTime lastMessageTime) {
+    String formattedTime = '';
+    final now = DateTime.now();
+    final difference = now.difference(lastMessageTime);
+
+    if (difference.inHours < 24) {
+      formattedTime = DateFormat('HH:mm').format(lastMessageTime);
+    } else if (difference.inDays < 7) {
+      formattedTime = DateFormat('EEEE', 'vi')
+          .format(lastMessageTime); // Hiển thị thứ bằng tiếng Việt
+    } else {
+      formattedTime = DateFormat('dd MMMM', 'vi')
+          .format(lastMessageTime); // Hiển thị ngày tháng bằng tiếng Việt
+    }
+    return formattedTime;
   }
 
   Widget _buildCircularButton(IconData icon, VoidCallback onPressed) {
@@ -398,7 +499,7 @@ class _MessageTabState extends State<MessageTab> {
     if (_isAddOptionsVisible) {
       showMenu(
         context: context,
-        position: RelativeRect.fromLTRB(100, 100, 0, 0),
+        position: const RelativeRect.fromLTRB(100, 100, 0, 0),
         items: const [
           PopupMenuItem(
             value: 'new_chat',
@@ -406,7 +507,7 @@ class _MessageTabState extends State<MessageTab> {
             child: Row(
               children: [
                 Icon(Icons.account_circle),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text('Add New Chat'),
               ],
             ),
@@ -416,7 +517,7 @@ class _MessageTabState extends State<MessageTab> {
             child: Row(
               children: [
                 Icon(Icons.supervised_user_circle_outlined),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text('Create Group'),
               ],
             ),
@@ -430,9 +531,9 @@ class _MessageTabState extends State<MessageTab> {
           // Handle add new chat
           //Show snack bar
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Add New Chat'),
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         } else if (value == 'new_group') {
@@ -440,7 +541,7 @@ class _MessageTabState extends State<MessageTab> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateGroupPage(),
+              builder: (context) => const CreateGroupPage(),
             ),
           );
         }
