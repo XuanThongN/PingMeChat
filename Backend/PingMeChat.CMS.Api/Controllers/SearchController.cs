@@ -10,6 +10,7 @@ using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Contacts;
 using PingMeChat.CMS.Application.Feature.Service.Users;
 using PingMeChat.CMS.Application.Feature.Service.Users.Dto;
+using PingMeChat.Shared.Enum;
 using PingMeChat.Shared.Utils;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,21 +51,34 @@ public class SearchController : BaseController
                 pageNumber,
                 pageSize,
                 predicate: x =>
+                        x.Id != userId &&
                        x.UserName.ToLower().Contains(keyword.ToLower()) ||
-            x.FullName!.ToLower().Contains(keyword.ToLower()) ||
-            x.Email!.ToLower().Contains(keyword.ToLower()) ||
-            x.PhoneNumber!.ToLower().Contains(keyword.ToLower()),
+                        x.FullName!.ToLower().Contains(keyword.ToLower()) ||
+                        x.Email!.ToLower().Contains(keyword.ToLower()) ||
+                        x.PhoneNumber!.ToLower().Contains(keyword.ToLower()),
                 orderBy: ord => ord.OrderBy(x => x.FullName));
-        var userSearchDtos = users.Data.Select(x => new UserSearchDto
+        
+        var userSearchDtos = new List<UserSearchDto>();
+        foreach (var user in users.Data)
         {
-            Id = x.Id,
-            UserName = x.UserName,
-            FullName = x.FullName,
-            Email = x.Email,
-            PhoneNumber = x.PhoneNumber,
-            AvatarUrl = x.AvatarUrl,
-            IsFriend = contactIds.Contains(x.Id)
-        }).ToList();
+            // Check if there is a private chat between the current user and the searched user
+            var privateChat = await _chatService.Find(x =>
+                    (x.UserChats.Any(u => u.UserId == userId) &&
+                    x.UserChats.Any(u => u.UserId == user.Id)) &&
+                    !x.IsGroup);
+            var userSearchDto = new UserSearchDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                AvatarUrl = user.AvatarUrl,
+                Status = contactIds.ContainsKey(user.Id) ? contactIds[user.Id] : ContactStatus.Stranger,
+                ChatPrivateId = privateChat?.Id
+            };
+            userSearchDtos.Add(userSearchDto);
+        }
 
         var groupChats = await _chatService.Pagination(
             pageNumber,
@@ -75,7 +89,7 @@ public class SearchController : BaseController
            x.Name!.ToLower().Contains(keyword.ToLower()),
            include: includes => includes.Include(x => x.UserChats).ThenInclude(x => x.User)
            );
-        
+
         var groupChatDtos = groupChats.Data.Select(x => new GroupChatDto
         {
             Id = x.Id,
@@ -89,7 +103,7 @@ public class SearchController : BaseController
                 AvatarUrl = u.UserDto!.AvatarUrl,
             })
         }).ToList();
-        
+
         var result = new SearchResult
         {
             Users = userSearchDtos,
@@ -119,7 +133,7 @@ public class UserSearchDto
     public string? PhoneNumber { get; set; }
     public string? AvatarUrl { get; set; }
     public string? ChatPrivateId { get; set; }
-    public bool IsFriend { get; set; }
+    public ContactStatus Status { get; set; }
 }
 
 

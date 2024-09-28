@@ -16,6 +16,7 @@ using PingMeChat.CMS.Application.Feature.Service.Contacts.Dto;
 using PingMeChat.CMS.Entities.Feature;
 using Octokit;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
+using PingMeChat.Shared.Enum;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Contacts
 {
@@ -23,7 +24,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
     {
         Task<IEnumerable<ContactDto>> GetUserContacts(string userId);
         // Get tất cả id liên hệ của user
-        Task<IEnumerable<string>> GetAllContactIds(string userId);
+        Task<Dictionary<String, ContactStatus>> GetAllContactIds(string userId);
     }
     public class ContactService : ServiceBase<Contact, ContactCreateDto, ContactUpdateDto, ContactDto, IContactRepository>, IContactService
     {
@@ -54,10 +55,12 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             }).ToList();
         }
 
-        public async Task<IEnumerable<string>> GetAllContactIds(string userId)
+        public async Task<Dictionary<String, ContactStatus>> GetAllContactIds(string userId)
         {
             var contacts = await _contactRepository.FindAll(c => c.UserId == userId || c.ContactUserId == userId);
-            return contacts.Select(c => c.UserId == userId ? c.ContactUserId : c.UserId);
+            // Biến hàm contacts thành dạng dictionary key là contactUserId, value là status
+            var contactDictionary = contacts.ToDictionary(c => c.UserId == userId ? c.ContactUserId : c.UserId, c => c.Status);
+            return contactDictionary;
         }
 
     }
