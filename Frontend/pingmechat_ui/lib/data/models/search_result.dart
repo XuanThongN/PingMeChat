@@ -68,28 +68,28 @@ class GroupChat {
   final bool isGroup;
   final String? avatarUrl;
   final List<UserChat> userChats;
-  final List<dynamic> messages;
+  final List<dynamic>? messages;
   final String id;
-  final String createdDate;
+  final String? createdDate;
   final String? createdDateString;
-  final String createdBy;
-  final String updatedDate;
+  final String? createdBy;
+  final String? updatedDate;
   final String? updatedDateString;
-  final String updatedBy;
+  final String? updatedBy;
 
   GroupChat({
     required this.name,
     required this.isGroup,
     this.avatarUrl,
     required this.userChats,
-    required this.messages,
+     this.messages,
     required this.id,
-    required this.createdDate,
+     this.createdDate,
     this.createdDateString,
-    required this.createdBy,
-    required this.updatedDate,
+     this.createdBy,
+     this.updatedDate,
     this.updatedDateString,
-    required this.updatedBy,
+     this.updatedBy,
   });
 
   factory GroupChat.fromJson(Map<String, dynamic> json) {
@@ -98,14 +98,8 @@ class GroupChat {
       isGroup: json['isGroup'],
       avatarUrl: json['avatarUrl'],
       userChats: (json['userChats'] as List).map((userChat) => UserChat.fromJson(userChat)).toList(),
-      messages: json['messages'] ?? [],
+      messages: [],
       id: json['id'],
-      createdDate: json['createdDate'],
-      createdDateString: json['createdDateString'],
-      createdBy: json['createdBy'],
-      updatedDate: json['updatedDate'],
-      updatedDateString: json['updatedDateString'],
-      updatedBy: json['updatedBy'],
     );
   }
 
