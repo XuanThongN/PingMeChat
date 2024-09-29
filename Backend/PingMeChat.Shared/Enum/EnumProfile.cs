@@ -61,7 +61,9 @@ namespace PingMeChat.Shared.Enum
         [Display(Name = "Đã bị chặn")]
         Blocked = 2,
         [Display(Name = "Người lạ")]
-        Stranger = 3
+        Stranger = 3,
+        [Display(Name = "Đã gửi yêu cầu")]
+        Requested = 4
     }
 }
 

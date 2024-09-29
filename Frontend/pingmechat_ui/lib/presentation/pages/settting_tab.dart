@@ -3,6 +3,7 @@ import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
+import 'home.dart';
 import 'login_page.dart';
 
 class SetttingTab extends StatefulWidget {
@@ -19,7 +20,12 @@ class _SetttingTabState extends State<SetttingTab> {
     final currentUser = authProvider.currentUser;
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: CustomAppBar(
+        onBackButtonPressed: () {
+         // Trở về trang home theo routeName
+         Navigator.of(context).pushNamed(HomePage.routeName);
+        },
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -107,7 +113,7 @@ class _SetttingTabState extends State<SetttingTab> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: Text('Logout'),
+                  child: const Text('Logout'),
                 ),
               ),
             ],

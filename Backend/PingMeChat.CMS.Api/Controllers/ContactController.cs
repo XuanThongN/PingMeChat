@@ -18,9 +18,9 @@ namespace PingMeChat.CMS.Api.Controllers
     public class ContactController : BaseController
     {
         private readonly IContactService _contactService;
-        public ContactController(IContactService ContactService)
+        public ContactController(IContactService contactService)
         {
-            _contactService = ContactService;
+            _contactService = contactService;
         }
 
         [HttpGet]
@@ -36,6 +36,7 @@ namespace PingMeChat.CMS.Api.Controllers
 
         // Thêm liên hệ mới cho người dùng
         [HttpPost]
+        [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.Contact.AddRoute)]
         [ProducesResponseType(typeof(ContactDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Add([FromBody] ContactCreateDto dto)
@@ -59,6 +60,57 @@ namespace PingMeChat.CMS.Api.Controllers
             }
             var data = await _contactService.Add(dto);
             return Ok(new ApiResponse(Message.Success.CreateCompleted, data, StatusCodes.Status200OK));
+        }
+
+
+        // Chấp nhận lời mời kết bạn
+        [HttpPut]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Feature.Contact.AcceptFriendRequestRoute)]
+        [ProducesResponseType(typeof(ContactDto), StatusCodes.Status200OK)]
+        public async Task<IActionResult> AcceptFriendRequest(string contactId)
+        {
+            var userId = GetUserId();
+            var updatedContact = await _contactService.AcceptFriendRequest(userId, contactId);
+            if (updatedContact == null)
+            {
+                throw new AppException("Không tìm thấy yêu cầu kết bạn hoặc không có quyền chấp nhận.", StatusCodes.Status404NotFound);
+            }
+            return Ok(new ApiResponse("Đã chấp nhận lời mời kết bạn.", updatedContact, StatusCodes.Status200OK));
+        }
+
+        // Hủy lời mời kết bạn
+        [HttpDelete]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Feature.Contact.CancelFriendRequestRoute)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CancelFriendRequest(string contactId)
+        {
+            var userId = GetUserId();
+            var result = await _contactService.CancelFriendRequest(userId, contactId);
+            if (!result)
+            {
+                throw new AppException("Không tìm thấy yêu cầu kết bạn hoặc không có quyền hủy.", StatusCodes.Status404NotFound);
+            }
+            return Ok(new ApiResponse("Đã hủy lời mời kết bạn.", null, StatusCodes.Status200OK));
+        }
+
+        // Gửi lời mời kết bạn
+        [HttpPost]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Feature.Contact.SendFriendRequestRoute)]
+        [ProducesResponseType(typeof(ContactDto), StatusCodes.Status201Created)]
+        public async Task<IActionResult> SendFriendRequest([FromBody] ContactCreateDto contact)
+        {
+            var currentUserId = GetUserId();
+
+            if (currentUserId == contact.ContactUserId)
+            {
+                throw new AppException("Không thể gửi lời mời kết bạn cho chính mình.", StatusCodes.Status400BadRequest);
+            }
+
+            var newContact = await _contactService.SendFriendRequest(currentUserId, contact.ContactUserId);
+            return Created(string.Empty, new ApiResponse("Đã gửi lời mời kết bạn.", newContact, StatusCodes.Status201Created));
         }
     }
 }

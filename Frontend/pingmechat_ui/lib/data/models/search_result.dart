@@ -1,3 +1,5 @@
+import '../../core/constants/constant.dart';
+
 class SearchResult {
   final List<User> users;
   final List<GroupChat> groupChats;
@@ -24,41 +26,45 @@ class SearchResult {
 
 
 class User {
+  final String id;
   final String userName;
   final String fullName;
   final String email;
   final String phoneNumber;
   final String? avatarUrl;
-  final bool isFriend;
+  final String? contactStatus;
 
   User({
+    required this.id,
     required this.userName,
     required this.fullName,
     required this.email,
     required this.phoneNumber,
     this.avatarUrl,
-    required this.isFriend,
+    this.contactStatus,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      id: json['id'],
       userName: json['userName'],
       fullName: json['fullName'],
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       avatarUrl: json['avatarUrl'] ?? '',
-      isFriend: json['isFriend'],
+      contactStatus: json['status'] ?? ContactStatus.STRANGER,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'userName': userName,
       'fullName': fullName,
       'email': email,
       'phoneNumber': phoneNumber,
       'avatarUrl': avatarUrl,
-      'isFriend': isFriend,
+      'status': contactStatus,
     };
   }
 }
@@ -140,7 +146,6 @@ class UserChat {
     );
   }
 }
-
 
 
 

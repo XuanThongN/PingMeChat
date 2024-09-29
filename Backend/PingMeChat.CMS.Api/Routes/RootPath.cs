@@ -90,6 +90,10 @@ namespace PingMeChat.CMS.API.Routes
                 public const string UpdateRoute = "api/contacts/update";
                 public const string DeleteRoute = "api/contacts/delete/{id}";
                 public const string PaginationRoute = "api/contacts/pagination";
+
+                public const string AcceptFriendRequestRoute = "api/contacts/accept-friend-request/{contactId}";
+                public const string CancelFriendRequestRoute = "api/contacts/cancel-friend-request/{contactId}";
+                public const string SendFriendRequestRoute = "api/contacts/send-friend-request";
             }
 
             // Attachment api routes
