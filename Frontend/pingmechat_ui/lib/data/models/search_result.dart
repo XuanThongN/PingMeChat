@@ -1,3 +1,5 @@
+import '../../core/constants/constant.dart';
+
 class SearchResult {
   final List<User> users;
   final List<GroupChat> groupChats;
@@ -24,41 +26,45 @@ class SearchResult {
 
 
 class User {
+  final String id;
   final String userName;
   final String fullName;
   final String email;
   final String phoneNumber;
   final String? avatarUrl;
-  final bool isFriend;
+  final String? contactStatus;
 
   User({
+    required this.id,
     required this.userName,
     required this.fullName,
     required this.email,
     required this.phoneNumber,
     this.avatarUrl,
-    required this.isFriend,
+    this.contactStatus,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      id: json['id'],
       userName: json['userName'],
       fullName: json['fullName'],
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       avatarUrl: json['avatarUrl'] ?? '',
-      isFriend: json['isFriend'],
+      contactStatus: json['status'] ?? ContactStatus.STRANGER,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'userName': userName,
       'fullName': fullName,
       'email': email,
       'phoneNumber': phoneNumber,
       'avatarUrl': avatarUrl,
-      'isFriend': isFriend,
+      'status': contactStatus,
     };
   }
 }
@@ -68,28 +74,28 @@ class GroupChat {
   final bool isGroup;
   final String? avatarUrl;
   final List<UserChat> userChats;
-  final List<dynamic> messages;
+  final List<dynamic>? messages;
   final String id;
-  final String createdDate;
+  final String? createdDate;
   final String? createdDateString;
-  final String createdBy;
-  final String updatedDate;
+  final String? createdBy;
+  final String? updatedDate;
   final String? updatedDateString;
-  final String updatedBy;
+  final String? updatedBy;
 
   GroupChat({
     required this.name,
     required this.isGroup,
     this.avatarUrl,
     required this.userChats,
-    required this.messages,
+     this.messages,
     required this.id,
-    required this.createdDate,
+     this.createdDate,
     this.createdDateString,
-    required this.createdBy,
-    required this.updatedDate,
+     this.createdBy,
+     this.updatedDate,
     this.updatedDateString,
-    required this.updatedBy,
+     this.updatedBy,
   });
 
   factory GroupChat.fromJson(Map<String, dynamic> json) {
@@ -98,14 +104,8 @@ class GroupChat {
       isGroup: json['isGroup'],
       avatarUrl: json['avatarUrl'],
       userChats: (json['userChats'] as List).map((userChat) => UserChat.fromJson(userChat)).toList(),
-      messages: json['messages'] ?? [],
+      messages: [],
       id: json['id'],
-      createdDate: json['createdDate'],
-      createdDateString: json['createdDateString'],
-      createdBy: json['createdBy'],
-      updatedDate: json['updatedDate'],
-      updatedDateString: json['updatedDateString'],
-      updatedBy: json['updatedBy'],
     );
   }
 
@@ -146,7 +146,6 @@ class UserChat {
     );
   }
 }
-
 
 
 

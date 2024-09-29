@@ -38,6 +38,7 @@ namespace PingMeChat.CMS.Application.Common.Config
             services.AddAutoMapper(typeof(TokenMapper));
             services.AddAutoMapper(typeof(MenuMapper));
             services.AddAutoMapper(typeof(GroupMapper));
+            services.AddAutoMapper(typeof(ContactMapper));
         }
         public static void RegisterServiceLifetimer(IServiceCollection services)
         {

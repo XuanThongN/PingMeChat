@@ -16,6 +16,8 @@ using PingMeChat.CMS.Application.Feature.Service.Contacts.Dto;
 using PingMeChat.CMS.Entities.Feature;
 using Octokit;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
+using PingMeChat.Shared.Enum;
+using Microsoft.AspNetCore.Http;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Contacts
 {
@@ -23,7 +25,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
     {
         Task<IEnumerable<ContactDto>> GetUserContacts(string userId);
         // Get tất cả id liên hệ của user
-        Task<IEnumerable<string>> GetAllContactIds(string userId);
+        Task<Dictionary<String, ContactStatus>> GetAllContactIds(string userId);
+        Task<ContactDto> SendFriendRequest(string userId, string contactId);
+        Task<ContactDto> AcceptFriendRequest(string userId, string contactId);
+        Task<bool> CancelFriendRequest(string userId, string contactId);
     }
     public class ContactService : ServiceBase<Contact, ContactCreateDto, ContactUpdateDto, ContactDto, IContactRepository>, IContactService
     {
@@ -54,10 +59,83 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             }).ToList();
         }
 
-        public async Task<IEnumerable<string>> GetAllContactIds(string userId)
+        public async Task<Dictionary<String, ContactStatus>> GetAllContactIds(string userId)
         {
             var contacts = await _contactRepository.FindAll(c => c.UserId == userId || c.ContactUserId == userId);
-            return contacts.Select(c => c.UserId == userId ? c.ContactUserId : c.UserId);
+            // Kiểm tra xem userId hiện tại là người gửi hay người nhận liên hệ và trả về status
+            // Và nếu userId hiện tại là người gửi thì trả về contactUserId, ngược lại trả về userId 
+            // Còn status trường hợp Pending mà userId hiện tại == userId thì là người gửi và status sẽ là Requested còn ngược lại là Pending
+            return contacts.Select(c =>
+            {
+                var contactUserId = c.UserId == userId ? c.ContactUserId : c.UserId;
+                var status = c.Status == ContactStatus.Pending && c.UserId == userId ? ContactStatus.Requested : c.Status;
+                return new { contactUserId, status };
+            }).ToDictionary(c => c.contactUserId, c => c.status);
+        }
+
+        // Hàm Gửi yêu cầu kết bạn
+        public async Task<ContactDto> SendFriendRequest(string userId, string contactId)
+        {
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
+                                                                || c.ContactUserId == userId && c.UserId == contactId
+                                                                && c.Status == ContactStatus.Pending);
+            if (contact != null)
+            {
+                throw new AppException("Yêu cầu kết bạn đã tồn tại.", StatusCodes.Status400BadRequest);
+            }
+            contact = new Contact
+            {
+                UserId = userId,
+                ContactUserId = contactId,
+                Status = ContactStatus.Pending
+            };
+            contact = await _contactRepository.Add(contact);
+            await _unitOfWork.SaveChangeAsync();
+            return _mapper.Map<ContactDto>(contact);
+        }
+
+        public async Task<ContactDto> AcceptFriendRequest(string userId, string contactId)
+        {
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
+                                                                || c.ContactUserId == userId && c.UserId == contactId 
+                                                                && c.Status == ContactStatus.Pending);
+
+            if (contact == null)
+            {
+                throw new AppException("Không tìm thấy yêu cầu kết bạn.", StatusCodes.Status404NotFound);
+            }
+
+            if (contact.Status != ContactStatus.Pending)
+            {
+                throw new AppException("Yêu cầu kết bạn không hợp lệ.", StatusCodes.Status400BadRequest);
+            }
+
+            contact.Status = ContactStatus.Accepted;
+            await _unitOfWork.SaveChangeAsync();
+
+            return _mapper.Map<ContactDto>(contact);
+        }
+
+        public async Task<bool> CancelFriendRequest(string userId, string contactId)
+        {
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
+                                                                || c.ContactUserId == userId && c.UserId == contactId 
+                                                                && c.Status == ContactStatus.Pending);
+
+            if (contact == null)
+            {
+                throw new AppException("Không tìm thấy yêu cầu kết bạn.", StatusCodes.Status404NotFound);
+            }
+
+            if (contact.Status == ContactStatus.Accepted)
+            {
+                throw new AppException("Không thể hủy kết bạn đã được chấp nhận.", StatusCodes.Status400BadRequest);
+            }
+
+            await _contactRepository.SoftDelete(contact);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
         }
 
     }

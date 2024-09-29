@@ -6,10 +6,14 @@ import 'package:pingmechat_ui/providers/search_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
+import '../../core/constants/constant.dart';
 import '../../data/models/search_result.dart';
+import '../../providers/contact_provider.dart';
 
 class SearchResultsScreen extends StatefulWidget {
   static const routeName = '/search';
+
+  const SearchResultsScreen({super.key});
   @override
   _SearchResultsScreenState createState() => _SearchResultsScreenState();
 }
@@ -50,10 +54,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               child: Consumer<SearchProvider>(
                 builder: (context, searchProvider, child) {
                   if (searchProvider.isLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (searchProvider.searchResult == null) {
-                    return Center(child: Text('No results found'));
+                    return const Center(child: Text('No results found'));
                   }
                   return ListView(
                     children: [
@@ -93,7 +97,8 @@ class SearchBar extends StatelessWidget {
   final VoidCallback onBackPressed;
   final ValueChanged<String> onChanged;
 
-  SearchBar({
+  const SearchBar({
+    super.key,
     required this.controller,
     required this.onBackPressed,
     required this.onChanged,
@@ -102,7 +107,7 @@ class SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -110,33 +115,33 @@ class SearchBar extends StatelessWidget {
           BoxShadow(
             color: AppColors.primary.withOpacity(0.1),
             blurRadius: 10,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
             onPressed: onBackPressed,
           ),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              decoration: InputDecoration(
-                hintText: 'Search people...',
+              decoration: const InputDecoration(
+                hintText: 'Search people or groups...',
                 border: InputBorder.none,
                 hintStyle: TextStyle(color: AppColors.tertiary, fontSize: 16),
               ),
-              style: TextStyle(color: AppColors.primary, fontSize: 16),
+              style: const TextStyle(color: AppColors.primary, fontSize: 16),
             ),
           ),
           AnimatedOpacity(
             opacity: controller.text.isNotEmpty ? 1.0 : 0.0,
-            duration: Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 200),
             child: IconButton(
-              icon: Icon(Icons.close, color: AppColors.primary),
+              icon: const Icon(Icons.close, color: AppColors.primary),
               onPressed: () {
                 controller.clear();
                 onChanged('');
@@ -152,67 +157,139 @@ class SearchBar extends StatelessWidget {
 class SectionTitle extends StatelessWidget {
   final String title;
 
-  SectionTitle({required this.title});
+  const SectionTitle({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         title,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       ),
     );
   }
 }
 
-class UserTile extends StatelessWidget {
+class UserTile extends StatefulWidget {
   final User user;
 
-  UserTile({required this.user});
+  const UserTile({Key? key, required this.user}) : super(key: key);
+
+  @override
+  _UserTileState createState() => _UserTileState();
+}
+
+class _UserTileState extends State<UserTile> {
+  late String contactStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    contactStatus = widget.user.contactStatus!;
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CustomCircleAvatar(
         radius: 28,
-        backgroundImage: user.avatarUrl!.isNotEmpty
-            ? NetworkImage(user.avatarUrl!)
-            : null,
+        backgroundImage:
+            widget.user.avatarUrl!.isNotEmpty ? NetworkImage(widget.user.avatarUrl!) : null,
       ),
-      title: Text(user.fullName,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      subtitle: Text(user.userName, style: TextStyle(fontSize: 14)),
-      trailing: !user.isFriend
-          ? IconButton(
-              icon: Icon(Icons.person_add),
-              onPressed: () {
-                // TODO: Implement add friend functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Add friend request sent to ${user.fullName}')),
-                );
-              },
-            )
-          : null,
+      title: Text(widget.user.fullName,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+      subtitle: Text(widget.user.userName, style: const TextStyle(fontSize: 14)),
+      trailing: _buildActionButton(context, contactStatus, widget.user),
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected ${user.fullName}')),
+          SnackBar(content: Text('Selected ${widget.user.fullName}')),
         );
       },
     );
   }
-}
 
+  Widget? _buildActionButton(BuildContext context, String status, User user) {
+    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    switch (status) {
+      case ContactStatus.ACCEPTED:
+        return null; // Không hiển thị nút nào nếu đã là bạn bè
+      case ContactStatus.PENDING:
+        return IconButton(
+          icon: const Icon(Icons.check_circle_outline),
+          onPressed: () => _acceptFriendRequest(context, contactProvider, user),
+        );
+      case ContactStatus.REQUESTED:
+        return IconButton(
+          icon: const Icon(Icons.remove_circle_outline_outlined),
+          onPressed: () => _cancelFriendRequest(context, contactProvider, user),
+        );
+      default:
+        return IconButton(
+          icon: const Icon(Icons.person_add_alt_1),
+          onPressed: () => _sendFriendRequest(context, contactProvider, user),
+        );
+    }
+  }
+
+  Future<void> _acceptFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+    try {
+      final newStatus = await contactProvider.acceptFriendRequest(user.id);
+      setState(() {
+        contactStatus = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Accepted friend request from ${user.fullName}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to accept friend request from ${user.fullName}')),
+      );
+    }
+  }
+
+  Future<void> _cancelFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+    try {
+      final newStatus = await contactProvider.cancelFriendRequest(user.id);
+      setState(() {
+        contactStatus = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Canceled friend request to ${user.fullName}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to cancel friend request to ${user.fullName}')),
+      );
+    }
+  }
+
+  Future<void> _sendFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+    try {
+      final newStatus = await contactProvider.sendFriendRequest(user.id);
+      setState(() {
+        contactStatus = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sent friend request to ${user.fullName}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send friend request to ${user.fullName}')),
+      );
+    }
+  }
+}
 class GroupTile extends StatelessWidget {
   final GroupChat groupChat;
 
-  GroupTile({required this.groupChat});
+  const GroupTile({super.key, required this.groupChat});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: SizedBox(
         width: 56,
         height: 56,
@@ -277,7 +354,7 @@ class GroupTile extends StatelessWidget {
             : groupChat.userChats
                 .map((user) => user.fullName.split(' ').first)
                 .join(', '),
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text('${groupChat.userChats.length} participants',
@@ -285,7 +362,7 @@ class GroupTile extends StatelessWidget {
       trailing: Container(
         width: 10,
         height: 10,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.green,
           shape: BoxShape.circle,
         ),

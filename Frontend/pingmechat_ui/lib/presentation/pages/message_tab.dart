@@ -366,7 +366,7 @@ class _MessageTabState extends State<MessageTab> {
                             lastMessage.senderId == currentUserId;
                         final senderName = isCurrentUser
                             ? 'You'
-                            : (lastMessage.sender?.fullName ?? 'Unknown');
+                            : (lastMessage.sender?.fullName.split(' ').first ?? 'Unknown');
                         return Text(
                           '$senderName: ${_createMessageContent(lastMessage)}',
                           style: AppTypography.chatMessage,

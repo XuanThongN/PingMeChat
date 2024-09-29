@@ -21,7 +21,7 @@ namespace PingMeChat.CMS.Application.App.Repositories
             _context = context;
             _dbSet = _context.Set<T>();
         }
-        public async Task<T> Add(T entity)
+        public virtual async Task<T> Add(T entity)
         {
             var result = await _dbSet.AddAsync(entity);
 

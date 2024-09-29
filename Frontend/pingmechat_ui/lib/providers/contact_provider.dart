@@ -37,8 +37,8 @@ class ContactProvider extends ChangeNotifier {
         final List<dynamic> data = jsonResponse['result'];
         if (data.isNotEmpty) {
           _contacts = data.map((data) => Contact.fromJson(data)).toList();
-          _updateContactUsers();  
-        }else {
+          _updateContactUsers();
+        } else {
           _contacts = [];
         }
       } else {
@@ -52,10 +52,12 @@ class ContactProvider extends ChangeNotifier {
     }
   }
 
- // Hàm mới để cập nhật danh sách contactUsers
+  // Hàm mới để cập nhật danh sách contactUsers
   void _updateContactUsers() {
     _contactUsers = _contacts.map((contact) {
-      return contact.user?.id != currentUser.id ? contact.user! : contact.contactUser!;
+      return contact.user?.id != currentUser.id
+          ? contact.user!
+          : contact.contactUser!;
     }).toList();
   }
 
@@ -104,8 +106,89 @@ class ContactProvider extends ChangeNotifier {
     }
   }
 
-   // Hàm tiện ích để lấy contactUser dựa trên id
+  // Hàm tiện ích để lấy contactUser dựa trên id
   Account? getContactUserById(String id) {
-    return _contactUsers.firstWhere((user) => user.id == id, orElse: () => Account(id: '', fullName: '', email: ''));
+    return _contactUsers.firstWhere((user) => user.id == id,
+        orElse: () => Account(id: '', fullName: '', email: ''));
+  }
+
+  // Xử lý kết bạn
+  Future<String> acceptFriendRequest(String contactId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.acceptFriendRequestEndpoint}/$contactId'),
+        headers: await _authProvider.getCustomHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final result = responseData['result'];
+        final updatedContact = Contact.fromJson(result);
+        final index =
+            _contacts.indexWhere((contact) => contact.id == contactId);
+        if (index != -1) {
+          _contacts[index] = updatedContact;
+          _updateContactUsers();
+          notifyListeners();
+        }
+        return ContactStatus.ACCEPTED;
+      } else {
+        throw Exception('Failed to accept friend request');
+      }
+    } catch (error) {
+      print('Error accepting friend request: $error');
+    }
+    return ContactStatus.STRANGER;
+  }
+
+  // Hủy yêu cầu kết bạn
+  Future<String> cancelFriendRequest(String contactId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.cancelFriendRequestEndpoint}/$contactId'),
+        headers: await _authProvider.getCustomHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        _contacts.removeWhere((contact) => contact.id == contactId);
+        _updateContactUsers();
+        notifyListeners();
+        return ContactStatus.CANCELLED;
+      } else {
+        throw Exception('Failed to cancel friend request');
+      }
+    } catch (error) {
+      print('Error cancelling friend request: $error');
+    }
+    return ContactStatus.ACCEPTED;
+  }
+
+  // Gửi yêu cầu kết bạn  
+  Future<String> sendFriendRequest(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.sendFriendRequestEndpoint),
+        headers: {
+          'Content-Type': 'application/json ; charset=UTF-8',
+          ...await _authProvider.getCustomHeaders(),
+        },
+        body: json.encode({'contactUserId': userId}),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final result = responseData['result'];
+        final newContact = Contact.fromJson(result);
+        _contacts.add(newContact);
+        _updateContactUsers();
+        notifyListeners();
+        return ContactStatus.REQUESTED;
+      } else {
+        throw Exception('Failed to send friend request');
+      }
+    } catch (error) {
+      print('Error sending friend request: $error');
+    }
+    return ContactStatus.STRANGER;
   }
 }

@@ -1,5 +1,6 @@
 using PingMeChat.CMS.Entities.Interfaces;
 using PingMeChat.CMS.Entities.Users;
+using PingMeChat.Shared.Enum;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,9 +18,9 @@ namespace PingMeChat.CMS.Entities.Feature
         public string? Nickname { get; set; }
         public DateTime AddedAt { get; set; } 
         public string? Settings { get; set; }
+        public ContactStatus Status { get; set; } = ContactStatus.Pending;
         public virtual Account User { get; set; }
         public virtual Account ContactUser { get; set; }
     }
-
-
+    
 }
