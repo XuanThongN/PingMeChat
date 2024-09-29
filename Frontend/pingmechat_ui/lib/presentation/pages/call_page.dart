@@ -24,47 +24,63 @@ class CallPage extends StatelessWidget {
     final callProvider = Provider.of<CallProvider>(context);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          if (isVideo) ...[
-            RTCVideoView(remoteRenderer, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            if (isVideo) ...[
+              RTCVideoView(
+                remoteRenderer,
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              ),
+              Positioned(
+                right: 20,
+                top: 20,
+                child: Container(
+                  width: 100,
+                  height: 150,
+                  child: RTCVideoView(localRenderer),
+                ),
+              ),
+            ] else ...[
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.phone_in_talk, size: 100),
+                    SizedBox(height: 20),
+                    Text('Audio Call', style: TextStyle(fontSize: 24)),
+                  ],
+                ),
+              ),
+            ],
             Positioned(
-              right: 20,
               bottom: 20,
-              child: Container(
-                width: 100,
-                height: 150,
-                child: RTCVideoView(localRenderer),
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: Icon(callProvider.isMuted ? Icons.mic_off : Icons.mic),
+                    onPressed: callProvider.toggleMute,
+                    color: Colors.white,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.call_end),
+                    onPressed: onEndCall,
+                    color: Colors.red,
+                  ),
+                  if (isVideo)
+                    IconButton(
+                      icon: Icon(Icons.switch_camera),
+                      onPressed: callProvider.switchCamera,
+                      color: Colors.white,
+                    ),
+                ],
               ),
             ),
-          ] else ...[
-            Center(child: Text('Audio Call')),
           ],
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.mic_off),
-                  onPressed: callProvider.toggleMute,
-                ),
-                IconButton(
-                  icon: Icon(Icons.call_end),
-                  onPressed: onEndCall,
-                  color: Colors.red,
-                ),
-                if (isVideo)
-                  IconButton(
-                    icon: Icon(Icons.switch_camera),
-                    onPressed: callProvider.switchCamera,
-                  ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

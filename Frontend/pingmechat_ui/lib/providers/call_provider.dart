@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../data/datasources/chat_hub_service.dart';
+import '../presentation/pages/call_page.dart';
 import '../presentation/pages/incoming_call_overlay.dart';
 import '../main.dart' show navigatorKey;
 
@@ -65,12 +66,13 @@ class CallProvider extends ChangeNotifier {
     _peerConnection!.onTrack = (event) {
       if (event.track.kind == 'video') {
         remoteRenderer.srcObject = event.streams[0];
+      } else if (event.track.kind == 'audio') {
+        remoteRenderer.srcObject?.addTrack(event.track);
       }
       notifyListeners();
     };
 
-    _localStream = await navigator.mediaDevices
-        .getUserMedia({'audio': true, 'video': isVideo});
+    _localStream = await _getUserMedia();
 
     _localStream!.getTracks().forEach((track) {
       _peerConnection!.addTrack(track, _localStream!);
@@ -80,8 +82,31 @@ class CallProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<MediaStream> _getUserMedia() async {
+    final Map<String, dynamic> constraints = {
+      'audio': true,
+      'video': isVideo
+          ? {
+              'mandatory': {
+                'minWidth': '640',
+                'minHeight': '480',
+                'minFrameRate': '30',
+              },
+              'facingMode': 'user',
+              'optional': [],
+            }
+          : false,
+    };
+
+    MediaStream stream = await navigator.mediaDevices.getUserMedia(constraints);
+    return stream;
+  }
+
   Future<void> _createOffer() async {
-    RTCSessionDescription offer = await _peerConnection!.createOffer();
+    RTCSessionDescription offer = await _peerConnection!.createOffer({
+      'offerToReceiveAudio': 1,
+      'offerToReceiveVideo': isVideo ? 1 : 0,
+    });
     await _peerConnection!.setLocalDescription(offer);
     await _chatHubService.sendOffer(currentChatId!, offer.sdp!);
   }
@@ -117,24 +142,57 @@ class CallProvider extends ChangeNotifier {
     );
   }
 
-  void _handleCallAnswered(
-      String answeringUserId, String chatId, bool accept) async {
+  // void _handleCallAnswered(
+  //     String answeringUserId, String chatId, bool accept) async {
+  //   if (accept) {
+  //     final offer = await _peerConnection!.createOffer();
+  //     await _peerConnection!.setLocalDescription(offer);
+  //     await _chatHubService.sendOffer(chatId, offer.sdp!);
+  //   } else {
+  //     endCall();
+  //   }
+  // }
+
+  void _handleCallAnswered(String answeringUserId, String chatId, bool accept) {
     if (accept) {
-      final offer = await _peerConnection!.createOffer();
-      await _peerConnection!.setLocalDescription(offer);
-      await _chatHubService.sendOffer(chatId, offer.sdp!);
+      // Người nhận đã chấp nhận cuộc gọi, không cần làm gì thêm vì đã tạo PeerConnection
     } else {
+      // Người nhận từ chối cuộc gọi
       endCall();
     }
   }
 
+  // Future<void> acceptIncomingCall(String chatId, bool isVideoCall) async {
+  //   currentChatId = chatId;
+  //   isInCall = true;
+  //   isVideo = isVideoCall;
+  //   _isOffer = false;
+  //   await _createPeerConnection();
+  //   notifyListeners();
+  // }
   Future<void> acceptIncomingCall(String chatId, bool isVideoCall) async {
     currentChatId = chatId;
     isInCall = true;
     isVideo = isVideoCall;
     _isOffer = false;
     await _createPeerConnection();
+    await _chatHubService.answerCall(chatId, true);
+    _navigateToCallPage();
     notifyListeners();
+  }
+
+  void _navigateToCallPage() {
+    Navigator.of(navigatorKey.currentContext!).push(
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          chatId: currentChatId!,
+          isVideo: isVideo,
+          localRenderer: localRenderer,
+          remoteRenderer: remoteRenderer,
+          onEndCall: endCall,
+        ),
+      ),
+    );
   }
 
   Future<void> _handleOffer(String userId, String sdp) async {
@@ -147,7 +205,10 @@ class CallProvider extends ChangeNotifier {
         RTCSessionDescription(sdp, 'offer'),
       );
 
-      RTCSessionDescription answer = await _peerConnection!.createAnswer();
+      RTCSessionDescription answer = await _peerConnection!.createAnswer({
+        'offerToReceiveAudio': 1,
+        'offerToReceiveVideo': isVideo ? 1 : 0,
+      });
       await _peerConnection!.setLocalDescription(answer);
       await _chatHubService.sendAnswer(currentChatId!, answer.sdp!);
 
