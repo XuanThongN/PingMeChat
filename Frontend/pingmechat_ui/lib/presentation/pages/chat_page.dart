@@ -498,7 +498,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: AppColors.tertiary,
                       size: 24,
                     ),
-                    onPressed: () => callProvider.startCall(chat.id),
+                    onPressed: () => _initiateCall(chat, false),
                   ),
                   IconButton(
                     icon: CustomSvgIcon(
@@ -506,7 +506,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: AppColors.tertiary,
                       size: 24,
                     ),
-                    onPressed: () => callProvider.startCall(chat.id),
+                    onPressed: () => _initiateCall(chat, true),
                   ),
                 ],
               );
@@ -617,6 +617,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // Hàm thực hiện chức năng gửi tin nhắn
   Future<void> _handleSubmitted() async {
     final text = _textController.text;
     if (text.isNotEmpty || _selectedAttachments!.isNotEmpty) {
@@ -639,6 +640,29 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+// Hàm thực hiện chức năng gọi
+  void _initiateCall(Chat? chat, bool isVideo) async {
+    if (chat == null) return;
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    await callProvider.startCall(chat.id, isVideo);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          chatId: chat.id,
+          isVideo: isVideo,
+          localRenderer: callProvider.localRenderer,
+          remoteRenderer: callProvider.remoteRenderer,
+          onEndCall: () {
+            callProvider.endCall();
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  // Hàm chọn ảnh từ thư viện
   Future<void> _pickImage() async {
     // Xin quyền truy cập vào bộ nhớ
     var status = await Permission.storage.request();

@@ -180,56 +180,36 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         public async Task InitiateCall(string chatId, bool isVideo)
         {
             var callerUserId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "IncomingCall" đến tất cả người dùng trong nhóm chat
             await Clients.Group(chatId).SendAsync("IncomingCall", callerUserId, chatId, isVideo);
         }
 
-        // Hàm này được gọi khi người nhận cuộc gọi trả lời
-        // chatId: ID của cuộc trò chuyện
-        // accept: true nếu người nhận chấp nhận cuộc gọi, false nếu từ chối
         public async Task AnswerCall(string chatId, bool accept)
         {
             var answeringUserId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "CallAnswered" đến tất cả người dùng trong nhóm chat
             await Clients.Group(chatId).SendAsync("CallAnswered", answeringUserId, chatId, accept);
         }
 
-        // Hàm này được gọi khi có một ICE candidate mới được tạo ra trong quá trình thiết lập kết nối
-        // chatId: ID của cuộc trò chuyện
-        // candidate: Thông tin về ICE candidate
         public async Task IceCandidate(string chatId, string candidate)
         {
             var userId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "IceCandidate" đến tất cả người dùng khác trong nhóm chat
             await Clients.OthersInGroup(chatId).SendAsync("IceCandidate", userId, candidate);
         }
 
-        // Hàm này được gọi khi người gọi tạo ra một offer SDP
-        // chatId: ID của cuộc trò chuyện
-        // sdp: Session Description Protocol, chứa thông tin về cấu hình media
         public async Task Offer(string chatId, string sdp)
         {
             var userId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "Offer" đến tất cả người dùng khác trong nhóm chat
             await Clients.OthersInGroup(chatId).SendAsync("Offer", userId, sdp);
         }
 
-        // Hàm này được gọi khi người nhận tạo ra một answer SDP
-        // chatId: ID của cuộc trò chuyện
-        // sdp: Session Description Protocol, chứa thông tin về cấu hình media
         public async Task Answer(string chatId, string sdp)
         {
             var userId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "Answer" đến tất cả người dùng khác trong nhóm chat
             await Clients.OthersInGroup(chatId).SendAsync("Answer", userId, sdp);
         }
 
-        // Hàm này được gọi khi một người dùng kết thúc cuộc gọi
-        // chatId: ID của cuộc trò chuyện
         public async Task EndCall(string chatId)
         {
             var userId = Context.User.FindFirstValue("UserId");
-            // Gửi thông báo "CallEnded" đến tất cả người dùng trong nhóm chat
             await Clients.Group(chatId).SendAsync("CallEnded", userId);
         }
     }

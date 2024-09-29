@@ -57,7 +57,7 @@ class ChatHubService {
             accessTokenFactory: () async => authProvider.accessToken!,
             transport: HttpTransportType.webSockets,
             customHeaders: await authProvider.getCustomHeaders(),
-            logging: (level, message) => print('SignalR: $level - $message'),
+            // logging: (level, message) => print('SignalR: $level - $message'),
           ),
         )
         .build();
@@ -193,40 +193,46 @@ class ChatHubService {
     });
   }
 
-  Future<void> sendIceCandidate(
-      String chatId, Map<String, dynamic> candidate) async {
-    try {
-      // Kiểm tra cấu trúc của candidate
-      if (candidate.containsKey('candidate') &&
-          candidate.containsKey('sdpMid') &&
-          candidate.containsKey('sdpMLineIndex')) {
-        // Chuyển đổi candidate từ Map thành String
-        String candidateString = jsonEncode(candidate);
-        // Ghi lại giá trị của candidate
-        print('Sending IceCandidate: $candidateString');
-        await _hubConnection
-            .invoke('IceCandidate', args: [chatId, candidateString]);
-      } else {
-        throw Exception('Invalid candidate structure');
-      }
-    } catch (e) {
-      // Ghi lại chi tiết lỗi
-      print('Failed to invoke IceCandidate: $e');
-      // Bạn có thể thêm xử lý lỗi khác tại đây nếu cần
-    }
+  // Phương thức để khởi tạo cuộc gọi
+  Future<void> initiateCall(String chatId, bool isVideo) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('InitiateCall', args: [chatId, isVideo]);
   }
 
+  // Phương thức để trả lời cuộc gọi
+  Future<void> answerCall(String chatId, bool accept) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('AnswerCall', args: [chatId, accept]);
+  }
+
+  // Phương thức để gửi ICE candidate
+  Future<void> sendIceCandidate(
+      String chatId, Map<String, dynamic> candidate) async {
+    await _connectionCompleter.future;
+    String candidateString = jsonEncode(candidate);
+    await _hubConnection
+        .invoke('IceCandidate', args: [chatId, candidateString]);
+  }
+
+  // Phương thức để gửi offer
   Future<void> sendOffer(String chatId, String sdp) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('Offer', args: [chatId, sdp]);
   }
 
-  Future<void> sendAnswer(String sdp) async {
-    await _hubConnection.invoke('Answer', args: [sdp]);
+  // Phương thức để gửi answer
+  Future<void> sendAnswer(String chatId, String sdp) async {
+    await _connectionCompleter.future;
+    await _hubConnection.invoke('Answer', args: [chatId, sdp]);
   }
 
+  // Phương thức để kết thúc cuộc gọi
   Future<void> endCall(String chatId) async {
+    await _connectionCompleter.future;
     await _hubConnection.invoke('EndCall', args: [chatId]);
   }
+
+  // Các phương thức để lắng nghe các sự kiện từ server
 
   void onIncomingCall(
       void Function(String callerId, String chatId, bool isVideo) handler) {
@@ -238,9 +244,9 @@ class ChatHubService {
     });
   }
 
-  // Thêm các phương thức tương tự cho CallAnswered, IceCandidate, Offer, Answer, CallEnded
   void onCallAnswered(
-      void Function(String callerId, String chatId, bool isVideo) handler) {
+      void Function(String answeringUserId, String chatId, bool accept)
+          handler) {
     _hubConnection.on('CallAnswered', (arguments) {
       if (arguments != null && arguments.length >= 3) {
         handler(arguments[0] as String, arguments[1] as String,
@@ -249,31 +255,31 @@ class ChatHubService {
     });
   }
 
-  void onIceCandidate(void Function(Map<String, dynamic> candidate) handler) {
+  void onIceCandidate(void Function(String userId, String candidate) handler) {
     _hubConnection.on('IceCandidate', (arguments) {
-      if (arguments != null && arguments.isNotEmpty) {
-        handler(arguments[0] as Map<String, dynamic>);
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
       }
     });
   }
 
-  void onOffer(void Function(String sdp) handler) {
+  void onOffer(void Function(String userId, String sdp) handler) {
     _hubConnection.on('Offer', (arguments) {
-      if (arguments != null && arguments.isNotEmpty) {
-        handler(arguments[0] as String);
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
       }
     });
   }
 
-  void onAnswer(void Function(String sdp) handler) {
+  void onAnswer(void Function(String userId, String sdp) handler) {
     _hubConnection.on('Answer', (arguments) {
-      if (arguments != null && arguments.isNotEmpty) {
-        handler(arguments[0] as String);
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
       }
     });
   }
 
-  void onCallEnded(void Function(String callerId) handler) {
+  void onCallEnded(void Function(String userId) handler) {
     _hubConnection.on('CallEnded', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         handler(arguments[0] as String);
