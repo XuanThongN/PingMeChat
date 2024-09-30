@@ -1,306 +1,149 @@
-import 'dart:async';
-import 'dart:convert';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_webrtc/flutter_webrtc.dart';
+// import '../data/datasources/chat_hub_service.dart';
+// import 'webrtc_service.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import '../data/datasources/chat_hub_service.dart';
-import '../presentation/pages/call_page.dart';
-import '../presentation/pages/incoming_call_overlay.dart';
-import '../main.dart' show navigatorKey;
+// enum CallState { idle, outgoing, incoming, connected }
 
-class CallProvider extends ChangeNotifier {
-  final ChatHubService _chatHubService;
-  RTCPeerConnection? _peerConnection;
-  RTCVideoRenderer localRenderer = RTCVideoRenderer();
-  RTCVideoRenderer remoteRenderer = RTCVideoRenderer();
-  MediaStream? _localStream;
-  bool isInCall = false;
-  bool isMuted = false;
-  bool isVideo = false;
-  String? currentChatId;
-  String? currentCallerId;
-  List<RTCIceCandidate> _pendingCandidates = [];
-  bool _isOffer = false;
+// class CallProvider with ChangeNotifier {
+//   final ChatHubService _chatHubService;
+//   final WebRTCService _webRTCService;
 
-  CallProvider(this._chatHubService) {
-    _initRenderers();
-    _setupSignalRHandlers();
-  }
+//   CallState _callState = CallState.idle;
+//   String? _currentChatId;
+//   String? _remoteUserId;
+//   bool _isVideo = false;
+//   bool _isMuted = false;
 
-  Future<void> _initRenderers() async {
-    await localRenderer.initialize();
-    await remoteRenderer.initialize();
-  }
+//   CallProvider(this._chatHubService, this._webRTCService) {
+//     _setupSignalRListeners();
+//     _initializeWebRTC();
+//   }
 
-  void _setupSignalRHandlers() {
-    _chatHubService.onIncomingCall(_handleIncomingCall);
-    _chatHubService.onCallAnswered(_handleCallAnswered);
-    _chatHubService.onOffer(_handleOffer);
-    _chatHubService.onAnswer(_handleAnswer);
-    _chatHubService.onIceCandidate(_handleIceCandidate);
-    _chatHubService.onCallEnded(_handleCallEnded);
-  }
+//   Future<void> _initializeWebRTC() async {
+//     await _webRTCService.initializePeerConnection();
+//   }
 
-  Future<void> startCall(String chatId, bool isVideoCall) async {
-    currentChatId = chatId;
-    isInCall = true;
-    isVideo = isVideoCall;
-    _isOffer = true;
-    await _createPeerConnection();
-    await _createOffer();
-    await _chatHubService.initiateCall(chatId, isVideoCall);
-    notifyListeners();
-  }
+//   CallState get callState => _callState;
+//   String? get currentChatId => _currentChatId;
+//   String? get remoteUserId => _remoteUserId;
+//   bool get isVideo => _isVideo;
+//   bool get isMuted => _isMuted;
+//   WebRTCService get webRTCService => _webRTCService;
+//   MediaStream? get localStream => _webRTCService.localStream;
+//   MediaStream? get remoteStream => _webRTCService.remoteStream;
 
-  Future<void> _createPeerConnection() async {
-    _peerConnection = await createPeerConnection({
-      'iceServers': [
-        {'urls': 'stun:stun.l.google.com:19302'},
-      ]
-    });
+//   void _setupSignalRListeners() {
+//     _chatHubService.onIncomingCall(handleIncomingCall);
+//     _chatHubService.onCallAnswered(_handleCallAnswered);
+//     _chatHubService.onIceCandidate(_handleIceCandidate);
+//     _chatHubService.onOffer(_handleOffer);
+//     _chatHubService.onAnswer(_handleAnswer);
+//     _chatHubService.onCallEnded(_handleCallEnded);
+//   }
 
-    _peerConnection!.onIceCandidate = (candidate) {
-      _chatHubService.sendIceCandidate(currentChatId!, candidate.toMap());
-    };
+//   Future<void> initiateCall(String chatId, bool isVideo) async {
+//     _currentChatId = chatId;
+//     _isVideo = isVideo;
+//     _callState = CallState.outgoing;
+//     notifyListeners();
 
-    _peerConnection!.onTrack = (event) {
-      if (event.track.kind == 'video') {
-        remoteRenderer.srcObject = event.streams[0];
-      } else if (event.track.kind == 'audio') {
-        remoteRenderer.srcObject?.addTrack(event.track);
-      }
-      notifyListeners();
-    };
+//     await _webRTCService.initializePeerConnection();
+//     await _webRTCService.getUserMedia(isVideo);
 
-    _localStream = await _getUserMedia();
+//     final offer = await _webRTCService.createOffer();
+//     await _chatHubService.initiateCall(chatId, isVideo);
+//     await _chatHubService.sendOffer(chatId, offer!);
+//   }
 
-    _localStream!.getTracks().forEach((track) {
-      _peerConnection!.addTrack(track, _localStream!);
-    });
+//   Future<void> acceptCall() async {
+//     _callState = CallState.connected;
+//     notifyListeners();
 
-    localRenderer.srcObject = _localStream;
-    notifyListeners();
-  }
+//     await _webRTCService.initializePeerConnection();
+//     await _webRTCService.getUserMedia(_isVideo);
 
-  Future<MediaStream> _getUserMedia() async {
-    final Map<String, dynamic> constraints = {
-      'audio': true,
-      'video': isVideo
-          ? {
-              'mandatory': {
-                'minWidth': '640',
-                'minHeight': '480',
-                'minFrameRate': '30',
-              },
-              'facingMode': 'user',
-              'optional': [],
-            }
-          : false,
-    };
+//     // Wait for the offer before creating an answer
+//   }
 
-    MediaStream stream = await navigator.mediaDevices.getUserMedia(constraints);
-    return stream;
-  }
+//   // Hàm để reject call
+//   Future<void> rejectCall() async {
+//     // await _chatHubService.rejectCall(_currentChatId!);
+//     _endCall();
+//   }
 
-  Future<void> _createOffer() async {
-    RTCSessionDescription offer = await _peerConnection!.createOffer({
-      'offerToReceiveAudio': 1,
-      'offerToReceiveVideo': isVideo ? 1 : 0,
-    });
-    await _peerConnection!.setLocalDescription(offer);
-    await _chatHubService.sendOffer(currentChatId!, offer.sdp!);
-  }
+//   Future<void> handleIncomingCall(String callerId, String chatId, bool isVideo) async {
+//     _remoteUserId = callerId;
+//     _currentChatId = chatId;
+//     _isVideo = isVideo;
+//     _callState = CallState.incoming;
+//     notifyListeners();
 
-  void _handleIncomingCall(String callerId, String chatId, bool isVideoCall) {
-    print("Incoming call received: $callerId, $chatId, $isVideoCall");
-    currentCallerId = callerId;
-    currentChatId = chatId;
-    isVideo = isVideoCall;
-    showIncomingCallOverlay(callerId, chatId, isVideoCall);
-  }
+//     // Don't create an offer here, wait for the user to accept the call
+//   }
 
-  void showIncomingCallOverlay(
-      String callerId, String chatId, bool isVideoCall) {
-    final context = navigatorKey.currentContext;
-    if (context == null) {
-      print("Error: No valid context found");
-      return;
-    }
+//   void _handleCallAnswered(String answeringUserId, String chatId, bool accept) {
+//     if (accept) {
+//       _callState = CallState.connected;
+//     } else {
+//       _endCall();
+//     }
+//     notifyListeners();
+//   }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return IncomingCallOverlay(
-          callerId: callerId,
-          chatId: chatId,
-          isVideoCall: isVideoCall,
-          onAccept: () => acceptIncomingCall(chatId, isVideoCall),
-          onReject: () => endCall(),
-        );
-      },
-    );
-  }
+//   Future<void> _handleIceCandidate(
+//       String userId, String candidateString) async {
+//     final candidate = RTCIceCandidate(
+//       candidateString,
+//       '',
+//       0,
+//     );
+//     await _webRTCService.addIceCandidate(candidate);
+//   }
 
-  // void _handleCallAnswered(
-  //     String answeringUserId, String chatId, bool accept) async {
-  //   if (accept) {
-  //     final offer = await _peerConnection!.createOffer();
-  //     await _peerConnection!.setLocalDescription(offer);
-  //     await _chatHubService.sendOffer(chatId, offer.sdp!);
-  //   } else {
-  //     endCall();
-  //   }
-  // }
+//   Future<void> _handleOffer(String userId, String sdp) async {
+//     if (_callState != CallState.connected) {
+//       // If we're not in a connected state, we shouldn't be handling offers
+//       return;
+//     }
 
-  void _handleCallAnswered(String answeringUserId, String chatId, bool accept) {
-    if (accept) {
-      // Người nhận đã chấp nhận cuộc gọi, không cần làm gì thêm vì đã tạo PeerConnection
-    } else {
-      // Người nhận từ chối cuộc gọi
-      endCall();
-    }
-  }
+//     await _webRTCService.setRemoteDescription(sdp);
+//     final answer = await _webRTCService.createAnswer();
+//     await _webRTCService.setLocalDescription(answer!);
+//     await _chatHubService.sendAnswer(_currentChatId!, answer);
+//   }
 
-  // Future<void> acceptIncomingCall(String chatId, bool isVideoCall) async {
-  //   currentChatId = chatId;
-  //   isInCall = true;
-  //   isVideo = isVideoCall;
-  //   _isOffer = false;
-  //   await _createPeerConnection();
-  //   notifyListeners();
-  // }
-  Future<void> acceptIncomingCall(String chatId, bool isVideoCall) async {
-    currentChatId = chatId;
-    isInCall = true;
-    isVideo = isVideoCall;
-    _isOffer = false;
-    await _createPeerConnection();
-    await _chatHubService.answerCall(chatId, true);
-    _navigateToCallPage();
-    notifyListeners();
-  }
+//   Future<void> _handleAnswer(String userId, String sdp) async {
+//     await _webRTCService.setRemoteDescription(sdp);
+//   }
 
-  void _navigateToCallPage() {
-    Navigator.of(navigatorKey.currentContext!).push(
-      MaterialPageRoute(
-        builder: (context) => CallPage(
-          chatId: currentChatId!,
-          isVideo: isVideo,
-          localRenderer: localRenderer,
-          remoteRenderer: remoteRenderer,
-          onEndCall: endCall,
-        ),
-      ),
-    );
-  }
+//   void _handleCallEnded(String userId) {
+//     _endCall();
+//   }
 
-  Future<void> _handleOffer(String userId, String sdp) async {
-    if (_peerConnection == null) {
-      await _createPeerConnection();
-    }
+//   void _endCall() {
+//     _callState = CallState.idle;
+//     _currentChatId = null;
+//     _remoteUserId = null;
+//     _isVideo = false;
+//     _webRTCService.dispose();
+//     notifyListeners();
+//   }
 
-    try {
-      await _peerConnection!.setRemoteDescription(
-        RTCSessionDescription(sdp, 'offer'),
-      );
+//   Future<void> endCall() async {
+//     await _chatHubService.endCall(_currentChatId!);
+//     _endCall();
+//   }
 
-      RTCSessionDescription answer = await _peerConnection!.createAnswer({
-        'offerToReceiveAudio': 1,
-        'offerToReceiveVideo': isVideo ? 1 : 0,
-      });
-      await _peerConnection!.setLocalDescription(answer);
-      await _chatHubService.sendAnswer(currentChatId!, answer.sdp!);
+//   void toggleMute() {
+//     _isMuted = !_isMuted;
+//     _webRTCService.toggleMicrophone(_isMuted);
+//     notifyListeners();
+//   }
 
-      _addPendingCandidates();
-    } catch (e) {
-      print("Error handling offer: $e");
-      endCall();
-    }
-  }
-
-  Future<void> _handleAnswer(String userId, String sdp) async {
-    if (_peerConnection != null) {
-      try {
-        await _peerConnection!.setRemoteDescription(
-          RTCSessionDescription(sdp, 'answer'),
-        );
-        _addPendingCandidates();
-      } catch (e) {
-        print("Error handling answer: $e");
-        endCall();
-      }
-    }
-  }
-
-  void _handleIceCandidate(String userId, String candidateString) {
-    RTCIceCandidate candidate = RTCIceCandidate(
-      json.decode(candidateString)['candidate'],
-      json.decode(candidateString)['sdpMid'],
-      json.decode(candidateString)['sdpMLineIndex'],
-    );
-
-    if (_peerConnection != null) {
-      if (_peerConnection!.getRemoteDescription() != null) {
-        _peerConnection!.addCandidate(candidate);
-      } else {
-        _pendingCandidates.add(candidate);
-      }
-    }
-  }
-
-  void _addPendingCandidates() {
-    _pendingCandidates.forEach((candidate) {
-      _peerConnection!.addCandidate(candidate);
-    });
-    _pendingCandidates.clear();
-  }
-
-  void _handleCallEnded(String userId) {
-    print("Call ended by $userId");
-    endCall();
-  }
-
-  void endCall() {
-    print("Ending call");
-    _peerConnection?.close();
-    _peerConnection = null;
-    _localStream?.dispose();
-    _resetCallState();
-  }
-
-  void _resetCallState() {
-    print("Resetting call state");
-    isInCall = false;
-    isMuted = false;
-    isVideo = false;
-    currentChatId = null;
-    currentCallerId = null;
-    _isOffer = false;
-    notifyListeners();
-  }
-
-  void toggleMute() {
-    if (_localStream != null) {
-      final audioTrack = _localStream!.getAudioTracks()[0];
-      audioTrack.enabled = !audioTrack.enabled;
-      isMuted = !audioTrack.enabled;
-      notifyListeners();
-    }
-  }
-
-  void switchCamera() {
-    if (_localStream != null) {
-      Helper.switchCamera(_localStream!.getVideoTracks()[0]);
-    }
-  }
-
-  @override
-  void dispose() {
-    localRenderer.dispose();
-    remoteRenderer.dispose();
-    _peerConnection?.close();
-    _localStream?.dispose();
-    super.dispose();
-  }
-}
+//   void toggleCamera() {
+//     _isVideo = !_isVideo;
+//     _webRTCService.toggleCamera(_isVideo);
+//     notifyListeners();
+//   }
+// }

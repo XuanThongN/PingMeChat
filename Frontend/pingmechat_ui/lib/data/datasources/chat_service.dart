@@ -109,11 +109,6 @@ class ChatService {
     }
   }
 
-// Các phương thức ChatHubService sẽ được gọi từ ChatService
-  Future<void> initialize() async {
-    await chatHubService.connect();
-  }
-
   Future<void> sendMessage(MessageSendDto input) async {
     await chatHubService.sendMessage(input);
   }

@@ -8,16 +8,11 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/domain/models/account.dart';
-import 'package:pingmechat_ui/presentation/pages/call_group_page.dart';
-import 'package:pingmechat_ui/presentation/pages/call_page.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
-import 'package:pingmechat_ui/presentation/pages/video_call_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
-import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
@@ -164,92 +159,6 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     );
   }
-
-  // Widget _buildMessageInput() {
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withOpacity(0.1),
-  //           spreadRadius: 1,
-  //           blurRadius: 3,
-  //           offset: const Offset(0, -1),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         IconButton(
-  //           icon: CustomSvgIcon(
-  //             svgPath: 'assets/icons/Clip, Attachment.svg',
-  //             color: AppColors.secondary,
-  //           ),
-  //           onPressed: _pickAction,
-  //         ),
-  //         Expanded(
-  //           child: TextField(
-  //             controller: _textController,
-  //             onChanged: (text) {
-  //               setState(() {
-  //                 _isComposing = text.isNotEmpty;
-  //               });
-  //             },
-  //             decoration: InputDecoration(
-  //               hintText: 'Aa',
-  //               hintStyle: TextStyle(color: Colors.grey[400]),
-  //               border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.circular(25),
-  //                 borderSide: BorderSide.none,
-  //               ),
-  //               filled: true,
-  //               fillColor: AppColors.surface,
-  //               // Dùng để làm gì trong đây?  // Để tạo màu nền cho TextField
-  //               contentPadding:
-  //                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //               suffixIcon: IconButton(
-  //                 icon: CustomSvgIcon(
-  //                   svgPath: 'assets/icons/files_in_message.svg',
-  //                   color: AppColors.tertiary,
-  //                   size: 24,
-  //                 ),
-  //                 onPressed: _pickIcon,
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         if (!_isComposing) ...[
-  //           // Dùng để làm gì trong đây? // Hiển thị các icon khi không có nội dung trong TextField
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/camera 01_in_message.svg',
-  //               color: AppColors.secondary,
-  //               size: 24,
-  //             ),
-  //             onPressed: () {},
-  //           ),
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/microphone_in_message.svg',
-  //               color: AppColors.secondary,
-  //               size: 24,
-  //             ),
-  //             onPressed: _pickRecording,
-  //           ),
-  //         ],
-  //         if (_isComposing)
-  //           IconButton(
-  //             icon: CustomSvgIcon(
-  //               svgPath: 'assets/icons/Send_in_message.svg',
-  //               color: AppColors.primary,
-  //             ),
-  //             onPressed: () => _handleSubmitted(),
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildMessageInput() {
     return Column(
@@ -466,58 +375,26 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
       actions: [
-        Consumer<CallProvider>(
-          builder: (context, callProvider, child) {
-            if (callProvider.isInCall) {
-              return Row(
-                children: [
-                  IconButton(
-                    icon: CustomSvgIcon(
-                      svgPath: 'assets/icons/Call_in_message.svg',
-                      color: AppColors.tertiary,
-                      size: 24,
-                    ),
-                    onPressed: () => callProvider.endCall(),
-                  ),
-                  IconButton(
-                    icon: CustomSvgIcon(
-                      svgPath: 'assets/icons/Video_in_message.svg',
-                      color: AppColors.tertiary,
-                      size: 24,
-                    ),
-                    onPressed: () => callProvider.endCall(),
-                  ),
-                ],
-              );
-            } else {
-              return Row(
-                children: [
-                  IconButton(
-                    icon: CustomSvgIcon(
-                      svgPath: 'assets/icons/Call_in_message.svg',
-                      color: AppColors.tertiary,
-                      size: 24,
-                    ),
-                    onPressed: () => _initiateCall(chat, false),
-                  ),
-                  IconButton(
-                    icon: CustomSvgIcon(
-                      svgPath: 'assets/icons/Video_in_message.svg',
-                      color: AppColors.tertiary,
-                      size: 24,
-                    ),
-                    onPressed: () => _initiateCall(chat, true),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
+        // IconButton(
+        //   icon: CustomSvgIcon(
+        //     svgPath: 'assets/icons/Call_in_message.svg',
+        //     color: AppColors.tertiary,
+        //     size: 24,
+        //   ),
+        //   onPressed: () => _initiateCall(chat, false),
+        // ),
+        // IconButton(
+        //   icon: CustomSvgIcon(
+        //     svgPath: 'assets/icons/Video_in_message.svg',
+        //     color: AppColors.tertiary,
+        //     size: 24,
+        //   ),
+        //   onPressed: () => _initiateCall(chat, true),
+        // ),
       ],
     );
   }
 
-// Hàm này dùng để gọi cuộc gọi video
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
       String currentUserId, bool showDateDivider) {
@@ -641,26 +518,24 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 // Hàm thực hiện chức năng gọi
-  void _initiateCall(Chat? chat, bool isVideo) async {
-    if (chat == null) return;
-    final callProvider = Provider.of<CallProvider>(context, listen: false);
-    await callProvider.startCall(chat.id, isVideo);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CallPage(
-          chatId: chat.id,
-          isVideo: isVideo,
-          localRenderer: callProvider.localRenderer,
-          remoteRenderer: callProvider.remoteRenderer,
-          onEndCall: () {
-            callProvider.endCall();
-            Navigator.pop(context);
-          },
-        ),
-      ),
-    );
-  }
+  // void _initiateCall(Chat? chat, bool isVideo) async {
+  //   if (chat == null) return;
+  //   final callProvider = Provider.of<CallProvider>(context, listen: false);
+  //   await callProvider.initiateCall(chat.id, isVideo);
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => CallPage(
+  //         chatId: chat.id,
+  //         isVideo: isVideo,
+  //         onEndCall: () {
+  //           callProvider.endCall();
+  //           Navigator.pop(context);
+  //         },
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Hàm chọn ảnh từ thư viện
   Future<void> _pickImage() async {

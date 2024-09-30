@@ -51,32 +51,44 @@ class ChatProvider extends ChangeNotifier {
   bool get hasMoreChats => _hasMoreChats;
 
   Future<void> _initialize() async {
-    await _chatService.initialize();
     _setupSignalRListeners();
     await loadChats(); //Load tất cả đoạn chat từ server
   }
 
   void _setupSignalRListeners() {
     _chatService.onNewGroupChat((chat) {
-      _chats.insert(0, chat);
-      notifyListeners();
-
-      // Chỉ mở trang chat nếu người dùng hiện tại là người tạo nhóm
-      if (chat.createdBy == _chatService.getCurrentUserId()) {
-        onOpenChatPage?.call(chat);
-      }
+      _handleNewGroupChat(chat);
     });
 
     _chatService.onNewPrivateChat((chat) {
-      // Thêm cuộc trò chuyện mới vào danh sách chats
-      _chats.insert(0, chat);
-      notifyListeners();
-      // Mở ChatPage với cuộc trò chuyện mới
-      onOpenChatPage?.call(chat);
+      _handleNewPrivateChat(chat);
     });
 
     _chatService.chatHubService.onReceiveMessage((message) async {
-      // Check if the chat exists in the current list
+      _handleNewMessage(message);
+    });
+  }
+
+  void _handleNewGroupChat(Chat chat) {
+    _chats.insert(0, chat);
+    notifyListeners();
+
+    // Chỉ mở trang chat nếu người dùng hiện tại là người tạo nhóm
+    if (chat.createdBy == _chatService.getCurrentUserId()) {
+      onOpenChatPage?.call(chat);
+    }
+  }
+
+  void _handleNewPrivateChat(Chat chat) {
+    // Thêm cuộc trò chuyện mới vào danh sách chats
+    _chats.insert(0, chat);
+    notifyListeners();
+    // Mở ChatPage với cuộc trò chuyện mới
+    onOpenChatPage?.call(chat);
+  }
+
+  void _handleNewMessage(Message message) async {
+    // Check if the chat exists in the current list
       final chatIndex = _chats.indexWhere((c) => c.id == message.chatId);
 
       if (chatIndex == -1) {
@@ -119,7 +131,6 @@ class ChatProvider extends ChangeNotifier {
 
       print("Tin nhắn nhận đc từ server: ");
       notifyListeners();
-    });
   }
 
   Future<void> loadChats({bool refresh = false}) async {

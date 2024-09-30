@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:pingmechat_ui/data/datasources/search_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
@@ -17,50 +18,57 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 import 'config/theme.dart';
 import 'data/datasources/chat_hub_service.dart';
 
+import 'data/datasources/signalr_connection.dart';
 import 'presentation/pages/call_page.dart';
 import 'presentation/pages/login_page.dart';
 import 'providers/search_provider.dart';
+import 'providers/webrtc_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final authProvider = AuthProvider();
+  final signalRConnection = SignalRConnection(authProvider);
+
+  // Set up the callback for successful login
+  authProvider.onLoginSuccess = () {
+    signalRConnection.connect();
+  };
+
+// Try auto login
+  final isLoggedIn = await authProvider.tryAutoLogin();
+  if (isLoggedIn) {
+    await signalRConnection.connect();
+  }
+
+
+  final chatHubService = ChatHubService(signalRConnection);
+  final chatService =
+      ChatService(chatHubService: chatHubService, authProvider: authProvider);
+  final chatProvider = ChatProvider(chatService);
+
+
+  // final webRTCService = WebRTCService();
+  // await webRTCService.initializeRenderers();
+  // final callProvider = CallProvider(chatHubService, webRTCService);
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => AuthProvider()), // Initialize AuthProvider
-        ProxyProvider<AuthProvider, ChatHubService>(
-          update: (context, authProvider, previous) =>
-              ChatHubService(authProvider),
-        ),
-        ProxyProvider2<AuthProvider, ChatHubService, ChatService>(
-          update: (context, authProvider, chatHubService, previous) =>
-              ChatService(
-            chatHubService: chatHubService,
-            authProvider: authProvider,
-          ),
-        ),
-        ChangeNotifierProxyProvider<ChatService, ChatProvider>(
-          create: (context) => ChatProvider(context.read<ChatService>()),
-          update: (context, chatService, previous) =>
-              previous ?? ChatProvider(chatService),
-        ),
+        ChangeNotifierProvider.value(value: authProvider),
+        Provider.value(value: signalRConnection),
+        Provider.value(value: chatHubService),
+        Provider.value(value: chatService),
+        ChangeNotifierProvider.value(value: chatProvider),
         ChangeNotifierProxyProvider<AuthProvider, ContactProvider>(
-          create: (context) => ContactProvider(context.read<AuthProvider>()),
+          create: (context) => ContactProvider(authProvider),
           update: (context, authProvider, previous) =>
               previous ?? ContactProvider(authProvider),
         ),
-        ChangeNotifierProxyProvider<ChatHubService, CallProvider>(
-          create: (context) => CallProvider(context.read<ChatHubService>()),
-          update: (context, chatHubService, previous) {
-            final callProvider = previous ?? CallProvider(chatHubService);
-            // Không cần set onIncomingCall callback ở đây nữa
-            return callProvider;
-          },
-        ),
+        // ChangeNotifierProvider.value(value: callProvider),
         ChangeNotifierProvider(
-          create: (context) => SearchProvider(
-              SearchService(authProvider: context.read<AuthProvider>())),
-          child: SearchResultsScreen(),
+          create: (context) =>
+              SearchProvider(SearchService(authProvider: authProvider)),
         ),
       ],
       child: const MyApp(),
@@ -68,50 +76,48 @@ void main() {
   );
 }
 
-void showIncomingCallDialog(BuildContext context, String callerId, String chatId, bool isVideoCall, CallProvider callProvider) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Incoming ${isVideoCall ? 'Video' : 'Audio'} Call'),
-        content: Text('Call from $callerId'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Reject'),
-            onPressed: () {
-              callProvider.endCall();
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text('Accept'),
-            onPressed: () {
-              callProvider.acceptIncomingCall(chatId, isVideoCall);
-              Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CallPage(
-                    chatId: chatId,
-                    isVideo: isVideoCall,
-                    localRenderer: callProvider.localRenderer,
-                    remoteRenderer: callProvider.remoteRenderer,
-                    onEndCall: () {
-                      callProvider.endCall();
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+// void showIncomingCallDialog(BuildContext context, String callerId,
+//     String chatId, bool isVideoCall, CallProvider callProvider) {
+//   showDialog(
+//     context: context,
+//     barrierDismissible: false,
+//     builder: (BuildContext context) {
+//       return AlertDialog(
+//         title: Text('Incoming ${isVideoCall ? 'Video' : 'Audio'} Call'),
+//         content: Text('Call from $callerId'),
+//         actions: <Widget>[
+//           TextButton(
+//             child: Text('Reject'),
+//             onPressed: () {
+//               callProvider.endCall();
+//               Navigator.of(context).pop();
+//             },
+//           ),
+//           TextButton(
+//             child: Text('Accept'),
+//             onPressed: () {
+//               callProvider.acceptCall();
+//               Navigator.of(context).pop();
+//               Navigator.push(
+//                 context,
+//                 MaterialPageRoute(
+//                   builder: (context) => CallPage(
+//                     chatId: chatId,
+//                     isVideo: isVideoCall,
+//                     onEndCall: () {
+//                       callProvider.endCall();
+//                       Navigator.pop(context);
+//                     },
+//                   ),
+//                 ),
+//               );
+//             },
+//           ),
+//         ],
+//       );
+//     },
+//   );
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

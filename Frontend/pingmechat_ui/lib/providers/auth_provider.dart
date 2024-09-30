@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
-import '../presentation/pages/home.dart';
-import '../presentation/pages/login_page.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _accessToken;
@@ -15,6 +12,9 @@ class AuthProvider with ChangeNotifier {
   DateTime? _expiryDate;
   String? _userId;
   Account? _currentUser;
+
+  // Hàm để gọi khi đăng nhập thành công
+  Function? onLoginSuccess;
 
   bool get isAuth {
     return _accessToken != null;
@@ -101,6 +101,8 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       await _saveUserData();
 
+// Call the onLoginSuccess callback if it's set
+      onLoginSuccess?.call();
       return true; //Đăng nhập thành công
     } catch (error) {
       print('Login error: $error');
