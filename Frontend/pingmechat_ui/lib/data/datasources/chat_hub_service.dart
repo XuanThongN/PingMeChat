@@ -22,6 +22,16 @@ class ChatHubService implements ChatHubServiceInterface {
   }
 
   @override
+  Future<void> sendUserTyping(String chatId) async {
+    await _signalRConnection.invoke('UserTyping', args: [chatId]);
+  }
+
+  @override
+  Future<void> sendUserStopTyping(String chatId) async {
+    await _signalRConnection.invoke('UserStopTyping', args: [chatId]);
+  }
+
+  @override
   void onReceiveMessage(void Function(Message message) handler) {
     _signalRConnection.on('ReceiveMessage', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
@@ -141,4 +151,22 @@ class ChatHubService implements ChatHubServiceInterface {
       }
     });
   }
+
+  void onUserTyping(void Function(String chatId, String userId) handler) {
+    _signalRConnection.on('UserTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
+      }
+    });
+  }
+
+  void onUserStopTyping(void Function(String chatId, String userId) handler) {
+    _signalRConnection.on('UserStopTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
+      }
+    });
+  }
+
+  
 }

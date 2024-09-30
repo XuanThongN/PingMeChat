@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -12,12 +13,14 @@ import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
+import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/message_widget.dart';
+import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -36,50 +39,106 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
   bool _isComposing = false;
+  bool _needsScrollDown =
+      false; // Theo dõi việc có cần cuộn xuống cuối trang hay không
+
+// Biến để hiển thị button cuộn xuống cuối trang
+  bool _showScrollToBottomButton = false;
 
   // Biến để lưu ảnh/ video/ audio/ file được chọn
   List<File>? _selectedAttachments = [];
 
+  // Biến để đếm thời gian gõ tin nhắn
+ Timer? _typingTimer;
+  static const _typingDuration = Duration(milliseconds: 700);
   @override
   void initState() {
     super.initState();
 
-    // Lấy ra các provider cần thiết
     _chatProvider = Provider.of<ChatProvider>(context, listen: false);
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Load messages when the screen is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _chatProvider.loadMessages(widget.chatId, refresh: true);
-      _scrollToBottom();
+      _needsScrollDown = true; // Set this flag to scroll after initial load
     });
 
-    // Thêm listener để gọi hàm _onScroll khi người dùng cuộn lên trên đầu trang thì load tin nhắn mới
     _scrollController.addListener(_onScroll);
+
+    // Xử lý khi người dùng bắt đầu gõ tin nhắn
+    _textController.addListener(_handleTyping);
+  }
+
+  void _handleTyping() {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    if (_textController.text.isNotEmpty) {
+      chatProvider.sendTypingStatus(widget.chatId, true);
+      _resetTypingTimer();
+    } else {
+      chatProvider.sendTypingStatus(widget.chatId, false);
+    }
+  }
+
+  void _resetTypingTimer() {
+    _typingTimer?.cancel();
+    _typingTimer = Timer(_typingDuration, () {
+      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      chatProvider.sendTypingStatus(widget.chatId, false);
+    });
+  }
+
+  Future<void> _loadMessagesAndScroll() async {
+    await _chatProvider.loadMessages(widget.chatId, refresh: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+      setState(() {
+        _showScrollToBottomButton = false;
+      });
+    }
   }
 
   void _onScroll() {
     if (_scrollController.position.pixels ==
         _scrollController.position.minScrollExtent) {
       _chatProvider.loadMessages(widget.chatId);
+      setState(() {
+        _showScrollToBottomButton = true;
+      });
+    } else if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      setState(() {
+        _showScrollToBottomButton = false;
+      });
     }
   }
 
   @override
   void dispose() {
     super.dispose();
+    _scrollController.dispose();
+    _textController.dispose();
+    _typingTimer?.cancel();
+    _textController.removeListener(_handleTyping);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_needsScrollDown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+      _needsScrollDown = false;
+    }
     return Consumer2<ChatProvider, AuthProvider>(
         builder: (context, chatProvider, authProvider, child) {
       final chat =
@@ -88,14 +147,31 @@ class _ChatScreenState extends State<ChatScreen> {
       return Scaffold(
         backgroundColor: AppColors.white,
         appBar: _buildAppBar(chat, currentUser),
-        body: Column(
+        body: Stack(
           children: [
-            Expanded(
-              child: Container(
-                child: _buildMessageList(currentUser!.id, chat.isGroup),
-              ),
+            Column(
+              children: [
+                Expanded(
+                  child: _buildMessageList(
+                      authProvider.currentUser!.id, chat.isGroup),
+                ),
+                if (chatProvider.isUserTyping(widget.chatId))
+                  _buildTypingIndicator(chat),
+                _buildMessageInput(),
+              ],
             ),
-            _buildMessageInput(),
+            if (_showScrollToBottomButton)
+              Positioned(
+                right: 16,
+                bottom:
+                    80, // Adjust this value to position the button above the message composer
+                child: FloatingActionButton(
+                  mini: true,
+                  backgroundColor: AppColors.primary.withOpacity(0.8),
+                  child: const Icon(Icons.arrow_downward, color: Colors.white),
+                  onPressed: _scrollToBottom,
+                ),
+              ),
           ],
         ),
       );
@@ -106,6 +182,37 @@ class _ChatScreenState extends State<ChatScreen> {
     return date1.year == date2.year &&
         date1.month == date2.month &&
         date1.day == date2.day;
+  }
+
+  Widget _buildTypingIndicator(Chat chat) {
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, child) {
+        final typingUserId = chatProvider.getTypingUser(widget.chatId);
+        if (typingUserId == null) return const SizedBox.shrink();
+
+        final typingUser = chat.userChats.firstWhere((userChat) => userChat.user!.id == typingUserId).user;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Row(
+            children: [
+              CustomCircleAvatar(
+                radius: 10,
+                backgroundImage: typingUser?.avatarUrl != null
+                    ? NetworkImage(typingUser!.avatarUrl!)
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              const TypingIndicator(
+                bubbleColor: AppColors.primary,
+                flashingCircleDarkColor: AppColors.primary,
+                flashingCircleBrightColor: Colors.white,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   String _getFormattedDate(DateTime date) {
@@ -127,24 +234,40 @@ class _ChatScreenState extends State<ChatScreen> {
         final messages = chatProvider.getMessagesForChat(widget.chatId);
         return ListView.builder(
           controller: _scrollController,
-          itemCount: messages.length,
+          itemCount: messages.length +
+              1, // Thêm 1 vào itemCount để có chỗ cho loading indicator
           itemBuilder: (context, index) {
-            // Hiển thị một widget loading khi đang tải tin nhắn cũ hơn
+            // Hiển thị loading indicator ở đầu danh sách
             if (index == 0) {
-              chatProvider.isLoadingMessages(widget.chatId)
-                  ? const Center(child: CircularProgressIndicator())
+              return chatProvider.isLoadingMessages(widget.chatId)
+                  ? const Center(
+                      child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                          strokeWidth: 2,
+                          backgroundColor: AppColors.surface,
+                        ),
+                      ),
+                    ))
                   : const SizedBox.shrink();
             }
-            final message = messages.elementAt(index);
-            final showAvatar = _shouldShowAvatar(messages, index);
-            final showTimestamp = _shouldShowTimestamp(messages, index);
+
+            // Điều chỉnh index để lấy tin nhắn đúng
+            final messageIndex = index - 1;
+            final message = messages.elementAt(messageIndex);
+            final showAvatar = _shouldShowAvatar(messages, messageIndex);
+            final showTimestamp = _shouldShowTimestamp(messages, messageIndex);
 
             // Hiển thị thanh ngang để chia tin nhắn theo ngày
-            final previousMessage = index > 0 ? messages[index - 1] : null;
+            final previousMessage =
+                messageIndex > 0 ? messages[messageIndex - 1] : null;
             final showDateDivider = previousMessage == null ||
                 !_isSameDay(message.createdDate, previousMessage.createdDate);
-            // return _buildMessageItem(message, showAvatar, showTimestamp,
-            //     currentUserId, showDateDivider);
+
             return ChatMessageWidget(
               message: message,
               isLastMessageFromSameSender: showAvatar,
@@ -221,10 +344,11 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               IconButton(
                 icon: CustomSvgIcon(
-                  svgPath: 'assets/icons/Clip, Attachment.svg',
+                  size: 24,
+                  svgPath: 'assets/icons/media_in_message.svg',
                   color: AppColors.secondary,
                 ),
-                onPressed: _pickAction,
+                onPressed: _pickImage,
               ),
               Expanded(
                 child: TextField(
@@ -325,7 +449,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             // add status icon here
             Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.only(right: 15),
               child: Stack(
                 children: [
                   CustomCircleAvatar(
@@ -394,7 +518,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ],
     );
   }
-
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
       String currentUserId, bool showDateDivider) {
@@ -508,6 +631,7 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _isComposing = false;
           _selectedAttachments = [];
+          _needsScrollDown = true; // Đánh dấu cần scroll xuống cuối
         });
         _scrollToBottom();
       } catch (e) {
@@ -548,7 +672,9 @@ class _ChatScreenState extends State<ChatScreen> {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       setState(() {
-        _selectedAttachments!.add(File(image!.path));
+        if (image != null) {
+          _selectedAttachments!.add(File(image.path));
+        }
       });
     } else if (status.isDenied) {
       // Nếu quyền bị từ chối, hiển thị thông báo

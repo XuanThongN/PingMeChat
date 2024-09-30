@@ -5,6 +5,8 @@ import '../models/chat_model.dart';
 abstract class ChatHubServiceInterface {
   Future<void> sendMessage(MessageSendDto message);
   Future<void> startNewChat(ChatCreateDto chatCreateDto);
+  void sendUserTyping(String chatId);
+  void sendUserStopTyping(String chatId);
   void onReceiveMessage(void Function(Message message) handler);
   void onNewGroupChat(void Function(Chat chat) handler);
   void onNewPrivateChat(void Function(Chat chat) handler);

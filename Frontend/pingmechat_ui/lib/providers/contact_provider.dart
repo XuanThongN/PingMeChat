@@ -191,4 +191,8 @@ class ContactProvider extends ChangeNotifier {
     }
     return ContactStatus.STRANGER;
   }
+
+  Contact? getContact(String userId) {
+    return _contacts.firstWhere((contact) => contact.id == userId);
+  }
 }

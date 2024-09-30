@@ -139,7 +139,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         }
 
         // Hiển thị người gõ tin nhắn
-        public async Task UserIsTyping(string chatId)
+        public async Task UserTyping(string chatId)
         {
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId) || !await HasChatAccess(chatId))
@@ -147,7 +147,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 throw new HubException("Access denied");
             }
 
-            await Clients.Group(chatId).SendAsync("UserTyping", userId);
+            await Clients.OthersInGroup(chatId).SendAsync("UserTyping", chatId, userId);
         }
 
         //Tắt hiển thị người gõ tin nhắn
@@ -159,7 +159,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 throw new HubException("Access denied");
             }
 
-            await Clients.Group(chatId).SendAsync("UserStoppedTyping", userId);
+            await Clients.OthersInGroup(chatId).SendAsync("UserStopTyping", chatId, userId);
         }
 
         private async Task<bool> HasChatAccess(string chatId)

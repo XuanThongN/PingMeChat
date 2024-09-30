@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   int _contactsBadgeCount = 1;
   static final List<Widget> _tabs = <Widget>[
     MessageTab(),
-    CallTab(),
+    // CallTab(),
     ContactTab(),
     SetttingTab(),
   ];
@@ -64,11 +64,11 @@ class _HomePageState extends State<HomePage> {
           activeIcon: CustomSvgIcon(svgPath: 'assets/icons/Message.svg', color: AppColors.primary),
           label: AppLocalizations.of(context)!.message,
         ),
-        BottomNavigationBarItem(
-          icon: CustomSvgIcon(svgPath: 'assets/icons/Call.svg'),
-          activeIcon: CustomSvgIcon(svgPath: 'assets/icons/Call.svg', color: AppColors.primary),
-          label: AppLocalizations.of(context)!.calls,
-        ),
+        // BottomNavigationBarItem(
+        //   icon: CustomSvgIcon(svgPath: 'assets/icons/Call.svg'),
+        //   activeIcon: CustomSvgIcon(svgPath: 'assets/icons/Call.svg', color: AppColors.primary),
+        //   label: AppLocalizations.of(context)!.calls,
+        // ),
         BottomNavigationBarItem(
             icon: Badge(
               label: Text('$_contactsBadgeCount', style: TextStyle(color: Colors.white)),

@@ -165,4 +165,12 @@ class ChatService {
       throw Exception('Failed to upload files');
     }
   }
+
+  Future<void>  sendUserTyping(String chatId) async {
+   await chatHubService.sendUserTyping(chatId);
+  }
+
+  Future<void>  sendUserStopTyping(String chatId) async {
+    await chatHubService.sendUserStopTyping(chatId);
+  }
 }

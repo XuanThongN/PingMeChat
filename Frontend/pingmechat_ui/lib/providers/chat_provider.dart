@@ -30,6 +30,10 @@ class ChatProvider extends ChangeNotifier {
 // Callback để mở ChatPage
   void Function(Chat)? onOpenChatPage;
 
+  // Biến dùng để lưu trữ userId của người dùng đang gõ tin nhắn
+  Map<String, String> _typingUserIds = {};
+  
+
   // Constructor
   ChatProvider(this._chatService) {
     _initialize();
@@ -50,6 +54,8 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasMoreChats => _hasMoreChats;
 
+  get typingUserId => null;
+
   Future<void> _initialize() async {
     _setupSignalRListeners();
     await loadChats(); //Load tất cả đoạn chat từ server
@@ -66,6 +72,16 @@ class ChatProvider extends ChangeNotifier {
 
     _chatService.chatHubService.onReceiveMessage((message) async {
       _handleNewMessage(message);
+    });
+
+    _chatService.chatHubService.onUserTyping((chatId, userId) async {
+      _typingUserIds[chatId] = userId;
+      notifyListeners();
+    });
+
+    _chatService.chatHubService.onUserStopTyping((chatId, userId) async {
+      _typingUserIds.remove(chatId);
+      notifyListeners();
     });
   }
 
@@ -109,6 +125,8 @@ class ChatProvider extends ChangeNotifier {
           senderId: message.senderId,
           content: message.content,
           createdDate: message.createdDate,
+          attachments: message.attachments,
+          sender: message.sender,
         ));
 
         // Update the last message of the chat
@@ -283,6 +301,29 @@ class ChatProvider extends ChangeNotifier {
   //   }
   //   return uploadedAttachments;
   // }
+
+  // Hàm set trạng thái gõ tin nhắn
+  Future<void> sendTypingStatus(String chatId, bool isTyping) async {
+    try {
+      if (isTyping) {
+        await _chatService.sendUserTyping(chatId);
+      } else {
+        await _chatService.sendUserStopTyping(chatId);
+      }
+    } catch (error) {
+      print('Error sending typing status: $error');
+    }
+  }
+  bool isUserTyping(String chatId) => _typingUserIds.containsKey(chatId);
+  String? getTypingUser(String chatId) => _typingUserIds[chatId];
+  void setTypingStatus(String chatId, String userId, bool isTyping) {
+    if (isTyping) {
+      _typingUserIds[chatId] = userId;
+    } else {
+      _typingUserIds.remove(chatId);
+    }
+    notifyListeners();
+  }
 
 // Hàm xác định loại file
   String _getFileType(File file) {
