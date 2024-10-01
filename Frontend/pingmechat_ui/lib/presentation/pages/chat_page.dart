@@ -401,110 +401,89 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
-    final chatName = chat!.isGroup
-        ? chat.name
-        : chat.userChats
-            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
-            .user!
-            .fullName;
-    final chatAvatarUrl = chat.isGroup
-        ? chat.avatarUrl
-        : chat.userChats
-            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
-            .user!
-            .avatarUrl;
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: CustomSvgIcon(
-          svgPath: 'assets/icons/Back_app_bar.svg',
-          color: AppColors.secondary,
-          size: 30,
-        ),
-        onPressed: () {
-          Navigator.of(context)
-              .pushNamedAndRemoveUntil('/home', (route) => false);
-        },
-      ),
-      title: GestureDetector(
-        onTap: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => UserInformationPage()));
-        },
-        child: Row(
-          children: [
-            // add status icon here
-            Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: Stack(
-                children: [
-                  CustomCircleAvatar(
-                    radius: 20,
-                    backgroundImage: chat.avatarUrl!.isNotEmpty
-                        ? NetworkImage(chat.avatarUrl!)
-                        : null,
-                    isGroupChat: chat.isGroup,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
+  final chatName = chat!.isGroup
+      ? chat.name
+      : chat.userChats
+          .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+          .user!
+          .fullName;
+  final chatAvatarUrl = chat.isGroup
+      ? chat.avatarUrl
+      : chat.userChats
+          .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+          .user!
+          .avatarUrl;
+
+  return AppBar(
+    backgroundColor: Colors.white,
+    elevation: 0,
+    leadingWidth: 40,
+    leading: IconButton(
+      icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
+      onPressed: () => Navigator.of(context).pop(),
+    ),
+    title: GestureDetector(
+      onTap: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => UserInformationPage()));
+      },
+      child: Row(
+        children: [
+          Hero(
+            tag: 'profileImage${chat.id}',
+            child: Stack(
+              children: [
+                CustomCircleAvatar(
+                  radius: 20,
+                  backgroundImage: chatAvatarUrl != null && chatAvatarUrl.isNotEmpty
+                      ? NetworkImage(chatAvatarUrl)
+                      : null,
+                  isGroupChat: chat.isGroup,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    // Nếu là cuộc trò chuyện nhóm thì hiển thị tên nhóm, nếu là cuộc trò chuyện cá nhân thì hiển thị tên của người (không phải mình) mà mình đang trò chuyện
-                    chatName!,
-                    style: AppTypography.chatName.copyWith(
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  chatName ?? '',
+                  style: AppTypography.subH3.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
                   ),
-                  const Text(
-                    'Active now',
-                    style: AppTypography.caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Active now',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.secondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      actions: [
-        // IconButton(
-        //   icon: CustomSvgIcon(
-        //     svgPath: 'assets/icons/Call_in_message.svg',
-        //     color: AppColors.tertiary,
-        //     size: 24,
-        //   ),
-        //   onPressed: () => _initiateCall(chat, false),
-        // ),
-        // IconButton(
-        //   icon: CustomSvgIcon(
-        //     svgPath: 'assets/icons/Video_in_message.svg',
-        //     color: AppColors.tertiary,
-        //     size: 24,
-        //   ),
-        //   onPressed: () => _initiateCall(chat, true),
-        // ),
-      ],
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
       String currentUserId, bool showDateDivider) {

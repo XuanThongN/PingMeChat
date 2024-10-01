@@ -103,10 +103,11 @@ class AuthProvider with ChangeNotifier {
       );
 
       notifyListeners();
-      await _saveUserData();
+      // await _saveUserData();
 
 // Call the onLoginSuccess callback if it's set
-      onLoginSuccess?.call();
+      // onLoginSuccess?.call();
+      await _handleSuccessfulLogin();
       return true; //Đăng nhập thành công
     } catch (error) {
       print('Login error: $error');
@@ -138,7 +139,13 @@ class AuthProvider with ChangeNotifier {
       fullName: extractedUserData['fullName'] as String,
     );
     notifyListeners();
+    await _handleSuccessfulLogin();
     return true;
+  }
+  Future<void> _handleSuccessfulLogin() async {
+    await _saveUserData();
+    onLoginSuccess?.call();
+    notifyListeners();
   }
 
   Future<void> logout(BuildContext context) async {

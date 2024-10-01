@@ -12,7 +12,7 @@ import '../domain/models/chat.dart';
 import '../domain/models/message.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final ChatService _chatService;
+  ChatService _chatService;
   final List<Chat> _chats = [];
 
   final int _itemsPerPage = 20;
@@ -32,7 +32,6 @@ class ChatProvider extends ChangeNotifier {
 
   // Biến dùng để lưu trữ userId của người dùng đang gõ tin nhắn
   Map<String, String> _typingUserIds = {};
-  
 
   // Constructor
   ChatProvider(this._chatService) {
@@ -56,6 +55,12 @@ class ChatProvider extends ChangeNotifier {
 
   get typingUserId => null;
 
+// Phương thức cập nhật ChatService nếu cần thay đổi
+  void updateChatService(ChatService newChatService) {
+    _chatService = newChatService;
+    _setupSignalRListeners(); // Cập nhật lại các listeners nếu có
+  }
+
   Future<void> _initialize() async {
     _setupSignalRListeners();
     await loadChats(); //Load tất cả đoạn chat từ server
@@ -70,16 +75,16 @@ class ChatProvider extends ChangeNotifier {
       _handleNewPrivateChat(chat);
     });
 
-    _chatService.chatHubService.onReceiveMessage((message) async {
+      _chatService.onReceiveMessage((message) async {
       _handleNewMessage(message);
     });
 
-    _chatService.chatHubService.onUserTyping((chatId, userId) async {
+    _chatService.onUserTyping((chatId, userId) async {
       _typingUserIds[chatId] = userId;
       notifyListeners();
     });
 
-    _chatService.chatHubService.onUserStopTyping((chatId, userId) async {
+    _chatService.onUserStopTyping((chatId, userId) async {
       _typingUserIds.remove(chatId);
       notifyListeners();
     });
@@ -105,50 +110,50 @@ class ChatProvider extends ChangeNotifier {
 
   void _handleNewMessage(Message message) async {
     // Check if the chat exists in the current list
-      final chatIndex = _chats.indexWhere((c) => c.id == message.chatId);
+    final chatIndex = _chats.indexWhere((c) => c.id == message.chatId);
 
-      if (chatIndex == -1) {
-        // Chat not found, fetch it from the database
-        try {
-          final newChat = await _chatService.getChatById(message.chatId);
-          _chats.clear();
-          // Thêm đoạn chat vào đầu danh sách chats
-          _chats.insert(0, newChat);
-          _messagesByChatId[message.chatId]?.add(message);
-        } catch (error) {
-          print('Error fetching chat: $error');
-        }
-      } else {
-        // Chat found, add the message to the existing chat
-        _messagesByChatId[message.chatId]?.add(Message(
-          chatId: message.chatId,
-          senderId: message.senderId,
-          content: message.content,
-          createdDate: message.createdDate,
-          attachments: message.attachments,
-          sender: message.sender,
-        ));
-
-        // Update the last message of the chat
-        if (_chats[chatIndex].messages!.isNotEmpty) {
-          _chats[chatIndex].messages!.clear();
-        }
-        _chats[chatIndex].messages!.insert(0, message);
-
-        // Sort chats by the last message date
-        _chats.sort((a, b) {
-          final lastMessageA = a.messages!.isNotEmpty
-              ? a.messages!.first.createdDate
-              : a.createdDate;
-          final lastMessageB = b.messages!.isNotEmpty
-              ? b.messages!.first.createdDate
-              : b.createdDate;
-          return lastMessageB!.compareTo(lastMessageA!);
-        });
+    if (chatIndex == -1) {
+      // Chat not found, fetch it from the database
+      try {
+        final newChat = await _chatService.getChatById(message.chatId);
+        _chats.clear();
+        // Thêm đoạn chat vào đầu danh sách chats
+        _chats.insert(0, newChat);
+        _messagesByChatId[message.chatId]?.add(message);
+      } catch (error) {
+        print('Error fetching chat: $error');
       }
+    } else {
+      // Chat found, add the message to the existing chat
+      _messagesByChatId[message.chatId]?.add(Message(
+        chatId: message.chatId,
+        senderId: message.senderId,
+        content: message.content,
+        createdDate: message.createdDate,
+        attachments: message.attachments,
+        sender: message.sender,
+      ));
 
-      print("Tin nhắn nhận đc từ server: ");
-      notifyListeners();
+      // Update the last message of the chat
+      if (_chats[chatIndex].messages!.isNotEmpty) {
+        _chats[chatIndex].messages!.clear();
+      }
+      _chats[chatIndex].messages!.insert(0, message);
+
+      // Sort chats by the last message date
+      _chats.sort((a, b) {
+        final lastMessageA = a.messages!.isNotEmpty
+            ? a.messages!.first.createdDate
+            : a.createdDate;
+        final lastMessageB = b.messages!.isNotEmpty
+            ? b.messages!.first.createdDate
+            : b.createdDate;
+        return lastMessageB!.compareTo(lastMessageA!);
+      });
+    }
+
+    print("Tin nhắn nhận đc từ server: ");
+    notifyListeners();
   }
 
   Future<void> loadChats({bool refresh = false}) async {
@@ -314,6 +319,7 @@ class ChatProvider extends ChangeNotifier {
       print('Error sending typing status: $error');
     }
   }
+
   bool isUserTyping(String chatId) => _typingUserIds.containsKey(chatId);
   String? getTypingUser(String chatId) => _typingUserIds[chatId];
   void setTypingStatus(String chatId, String userId, bool isTyping) {
