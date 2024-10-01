@@ -29,23 +29,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authProvider = AuthProvider();
-  final signalRConnection = SignalRConnection(authProvider);
+  SignalRConnection? signalRConnection;
 
-  // Set up the callback for successful login
-  authProvider.onLoginSuccess = () {
-    signalRConnection.connect();
+ // Thiết lập callback cho sự kiện đăng nhập thành công
+  authProvider.onLoginSuccess = () async {
+    // Ngắt kết nối cũ nếu có
+    if (signalRConnection != null) {
+      await signalRConnection!.stop();
+    }
+
+    // Tạo mới SignalRConnection khi đăng nhập
+    signalRConnection = SignalRConnection(authProvider);
+    await signalRConnection!.connect();
   };
 
-// Try auto login
+// Cố gắng đăng nhập tự động
   final isLoggedIn = await authProvider.tryAutoLogin();
   if (isLoggedIn) {
-    await signalRConnection.connect();
+    signalRConnection = SignalRConnection(authProvider);
+    await signalRConnection!.connect();
   }
 
 
-  final chatHubService = ChatHubService(signalRConnection);
-  final chatService =
-      ChatService(chatHubService: chatHubService, authProvider: authProvider);
+  final chatHubService = ChatHubService(signalRConnection!);
+  final chatService = ChatService(chatHubService: chatHubService, authProvider: authProvider);
   final chatProvider = ChatProvider(chatService);
 
 

@@ -1,13 +1,18 @@
 import 'dart:async';
+
 import 'package:signalr_core/signalr_core.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../core/constants/constant.dart';
+import '../../providers/auth_provider.dart';
 
 class SignalRConnection {
   HubConnection? _hubConnection;
   final AuthProvider authProvider;
   final Completer<void> _connectionCompleter = Completer<void>();
   bool _isConnected = false;
+
+  // Danh sách các sự kiện cần gán cho HubConnection
+  final Map<String, Function(List<dynamic>?)> _handlers = {};
 
   SignalRConnection(this.authProvider) {
     authProvider.addListener(_handleAuthChange);
@@ -23,11 +28,20 @@ class SignalRConnection {
 
   Future<void> _initializeConnection() async {
     try {
+      await _disposeCurrentConnection();
+
+      // Tạo kết nối mới
       _hubConnection = await _buildHubConnection();
       _setupConnectionHandlers();
+
+      // Khởi động kết nối
       await _hubConnection!.start();
       print('Connected to SignalR hub');
       _isConnected = true;
+
+      // Gán lại các sự kiện đã lưu trước đó
+      _applyHandlers();
+
       if (!_connectionCompleter.isCompleted) {
         _connectionCompleter.complete();
       }
@@ -71,7 +85,13 @@ class SignalRConnection {
   void _setupConnectionHandlers() {
     _hubConnection?.onclose((error) async {
       print('Connection closed: $error');
-      await reconnect();
+      _isConnected = false;
+
+      if (authProvider.isAuth) {
+        await reconnect();
+      } else {
+        print('User logged out, skipping reconnect');
+      }
     });
   }
 
@@ -89,13 +109,18 @@ class SignalRConnection {
   Future<void> reconnect() async {
     const int maxAttempts = 5;
     int attempt = 0;
+
+    if (!authProvider.isAuth) {
+      print('User logged out, skipping reconnect attempts');
+      return;
+    }
+
     while (attempt < maxAttempts) {
       attempt++;
       print('Reconnecting attempt $attempt...');
       try {
-        await _hubConnection?.start();
+        await _initializeConnection();
         print('Reconnected to SignalR hub');
-        _isConnected = true;
         return;
       } catch (e) {
         print('Reconnection attempt $attempt failed: $e');
@@ -105,24 +130,44 @@ class SignalRConnection {
     print('Failed to reconnect after $maxAttempts attempts');
   }
 
-  void _handleAuthChange() {
+  Future<void> _disposeCurrentConnection() async {
+    if (_hubConnection != null && _hubConnection!.state == HubConnectionState.connected) {
+      await _hubConnection!.stop();
+      _hubConnection = null;
+      _isConnected = false;
+      print('Current connection disposed');
+    }
+  }
+
+  void _handleAuthChange() async {
     if (!authProvider.isAuth && _isConnected) {
-      stop();
+      await stop();
     } else if (authProvider.isAuth && !_isConnected) {
-      initialize();
+      await connect();
     }
   }
 
   Future<void> stop() async {
-    await _hubConnection?.stop();
+    if (_hubConnection != null) {
+      await _hubConnection!.stop(); 
+      _hubConnection = null;
+    }
     _isConnected = false;
-    print('Disconnected from SignalR hub');
+    print('Disconnected from SignalR hub and disposed');
   }
 
-  HubConnection? get connection => _hubConnection;
-
+  // Lưu các sự kiện cần gán cho HubConnection mới
   void on(String methodName, Function(List<dynamic>?) handler) {
+    _handlers[methodName] = handler;
     _hubConnection?.on(methodName, handler);
+  }
+
+  // Gán lại các sự kiện cho kết nối mới
+  void _applyHandlers() {
+    _handlers.forEach((methodName, handler) {
+      _hubConnection?.on(methodName, handler);
+      print('Applied handler for $methodName');
+    });
   }
 
   Future<dynamic> invoke(String methodName, {List<dynamic>? args}) async {
@@ -131,4 +176,6 @@ class SignalRConnection {
     }
     return await _hubConnection!.invoke(methodName, args: args);
   }
+
+  HubConnection? get connection => _hubConnection;
 }

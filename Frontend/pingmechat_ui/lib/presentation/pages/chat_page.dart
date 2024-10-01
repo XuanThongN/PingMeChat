@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/domain/models/account.dart';
+import 'package:pingmechat_ui/presentation/pages/chat_page_extension.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_user_information_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_icon.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
@@ -49,8 +50,8 @@ class _ChatScreenState extends State<ChatScreen> {
   List<File>? _selectedAttachments = [];
 
   // Biến để đếm thời gian gõ tin nhắn
- Timer? _typingTimer;
-  static const _typingDuration = Duration(milliseconds: 700);
+  Timer? _typingTimer;
+  static const _typingDuration = Duration(milliseconds: 3000);
   @override
   void initState() {
     super.initState();
@@ -178,19 +179,15 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
-  }
-
   Widget _buildTypingIndicator(Chat chat) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         final typingUserId = chatProvider.getTypingUser(widget.chatId);
         if (typingUserId == null) return const SizedBox.shrink();
 
-        final typingUser = chat.userChats.firstWhere((userChat) => userChat.user!.id == typingUserId).user;
+        final typingUser = chat.userChats
+            .firstWhere((userChat) => userChat.user!.id == typingUserId)
+            .user;
 
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -213,19 +210,6 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
-  }
-
-  String _getFormattedDate(DateTime date) {
-    final now = DateTime.now();
-    final yesterday = now.subtract(const Duration(days: 1));
-
-    if (_isSameDay(date, now)) {
-      return 'Hôm nay';
-    } else if (_isSameDay(date, yesterday)) {
-      return 'Hôm qua';
-    } else {
-      return DateFormat('dd/MM/yyyy').format(date);
-    }
   }
 
   Widget _buildMessageList(String currentUserId, bool isGroupChat) {
@@ -259,14 +243,17 @@ class _ChatScreenState extends State<ChatScreen> {
             // Điều chỉnh index để lấy tin nhắn đúng
             final messageIndex = index - 1;
             final message = messages.elementAt(messageIndex);
-            final showAvatar = _shouldShowAvatar(messages, messageIndex);
-            final showTimestamp = _shouldShowTimestamp(messages, messageIndex);
+            final showAvatar =
+                ChatPageHelper.shouldShowAvatar(messages, messageIndex);
+            final showTimestamp =
+                ChatPageHelper.shouldShowTimestamp(messages, messageIndex);
 
             // Hiển thị thanh ngang để chia tin nhắn theo ngày
             final previousMessage =
                 messageIndex > 0 ? messages[messageIndex - 1] : null;
             final showDateDivider = previousMessage == null ||
-                !_isSameDay(message.createdDate, previousMessage.createdDate);
+                !ChatPageHelper.isSameDay(
+                    message.createdDate, previousMessage.createdDate);
 
             return ChatMessageWidget(
               message: message,
@@ -531,7 +518,7 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Center(
                 child: Text(
-                  _getFormattedDate(message.createdDate),
+                  ChatPageHelper.getFormattedDate(message.createdDate),
                   style:
                       const TextStyle(color: Color.fromARGB(255, 61, 58, 58)),
                 ),
@@ -868,23 +855,5 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
-  }
-
-  // Hiển thị avatar nếu tin nhắn hiện tại không phải của người gửi trước đó
-  bool _shouldShowAvatar(List<Message> messages, int index) {
-    if (index == 0) return true;
-    final currentMessage = messages[index];
-    final previousMessage = messages[index - 1];
-    return currentMessage.senderId != previousMessage.senderId;
-  }
-
-  bool _shouldShowTimestamp(List<Message> messages, int index) {
-    if (index == messages.length - 1) return true;
-    final currentMessage = messages[index];
-    final nextMessage = messages[index + 1];
-    return nextMessage.createdDate
-            .difference(currentMessage.createdDate)
-            .inMinutes >=
-        1;
   }
 }

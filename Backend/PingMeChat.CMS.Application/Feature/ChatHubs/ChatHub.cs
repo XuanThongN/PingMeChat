@@ -151,7 +151,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         }
 
         //Tắt hiển thị người gõ tin nhắn
-        public async Task UserStoppedTyping(string chatId)
+        public async Task UserStopTyping(string chatId)
         {
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId) || !await HasChatAccess(chatId))

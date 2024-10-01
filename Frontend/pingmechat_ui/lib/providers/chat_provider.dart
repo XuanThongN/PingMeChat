@@ -338,4 +338,18 @@ class ChatProvider extends ChangeNotifier {
       return 'file';
     }
   }
+
+  // Clear all chats and reset state
+  void clearData() {
+    _chats.clear();
+    _messagesByChatId.clear();
+    _currentPageByChatId.clear();
+    _hasMoreMessagesByChatId.clear();
+    _isLoadingMessagesByChatId.clear();
+    _typingUserIds.clear();
+    _currentPage = 1;
+    _isLoading = false;
+    _hasMoreChats = true;
+    notifyListeners();
+  }
 }

@@ -26,4 +26,9 @@ class SearchProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  void clearData() {
+    _searchResult = null;
+    notifyListeners();
+  }
 }
