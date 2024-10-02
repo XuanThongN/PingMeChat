@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     MessageTab(),
     // CallTab(),
     ContactTab(),
-    SetttingTab(),
+    SettingTab(),
   ];
 
   void _onItemTapped(int index) {

@@ -76,12 +76,29 @@ class _MessageTabState extends State<MessageTab> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
-        return Column(
-          children: [
-            _buildAppBar(),
-            _buildStatusList(),
-            _buildRoundedChatList(),
-          ],
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(),
+                _buildStatusList(),
+                Expanded(
+                  child: Container(
+                    // margin: const EdgeInsets.only(top: 10),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: _buildRoundedChatList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -105,7 +122,7 @@ class _MessageTabState extends State<MessageTab> {
       builder: (context, contactProvider, child) {
         final contacts = contactProvider.contacts;
         return SizedBox(
-          height: 100,
+          height: 80,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: contacts.length,
@@ -174,7 +191,7 @@ class _MessageTabState extends State<MessageTab> {
                   backgroundImage: contactUser.avatarUrl != null
                       ? AssetImage(contactUser.avatarUrl!)
                       : null,
-                  radius: 30,
+                  radius: 26,
                 ),
               ),
               // if (isMe)
@@ -210,22 +227,28 @@ class _MessageTabState extends State<MessageTab> {
 
   Widget _buildAppBar() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildCircularButton(Icons.search, () {
-            // Chuyển hướng tới trang tìm kiếm
-            Navigator.pushNamed(context, '/search');
-          }),
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.pushNamed(context, '/search');
+            },
+          ),
           Text(
             AppLocalizations.of(context)!.home,
-            style: AppTypography.h2,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          _buildCircularButton(_isAddOptionsVisible ? Icons.close : Icons.add,
-              () {
-            _showAddOptions(context);
-          }),
+          IconButton(
+            icon: Icon(_isAddOptionsVisible ? Icons.close : Icons.add,
+                color: Colors.white, size: 28),
+            onPressed: () {
+              _showAddOptions(context);
+            },
+          ),
         ],
       ),
     );
@@ -315,17 +338,16 @@ class _MessageTabState extends State<MessageTab> {
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ChatPage(chatId: item.id)));
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => ChatPage(chatId: item.id)));
       },
       child: ListTile(
         leading: Stack(children: [
           CustomCircleAvatar(
             radius: 24,
-            backgroundImage:
-               item.avatarUrl!.isNotEmpty ? NetworkImage(item.avatarUrl!) : null,
+            backgroundImage: item.avatarUrl!.isNotEmpty
+                ? NetworkImage(item.avatarUrl!)
+                : null,
             isGroupChat: item.isGroup,
           ),
           // if (item.isActive) // Người dùng hoạt động
@@ -373,7 +395,8 @@ class _MessageTabState extends State<MessageTab> {
                             lastMessage.senderId == currentUserId;
                         final senderName = isCurrentUser
                             ? 'You'
-                            : (lastMessage.sender?.fullName.split(' ').first ?? 'Unknown');
+                            : (lastMessage.sender?.fullName.split(' ').first ??
+                                'Unknown');
                         return Text(
                           '$senderName: ${_createMessageContent(lastMessage)}',
                           style: AppTypography.chatMessage,
@@ -473,12 +496,11 @@ class _MessageTabState extends State<MessageTab> {
     final now = DateTime.now();
     final difference = now.difference(lastMessageTime);
 
-    if (difference.inMinutes < 1) {
+    if (difference.inMinutes == 0 && difference.inMinutes < 1) {
       formattedTime = 'Just now';
     } else if (difference.inMinutes < 60) {
       formattedTime = '${difference.inMinutes}m ago';
-    } else  
-    if (difference.inHours < 24) {
+    } else if (difference.inHours < 24) {
       formattedTime = DateFormat('HH:mm').format(lastMessageTime);
     } else if (difference.inDays < 7) {
       formattedTime = DateFormat('EEEE', 'en')

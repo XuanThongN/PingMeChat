@@ -331,7 +331,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addMembersToCurrentChat(
+// Hàm thêm thành viên vào cuộc trò chuyện
+  Future<bool> addMembersToCurrentChat(
       String chatId, List<String> selectedMembers) async {
     // Thêm thành viên vào danh sách userChats của chat hiện tại
     var result = await _chatService.addMembersToChat(chatId, selectedMembers);
@@ -340,11 +341,25 @@ class ChatProvider extends ChangeNotifier {
       final chatIndex = _chats.indexWhere((c) => c.id == chatId && c.isGroup);
       if (chatIndex != -1) {
         final members = _chats[chatIndex].userChats;
-        members.clear();
-        members.addAll(result as Iterable<UserChat>);
+        members.addAll(result);
+        notifyListeners();
       }
-      notifyListeners();
     }
+    return result.isNotEmpty;
+  }
+
+  // Hàm xóa thành viên khỏi cuộc trò chuyện
+  Future<bool> removeMemberFromCurrentChat(String chatId, String userId) async {
+    final result = await _chatService.removeMemberFromChat(chatId, userId);
+    if (result) {
+      final chatIndex = _chats.indexWhere((c) => c.id == chatId && c.isGroup);
+      if (chatIndex != -1) {
+        final members = _chats[chatIndex].userChats;
+        members.removeWhere((member) => member.userId == userId);
+        notifyListeners();
+      }
+    }
+    return result;
   }
 
 // Hàm xác định loại file

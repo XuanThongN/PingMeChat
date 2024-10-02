@@ -89,9 +89,10 @@ namespace PingMeChat.CMS.Api.Controllers
 
         [HttpDelete]
         [ChatAccess]
+        [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.Chat.RemoveUserFromChatRoute)]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        public async Task<IActionResult> RemoveUserFromChat(string chatId, string userId)
+        public async Task<IActionResult> RemoveUserFromChat([FromRoute] string chatId,[FromQuery] string userId)
         {
             var currentUserId = GetUserId();
             var result = await _chatService.RemoveUserFromChatAsync(chatId, userId, currentUserId);

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:mime/mime.dart';
-import 'package:pingmechat_ui/data/models/search_result.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:signalr_core/signalr_core.dart';
@@ -11,6 +10,7 @@ import 'package:signalr_core/signalr_core.dart';
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
+import '../../domain/models/userchat.dart';
 import '../models/chat_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -369,10 +369,9 @@ class ChatService {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
+        final List<dynamic> data = jsonResponse['result'];
 
-        // Lấy phần 'result' và truy cập vào 'data' trong đó
-        final data = jsonResponse['result'];
-        // Chuyển đổi từng phần tử trong 'data' thành đối tượng 'Chat'
+        // Kiểm tra xem data có null hay không và chuyển đổi từng phần tử trong 'data' thành đối tượng 'UserChat'
         List<UserChat> newMembers =
             data.map((json) => UserChat.fromJson(json)).toList();
 
@@ -383,6 +382,31 @@ class ChatService {
       }
     } catch (e) {
       throw Exception('Failed to load messages: $e');
+    }
+  }
+
+  Future<bool> removeMemberFromChat(String chatId, String userId) async {
+    try {
+      final uri =
+          Uri.parse(ApiConstants.getRemoveMemberFromChatEndpoint(chatId))
+              .replace(queryParameters: {
+        'userId': userId,
+      });
+      final response = await http.delete(uri,
+          headers: await authProvider.getCustomHeaders());
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final data = jsonResponse['result'] as bool;
+
+        // Kiểm tra xem data có null hay không và chuyển thành true/false
+        return data;
+      } else {
+        throw Exception(
+            'HTTP error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('Failed to remove member from chat: $e');
     }
   }
 }

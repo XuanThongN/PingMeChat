@@ -215,7 +215,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 {
                     try
                     {
-                        var chat = await _repository.FindById(chatId);
+                        var chat = await _repository.Find(c => c.Id == chatId, include: q => q.Include(c => c.UserChats));
                         if (chat == null)
                         {
                             throw new AppException("Chat not found", 404);
@@ -251,8 +251,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                         await _unitOfWork.SaveChangeAsync();
 
                         await transaction.CommitAsync();
-                        var result = _mapper.Map<List<UserChatDto>>(newUserChats);
-                        return result;
+                        var result = await _userChatRepository.FindAll(uc => uc.ChatId == chatId && newUserChats.Select(nuc => nuc.UserId).Contains(uc.UserId), include: q => q.Include(uc => uc.User));
+                        return _mapper.Map<List<UserChatDto>>(result);
                     }
                     catch (Exception ex)
                     {
