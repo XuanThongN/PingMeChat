@@ -68,7 +68,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string CreateChatRoute = "api/chats/create-chat";
                 public const string UpdateChatRoute = "api/chats/update-chat";
                 public const string DeleteChatRoute = "api/chats/delete-chat/{id}";
-                public const string AddUserToChatRoute = "api/chats/add-user-to-chat/{chatId}";
+                public const string AddUsersToChatRoute = "api/chats/add-users-to-chat/{chatId}";
                 public const string RemoveUserFromChatRoute = "api/chats/remove-user-from-chat/{chatId}";
             }
 

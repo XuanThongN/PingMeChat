@@ -473,13 +473,18 @@ class _MessageTabState extends State<MessageTab> {
     final now = DateTime.now();
     final difference = now.difference(lastMessageTime);
 
+    if (difference.inMinutes < 1) {
+      formattedTime = 'Just now';
+    } else if (difference.inMinutes < 60) {
+      formattedTime = '${difference.inMinutes}m ago';
+    } else  
     if (difference.inHours < 24) {
       formattedTime = DateFormat('HH:mm').format(lastMessageTime);
     } else if (difference.inDays < 7) {
-      formattedTime = DateFormat('EEEE', 'vi')
+      formattedTime = DateFormat('EEEE', 'en')
           .format(lastMessageTime); // Hiển thị thứ bằng tiếng Việt
     } else {
-      formattedTime = DateFormat('dd MMMM', 'vi')
+      formattedTime = DateFormat('dd MMMM', 'en')
           .format(lastMessageTime); // Hiển thị ngày tháng bằng tiếng Việt
     }
     return formattedTime;

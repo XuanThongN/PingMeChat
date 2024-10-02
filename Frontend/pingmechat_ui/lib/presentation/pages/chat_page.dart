@@ -425,7 +425,7 @@ class _ChatPageState extends State<ChatPage> {
     title: GestureDetector(
       onTap: () {
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => UserInformationPage()));
+            MaterialPageRoute(builder: (context) => UserInformationPage(chatId: chat.id)));
       },
       child: Row(
         children: [

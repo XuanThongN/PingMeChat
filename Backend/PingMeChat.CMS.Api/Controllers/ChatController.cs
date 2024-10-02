@@ -9,6 +9,7 @@ using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Application.Feature.Service.MessageStatuses;
+using PingMeChat.CMS.Application.Feature.Service.UserChats.Dto;
 using PingMeChat.Shared.Utils;
 
 namespace PingMeChat.CMS.Api.Controllers
@@ -77,13 +78,13 @@ namespace PingMeChat.CMS.Api.Controllers
         [HttpPost]
         [ChatAccess]
         [ValidateUserAndModel]
-        [Route(ApiRoutes.Feature.Chat.AddUserToChatRoute)]
-        [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> AddUserToChat(string chatId, [FromBody] string userId)
+        [Route(ApiRoutes.Feature.Chat.AddUsersToChatRoute)]
+        [ProducesResponseType(typeof(List<UserChatDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> AddUsersToChat([FromRoute] string chatId, [FromBody] List<string> userIds)
         {
             var currentUserId = GetUserId();
-            var result = await _chatService.AddUserToChatAsync(chatId, userId, currentUserId);
-            return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "user to chat"), result, StatusCodes.Status200OK));
+            var result = await _chatService.AddUsersToChatAsync(chatId, userIds, currentUserId);
+            return Ok(new ApiResponse(string.Format(Message.Success.CreateCompleted, "users to chat"), result, StatusCodes.Status200OK));
         }
 
         [HttpDelete]

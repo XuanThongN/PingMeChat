@@ -6,6 +6,7 @@ using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Pagination;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
+using PingMeChat.CMS.Application.Feature.Service.UserChats.Dto;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.Entities;
@@ -21,7 +22,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         Task<ChatDto> GetChatDetailAsync(string chatId, string userId);
         Task<IEnumerable<ChatDto>> GetChatListAsync(string userId);
         Task<PagedResponse<List<ChatDto>>> GetChatListAsync(string chatId, int pageNumber, int pageSize, string route = null);
-        Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId);
+        Task<List<UserChatDto>> AddUsersToChatAsync(string chatId, List<string> userIds, string currentUserId);
         Task<bool> RemoveUserFromChatAsync(string chatId, string userId, string currentUser);
         Task<bool> CanUserAccessChat(string chatId, string userId);
     }
@@ -205,63 +206,70 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
 
 
 
-        public async Task<ChatDto> AddUserToChatAsync(string chatId, string userId, string currentUserId)
+        public async Task<List<UserChatDto>> AddUsersToChatAsync(string chatId, List<string> userIds, string currentUserId)
         {
-            try
+            var executionStrategy = _unitOfWork.CreateExecutionStrategy();
+            return await executionStrategy.ExecuteAsync(async () =>
             {
-                var chat = await _repository.FindById(chatId);
-                if (chat == null)
+                using (var transaction = await _unitOfWork.BeginTransactionAsync())
                 {
-                    throw new AppException("Chat not found", 404);
+                    try
+                    {
+                        var chat = await _repository.FindById(chatId);
+                        if (chat == null)
+                        {
+                            throw new AppException("Chat not found", 404);
+                        }
+
+                        // Kiểm tra xem đây có phải là chat nhóm không
+                        if (!chat.IsGroup)
+                        {
+                            throw new AppException("Không thể thêm người dùng vào chat cá nhân", 400);
+                        }
+
+                        var existingUserChats = await _userChatRepository.FindAll(uc => uc.ChatId == chatId && userIds.Contains(uc.UserId));
+                        var existingUserIds = existingUserChats.Select(uc => uc.UserId).ToHashSet();
+
+                        var newUserChats = userIds
+                            .Where(userId => !existingUserIds.Contains(userId))
+                            .Select(userId => new UserChat
+                            {
+                                UserId = userId,
+                                ChatId = chatId,
+                                CreatedBy = currentUserId,
+                                UpdatedBy = currentUserId,
+                                IsAdmin = false,
+                                JoinAt = DateTime.UtcNow
+                            }).ToList();
+
+                        if (newUserChats.Count == 0)
+                        {
+                            throw new AppException("Tất cả người dùng đã là thành viên của chat này", 400);
+                        }
+
+                        await _userChatRepository.AddRange(newUserChats);
+                        await _unitOfWork.SaveChangeAsync();
+
+                        await transaction.CommitAsync();
+                        var result = _mapper.Map<List<UserChatDto>>(newUserChats);
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        await _logErrorRepository.Add(new ErrorLog
+                        {
+                            ControllerName = "ChatService",
+                            ActionName = "AddUsersToChatAsync",
+                            IsError = true,
+                            ErrorMessage = ex.Message,
+                            Exception = ex.StackTrace
+                        });
+                        await _unitOfWork.SaveChangeAsync();
+                        throw;
+                    }
                 }
-
-                // Kiểm tra xem đây có phải là chat nhóm không
-                if (!chat.IsGroup)
-                {
-                    throw new AppException("Không thể thêm người dùng vào chat cá nhân", 400);
-                }
-
-                var existingUserChat = await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId);
-                if (existingUserChat != null)
-                {
-                    throw new AppException("Người dùng đã là thành viên của chat này", 400);
-                }
-
-                var userChat = new UserChat
-                {
-                    UserId = userId,
-                    ChatId = chatId,
-                    CreatedBy = currentUserId,
-                    UpdatedBy = currentUserId,
-                    IsAdmin = false,
-                    JoinAt = DateTime.UtcNow
-                };
-                await _userChatRepository.Add(userChat);
-                await _unitOfWork.SaveChangeAsync();
-
-                // Refresh chat data
-                chat = await _repository.Find(
-                    c => c.Id == chatId,
-                    include: c => c
-                        .Include(c => c.UserChats)
-                        .ThenInclude(uc => uc.User)
-                );
-
-                return _mapper.Map<ChatDto>(chat);
-            }
-            catch (Exception ex)
-            {
-                await _logErrorRepository.Add(new ErrorLog
-                {
-                    ControllerName = "ChatService",
-                    ActionName = "AddUserToChatAsync",
-                    IsError = true,
-                    ErrorMessage = ex.Message,
-                    Exception = ex.StackTrace
-                });
-                await _unitOfWork.SaveChangeAsync();
-                throw;
-            }
+            });
         }
 
         public async Task<bool> RemoveUserFromChatAsync(string chatId, string userId, string currentUser)

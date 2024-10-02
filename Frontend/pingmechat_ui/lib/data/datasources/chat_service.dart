@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:mime/mime.dart';
+import 'package:pingmechat_ui/data/models/search_result.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:signalr_core/signalr_core.dart';
@@ -41,7 +42,8 @@ class ChatService {
   Future<void> _initialize() async {
     if (hubConnection != null) {
       // Nếu hubConnection không phải là null và đang hoạt động, không cần khởi tạo lại
-      if (hubConnection?.state == HubConnectionState.connected || hubConnection?.state == HubConnectionState.connecting) {
+      if (hubConnection?.state == HubConnectionState.connected ||
+          hubConnection?.state == HubConnectionState.connecting) {
         print("Đã có kết nối trước đó, không cần khởi tạo lại.");
         return;
       }
@@ -351,5 +353,36 @@ class ChatService {
 
   Future<void> sendUserStopTyping(String chatId) async {
     await hubConnection!.invoke('UserStopTyping', args: [chatId]);
+  }
+
+  Future<List<UserChat>> addMembersToChat(
+      String chatId, List<String> selectedMembers) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.getAddMembersToChatEndpoint(chatId)),
+        headers: {
+          'Content-Type': 'application/json ; charset=UTF-8',
+          ...await authProvider.getCustomHeaders(),
+        },
+        body: json.encode(selectedMembers),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        // Lấy phần 'result' và truy cập vào 'data' trong đó
+        final data = jsonResponse['result'];
+        // Chuyển đổi từng phần tử trong 'data' thành đối tượng 'Chat'
+        List<UserChat> newMembers =
+            data.map((json) => UserChat.fromJson(json)).toList();
+
+        return newMembers;
+      } else {
+        throw Exception(
+            'HTTP error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load messages: $e');
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/constants/constant.dart';
@@ -19,9 +20,11 @@ class CustomCircleAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      backgroundImage: !isGroupChat ? 
-                    (backgroundImage ?? const NetworkImage(ImageConstants.defaultAvatarUrl))
-                    : const NetworkImage(ImageConstants.defaultGroupAvatarUrl),
+      backgroundImage: !isGroupChat
+          ? (backgroundImage ??
+              const CachedNetworkImageProvider(ImageConstants.defaultAvatarUrl))
+          : const CachedNetworkImageProvider(
+              ImageConstants.defaultGroupAvatarUrl),
       radius: radius,
       child: child,
     );
