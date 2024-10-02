@@ -195,4 +195,10 @@ class ContactProvider extends ChangeNotifier {
   Contact? getContact(String userId) {
     return _contacts.firstWhere((contact) => contact.id == userId);
   }
+
+  void clearData() {
+    _contacts = [];
+    _contactUsers = [];
+    notifyListeners();
+  }
 }

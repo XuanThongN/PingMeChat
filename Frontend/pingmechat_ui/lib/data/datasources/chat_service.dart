@@ -5,19 +5,159 @@ import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:mime/mime.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:signalr_core/signalr_core.dart';
 
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import '../models/chat_model.dart';
-import 'chat_hub_service.dart';
 import 'package:http/http.dart' as http;
 
 class ChatService {
-  final ChatHubService chatHubService;
   final AuthProvider authProvider;
+  HubConnection? hubConnection;
+  bool isConnected = false;
+  bool _listenersRegistered = false; // Đã đăng ký các listeners hay chưa
 
-  ChatService({required this.chatHubService, required this.authProvider});
+  // Callbacks for different events
+  Function(Chat)? onNewGroupChatCallback;
+  Function(Chat)? onNewPrivateChatCallback;
+  Function(Message)? onReceiveMessageCallback;
+  Function(String, String)? onUserTypingCallback;
+  Function(String, String)? onUserStopTypingCallback;
+
+  ChatService({required this.authProvider}) {
+    authProvider.addListener(_handleAuthChange);
+  }
+
+  void _handleAuthChange() {
+    if (authProvider.isAuth && !isConnected) {
+      _initialize();
+    } else if (!authProvider.isAuth && isConnected) {
+      _disconnect();
+    }
+  }
+
+  Future<void> _initialize() async {
+    if (hubConnection != null) {
+      // Nếu hubConnection không phải là null và đang hoạt động, không cần khởi tạo lại
+      if (hubConnection?.state == HubConnectionState.connected || hubConnection?.state == HubConnectionState.connecting) {
+        print("Đã có kết nối trước đó, không cần khởi tạo lại.");
+        return;
+      }
+    }
+    await _setupSignalRConnection();
+    _setupSignalRListeners();
+  }
+
+  Future<void> _setupSignalRConnection() async {
+    if (isConnected) return;
+    if (!authProvider.isAuth) {
+      print("Lỗi: Người dùng chưa đăng nhập");
+      throw Exception("Người dùng chưa đăng nhập");
+    }
+    try {
+      // Khởi tạo kết nối HubConnection
+      hubConnection = HubConnectionBuilder()
+          .withUrl(
+            ChatHubConstants.chatHubUrl,
+            HttpConnectionOptions(
+              accessTokenFactory: () async => authProvider.accessToken!,
+              transport: HttpTransportType.webSockets,
+              customHeaders: await authProvider.getCustomHeaders(),
+            ),
+          )
+          .withAutomaticReconnect()
+          .build();
+
+      final originalUrl = hubConnection!.baseUrl;
+      final uriBuilder = Uri.parse(originalUrl).replace(queryParameters: {
+        'access_token': authProvider.accessToken!,
+        'refresh_token': authProvider.refreshToken!,
+      });
+      hubConnection!.baseUrl = uriBuilder.toString();
+
+      await hubConnection!.start(); // Bắt đầu kết nối
+      isConnected = true;
+      print('Đã kết nối đến SignalR hub');
+    } catch (e) {
+      print('Có lỗi khi kết nối đến SignalR hub: $e');
+      hubConnection = null;
+      isConnected = false;
+    }
+  }
+
+  void _setupSignalRListeners() {
+    hubConnection?.onclose((error) {
+      print('Kết nối đã đóng: $error');
+      isConnected = false;
+    });
+
+    hubConnection?.onreconnecting((error) {
+      print('Kết nối đang kết nối lại: $error');
+      isConnected = false;
+    });
+
+    hubConnection?.onreconnected((connectionId) {
+      print('Kết nối hub đã kết nối lại: $connectionId');
+      isConnected = true;
+    });
+
+    hubConnection?.on('NewGroupChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final chat = Chat.fromJson(arguments[0]);
+        onNewGroupChatCallback?.call(chat);
+      }
+    });
+
+    hubConnection?.on('NewPrivateChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final chat = Chat.fromJson(arguments[0]);
+        onNewPrivateChatCallback?.call(chat);
+      }
+    });
+
+    hubConnection?.on('ReceiveMessage', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final message = Message.fromJson(arguments[0]);
+        onReceiveMessageCallback?.call(message);
+      }
+    });
+
+    hubConnection?.on('UserTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        final chatId = arguments[0] as String;
+        final userId = arguments[1] as String;
+        onUserTypingCallback?.call(chatId, userId);
+      }
+    });
+
+    hubConnection?.on('UserStopTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        final chatId = arguments[0] as String;
+        final userId = arguments[1] as String;
+        onUserStopTypingCallback?.call(chatId, userId);
+      }
+    });
+
+    _listenersRegistered = true;
+  }
+
+  Future<void> _disconnect() async {
+    if (hubConnection != null) {
+      await hubConnection?.stop();
+      // Xoá các listeners đã đăng ký
+      hubConnection?.off('NewGroupChat');
+      hubConnection?.off('NewPrivateChat');
+      hubConnection?.off('ReceiveMessage');
+      hubConnection?.off('UserTyping');
+      hubConnection?.off('UserStopTyping');
+      hubConnection = null;
+      _listenersRegistered = false;
+    }
+    isConnected = false;
+    print('Đã ngắt kết nối đến SignalR hub');
+  }
 
   String getCurrentUserId() {
     return authProvider.currentUser?.id ?? '';
@@ -110,19 +250,53 @@ class ChatService {
   }
 
   Future<void> sendMessage(MessageSendDto input) async {
-    await chatHubService.sendMessage(input);
+    await hubConnection!.invoke('SendMessage', args: [input]);
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
-    await chatHubService.startNewChat(chatCreateDto);
+    await hubConnection!.invoke('StartNewChatAsync', args: [chatCreateDto]);
   }
 
   void onNewGroupChat(void Function(Chat chat) handler) {
-    chatHubService.onNewGroupChat(handler);
+    hubConnection!.on('NewGroupChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        handler(Chat.fromJson(arguments[0]));
+      }
+    });
   }
 
   void onNewPrivateChat(void Function(Chat chat) handler) {
-    chatHubService.onNewPrivateChat(handler);
+    hubConnection!.on('NewPrivateChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        handler(Chat.fromJson(arguments[0]));
+      }
+    });
+  }
+
+  void onReceiveMessage(void Function(Message message) handler) {
+    hubConnection!.on('ReceiveMessage', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final messageData = arguments[0] as Map<String, dynamic>;
+        final message = Message.fromJson(messageData);
+        handler(message);
+      }
+    });
+  }
+
+  void onUserTyping(void Function(String chatId, String userId) handler) {
+    hubConnection!.on('UserTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
+      }
+    });
+  }
+
+  void onUserStopTyping(void Function(String chatId, String userId) handler) {
+    hubConnection!.on('UserStopTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        handler(arguments[0] as String, arguments[1] as String);
+      }
+    });
   }
 
   // Thêm các phương thức mở rộng
@@ -158,7 +332,12 @@ class ChatService {
       // Xử lý response cho từng file (giả sử server trả về danh sách các kết quả upload)
       List<UploadResult> results = [];
       for (var fileJson in jsonResponse['result']) {
-        results.add(UploadResult(publicId: fileJson['publicId'], url: fileJson['url'], fileName: fileJson['fileName'], fileType: fileJson['fileType'], fileSize: fileJson['fileSize']));
+        results.add(UploadResult(
+            publicId: fileJson['publicId'],
+            url: fileJson['url'],
+            fileName: fileJson['fileName'],
+            fileType: fileJson['fileType'],
+            fileSize: fileJson['fileSize']));
       }
       return results;
     } else {
@@ -166,11 +345,11 @@ class ChatService {
     }
   }
 
-  Future<void>  sendUserTyping(String chatId) async {
-   await chatHubService.sendUserTyping(chatId);
+  Future<void> sendUserTyping(String chatId) async {
+    await hubConnection!.invoke('UserTyping', args: [chatId]);
   }
 
-  Future<void>  sendUserStopTyping(String chatId) async {
-    await chatHubService.sendUserStopTyping(chatId);
+  Future<void> sendUserStopTyping(String chatId) async {
+    await hubConnection!.invoke('UserStopTyping', args: [chatId]);
   }
 }

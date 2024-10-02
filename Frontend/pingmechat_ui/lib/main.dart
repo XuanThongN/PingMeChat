@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:pingmechat_ui/data/datasources/file_upload_service.dart';
 import 'package:pingmechat_ui/data/datasources/search_service.dart';
 import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/presentation/pages/search_page.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
-import 'package:pingmechat_ui/providers/call_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:pingmechat_ui/splash_screen.dart';
@@ -16,58 +13,38 @@ import 'package:provider/provider.dart';
 import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 
 import 'config/theme.dart';
-import 'data/datasources/chat_hub_service.dart';
 
-import 'data/datasources/signalr_connection.dart';
-import 'presentation/pages/call_page.dart';
 import 'presentation/pages/login_page.dart';
 import 'providers/search_provider.dart';
-import 'providers/webrtc_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authProvider = AuthProvider();
-  final signalRConnection = SignalRConnection(authProvider);
+  
+  final chatService = ChatService(authProvider: authProvider);
 
-  // Set up the callback for successful login
-  authProvider.onLoginSuccess = () {
-    signalRConnection.connect();
-  };
-
-// Try auto login
-  final isLoggedIn = await authProvider.tryAutoLogin();
-  if (isLoggedIn) {
-    await signalRConnection.connect();
-  }
-
-
-  final chatHubService = ChatHubService(signalRConnection);
-  final chatService =
-      ChatService(chatHubService: chatHubService, authProvider: authProvider);
-  final chatProvider = ChatProvider(chatService);
-
-
-  // final webRTCService = WebRTCService();
-  // await webRTCService.initializeRenderers();
-  // final callProvider = CallProvider(chatHubService, webRTCService);
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: authProvider),
-        Provider.value(value: signalRConnection),
-        Provider.value(value: chatHubService),
-        Provider.value(value: chatService),
-        ChangeNotifierProvider.value(value: chatProvider),
+        ChangeNotifierProvider(create: (_) => authProvider),
+        Provider<ChatService>.value(value: chatService),
+        ChangeNotifierProxyProvider<ChatService, ChatProvider>(
+          create: (_) => ChatProvider(chatService),
+          update: (_, chatService, previous) =>
+              previous ?? ChatProvider(chatService),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, ContactProvider>(
           create: (context) => ContactProvider(authProvider),
           update: (context, authProvider, previous) =>
               previous ?? ContactProvider(authProvider),
         ),
-        // ChangeNotifierProvider.value(value: callProvider),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<AuthProvider, SearchProvider>(
           create: (context) =>
+              SearchProvider(SearchService(authProvider: authProvider)),
+          update: (context, authProvider, previous) =>
+              previous ??
               SearchProvider(SearchService(authProvider: authProvider)),
         ),
       ],

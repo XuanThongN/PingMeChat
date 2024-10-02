@@ -15,6 +15,7 @@ import '../../domain/models/message.dart';
 import '../../providers/contact_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../widgets/custom_icon.dart';
+import '../widgets/shimmer_loading.dart';
 import 'chat_page.dart';
 import 'create_group_page.dart';
 
@@ -45,7 +46,7 @@ class _MessageTabState extends State<MessageTab> {
     _chatProvider.onOpenChatPage = (chat) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+        MaterialPageRoute(builder: (context) => ChatPage(chatId: chat.id)),
       );
     };
 
@@ -89,8 +90,11 @@ class _MessageTabState extends State<MessageTab> {
   Widget _buildLoadingIndicator() {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
+        // return chatProvider.isLoading
+        //     ? const Center(child: CircularProgressIndicator())
+        //     : const SizedBox.shrink();
         return chatProvider.isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? ShimmerLoading()
             : const SizedBox.shrink();
       },
     );
@@ -140,7 +144,7 @@ class _MessageTabState extends State<MessageTab> {
     if (chat.id.isNotEmpty) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id)),
+        MaterialPageRoute(builder: (context) => ChatPage(chatId: chat.id)),
       );
     } else {
       _chatProvider.startNewChat(ChatCreateDto(
@@ -190,7 +194,10 @@ class _MessageTabState extends State<MessageTab> {
           ),
           const SizedBox(height: 4),
           Text(
-            contactUser.fullName,
+            // Chỉ hiển thị tên người dùng với 10 ký tự đầu tiên còn lại hiển thị dấu ba chấm
+            contactUser.fullName.length > 10
+                ? '${contactUser.fullName.substring(0, 10)}...'
+                : contactUser.fullName,
             style: AppTypography
                 .caption, // Tránh tràn dòng và hiển thị dấu ba chấm
             maxLines: 1,
@@ -311,7 +318,7 @@ class _MessageTabState extends State<MessageTab> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatScreen(chatId: item.id)));
+                builder: (context) => ChatPage(chatId: item.id)));
       },
       child: ListTile(
         leading: Stack(children: [

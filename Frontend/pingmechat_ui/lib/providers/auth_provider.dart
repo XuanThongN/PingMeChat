@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
+import 'chat_provider.dart';
+import 'contact_provider.dart';
+import 'search_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _accessToken;
@@ -99,10 +103,11 @@ class AuthProvider with ChangeNotifier {
       );
 
       notifyListeners();
-      await _saveUserData();
+      // await _saveUserData();
 
 // Call the onLoginSuccess callback if it's set
-      onLoginSuccess?.call();
+      // onLoginSuccess?.call();
+      await _handleSuccessfulLogin();
       return true; //Đăng nhập thành công
     } catch (error) {
       print('Login error: $error');
@@ -134,13 +139,30 @@ class AuthProvider with ChangeNotifier {
       fullName: extractedUserData['fullName'] as String,
     );
     notifyListeners();
+    await _handleSuccessfulLogin();
     return true;
   }
+  Future<void> _handleSuccessfulLogin() async {
+    await _saveUserData();
+    onLoginSuccess?.call();
+    notifyListeners();
+  }
 
-  Future<void> logout() async {
+  Future<void> logout(BuildContext context) async {
     notifyLogout();
+
+    // Clear shared preferences
     final prefs = await SharedPreferences.getInstance();
     prefs.clear();
+
+    // Notify other providers to clear their data
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    final searchProvider = Provider.of<SearchProvider>(context, listen: false);
+
+    chatProvider.clearData();
+    contactProvider.clearData();
+    searchProvider.clearData();
   }
 
   Future<void> _saveUserData() async {

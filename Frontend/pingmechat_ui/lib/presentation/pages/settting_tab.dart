@@ -97,7 +97,7 @@ class _SetttingTabState extends State<SetttingTab> {
                 child: ElevatedButton(
                   onPressed: () async {
                     try {
-                      await authProvider.logout();
+                      await authProvider.logout(context);
                       Navigator.of(context)
                           .pushReplacementNamed(LoginPage.routeName);
                     } catch (e) {

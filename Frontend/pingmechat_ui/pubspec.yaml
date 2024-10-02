@@ -53,6 +53,7 @@ dependencies:
   permission_handler: ^11.3.1
   audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
   badges: ^2.0.1 #Hỗ trợ hiển thị badge
+  shimmer: ^3.0.0 #Hỗ trợ hiển thị loading
 
 
 
