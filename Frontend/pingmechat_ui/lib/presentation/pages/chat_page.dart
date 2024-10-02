@@ -23,16 +23,16 @@ import '../widgets/custom_circle_avatar.dart';
 import '../widgets/message_widget.dart';
 import '../widgets/typing_indicator.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatPage extends StatefulWidget {
   final String chatId;
 
-  const ChatScreen({super.key, required this.chatId});
+  const ChatPage({super.key, required this.chatId});
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ChatPageState createState() => _ChatPageState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatPageState extends State<ChatPage> {
   // Khai báo các provider cần thiết
   late ChatProvider _chatProvider;
   late AuthProvider _authProvider;

@@ -51,7 +51,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 }
 
                 // Thông báo cho các người dùng khác về việc người dùng này online
-                await Clients.All.SendAsync("ReceiveMessage", $"{userId} has joined");
+                await Clients.All.SendAsync("NewUserJoined", $"{userId} has joined");
             }
 
             await base.OnConnectedAsync();

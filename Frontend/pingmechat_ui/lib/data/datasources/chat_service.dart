@@ -17,6 +17,14 @@ class ChatService {
   final AuthProvider authProvider;
   HubConnection? hubConnection;
   bool isConnected = false;
+  bool _listenersRegistered = false; // Đã đăng ký các listeners hay chưa
+
+  // Callbacks for different events
+  Function(Chat)? onNewGroupChatCallback;
+  Function(Chat)? onNewPrivateChatCallback;
+  Function(Message)? onReceiveMessageCallback;
+  Function(String, String)? onUserTypingCallback;
+  Function(String, String)? onUserStopTypingCallback;
 
   ChatService({required this.authProvider}) {
     authProvider.addListener(_handleAuthChange);
@@ -29,7 +37,15 @@ class ChatService {
       _disconnect();
     }
   }
+
   Future<void> _initialize() async {
+    if (hubConnection != null) {
+      // Nếu hubConnection không phải là null và đang hoạt động, không cần khởi tạo lại
+      if (hubConnection?.state == HubConnectionState.connected || hubConnection?.state == HubConnectionState.connecting) {
+        print("Đã có kết nối trước đó, không cần khởi tạo lại.");
+        return;
+      }
+    }
     await _setupSignalRConnection();
     _setupSignalRListeners();
   }
@@ -86,11 +102,59 @@ class ChatService {
       print('Kết nối hub đã kết nối lại: $connectionId');
       isConnected = true;
     });
+
+    hubConnection?.on('NewGroupChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final chat = Chat.fromJson(arguments[0]);
+        onNewGroupChatCallback?.call(chat);
+      }
+    });
+
+    hubConnection?.on('NewPrivateChat', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final chat = Chat.fromJson(arguments[0]);
+        onNewPrivateChatCallback?.call(chat);
+      }
+    });
+
+    hubConnection?.on('ReceiveMessage', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final message = Message.fromJson(arguments[0]);
+        onReceiveMessageCallback?.call(message);
+      }
+    });
+
+    hubConnection?.on('UserTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        final chatId = arguments[0] as String;
+        final userId = arguments[1] as String;
+        onUserTypingCallback?.call(chatId, userId);
+      }
+    });
+
+    hubConnection?.on('UserStopTyping', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        final chatId = arguments[0] as String;
+        final userId = arguments[1] as String;
+        onUserStopTypingCallback?.call(chatId, userId);
+      }
+    });
+
+    _listenersRegistered = true;
   }
 
   Future<void> _disconnect() async {
-    await hubConnection?.stop();
-    hubConnection = null;
+    if (hubConnection != null) {
+      await hubConnection?.stop();
+      // Xoá các listeners đã đăng ký
+      hubConnection?.off('NewGroupChat');
+      hubConnection?.off('NewPrivateChat');
+      hubConnection?.off('ReceiveMessage');
+      hubConnection?.off('UserTyping');
+      hubConnection?.off('UserStopTyping');
+      hubConnection = null;
+      _listenersRegistered = false;
+    }
     isConnected = false;
     print('Đã ngắt kết nối đến SignalR hub');
   }
@@ -190,7 +254,7 @@ class ChatService {
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
-    await hubConnection!.invoke('StartNewChat', args: [chatCreateDto]);
+    await hubConnection!.invoke('StartNewChatAsync', args: [chatCreateDto]);
   }
 
   void onNewGroupChat(void Function(Chat chat) handler) {

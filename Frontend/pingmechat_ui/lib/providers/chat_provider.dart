@@ -58,37 +58,44 @@ class ChatProvider extends ChangeNotifier {
 // Phương thức cập nhật ChatService nếu cần thay đổi
   void updateChatService(ChatService newChatService) {
     _chatService = newChatService;
-    _setupSignalRListeners(); // Cập nhật lại các listeners nếu có
+    // _setupSignalRListeners(); // Cập nhật lại các listeners nếu có
   }
 
   Future<void> _initialize() async {
-    _setupSignalRListeners();
+    // _setupSignalRListeners();
+    _setupCallbacks();
     await loadChats(); //Load tất cả đoạn chat từ server
   }
-
-  void _setupSignalRListeners() {
-    _chatService.onNewGroupChat((chat) {
-      _handleNewGroupChat(chat);
-    });
-
-    _chatService.onNewPrivateChat((chat) {
-      _handleNewPrivateChat(chat);
-    });
-
-      _chatService.onReceiveMessage((message) async {
-      _handleNewMessage(message);
-    });
-
-    _chatService.onUserTyping((chatId, userId) async {
-      _typingUserIds[chatId] = userId;
-      notifyListeners();
-    });
-
-    _chatService.onUserStopTyping((chatId, userId) async {
-      _typingUserIds.remove(chatId);
-      notifyListeners();
-    });
+  void _setupCallbacks() {
+    _chatService.onNewGroupChatCallback = _handleNewGroupChat;
+    _chatService.onNewPrivateChatCallback = _handleNewPrivateChat;
+    _chatService.onReceiveMessageCallback = _handleNewMessage;
+    _chatService.onUserTypingCallback = _handleUserTyping;
+    _chatService.onUserStopTypingCallback = _handleUserStopTyping;
   }
+  // void _setupSignalRListeners() {
+  //   _chatService.onNewGroupChat((chat) {
+  //     _handleNewGroupChat(chat);
+  //   });
+
+  //   _chatService.onNewPrivateChat((chat) {
+  //     _handleNewPrivateChat(chat);
+  //   });
+
+  //     _chatService.onReceiveMessage((message) async {
+  //     _handleNewMessage(message);
+  //   });
+
+  //   _chatService.onUserTyping((chatId, userId) async {
+  //     _typingUserIds[chatId] = userId;
+  //     notifyListeners();
+  //   });
+
+  //   _chatService.onUserStopTyping((chatId, userId) async {
+  //     _typingUserIds.remove(chatId);
+  //     notifyListeners();
+  //   });
+  // }
 
   void _handleNewGroupChat(Chat chat) {
     _chats.insert(0, chat);
@@ -116,7 +123,7 @@ class ChatProvider extends ChangeNotifier {
       // Chat not found, fetch it from the database
       try {
         final newChat = await _chatService.getChatById(message.chatId);
-        _chats.clear();
+        // _chats.clear();
         // Thêm đoạn chat vào đầu danh sách chats
         _chats.insert(0, newChat);
         _messagesByChatId[message.chatId]?.add(message);
@@ -153,6 +160,16 @@ class ChatProvider extends ChangeNotifier {
     }
 
     print("Tin nhắn nhận đc từ server: ");
+    notifyListeners();
+  }
+
+  void _handleUserTyping(String chatId, String userId) {
+    _typingUserIds[chatId] = userId;
+    notifyListeners();
+  }
+
+  void _handleUserStopTyping(String chatId, String userId) {
+    _typingUserIds.remove(chatId);
     notifyListeners();
   }
 
@@ -287,25 +304,6 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // Hàm upload file đính kèm theo tin nhắn
-  // Future<List<Attachment>> uploadFile(List<File> attachments) async {
-  //   List<Attachment> uploadedAttachments = [];
-  //   try {
-  //     // Upload attachments
-  //     final uploadResult = await _chatService.uploadFiles(attachments);
-  //     uploadedAttachments = uploadResult.map((url) {
-  //       final file = attachments.firstWhere((file) => file.path == url);
-  //       return Attachment(
-  //         url: url,
-  //         type: _getFileType(file),
-  //       );
-  //     }).toList();
-  //   } catch (error) {
-  //     print('Error uploading file: $error');
-  //   }
-  //   return uploadedAttachments;
-  // }
 
   // Hàm set trạng thái gõ tin nhắn
   Future<void> sendTypingStatus(String chatId, bool isTyping) async {

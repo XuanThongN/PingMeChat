@@ -7,8 +7,12 @@ import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../../core/constants/constant.dart';
+import '../../data/models/chat_model.dart';
 import '../../data/models/search_result.dart';
+import '../../domain/models/chat.dart';
+import '../../providers/chat_provider.dart';
 import '../../providers/contact_provider.dart';
+import 'chat_page.dart';
 
 class SearchResultsScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -195,23 +199,31 @@ class _UserTileState extends State<UserTile> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CustomCircleAvatar(
         radius: 28,
-        backgroundImage:
-            widget.user.avatarUrl!.isNotEmpty ? NetworkImage(widget.user.avatarUrl!) : null,
+        backgroundImage: widget.user.avatarUrl!.isNotEmpty
+            ? NetworkImage(widget.user.avatarUrl!)
+            : null,
       ),
       title: Text(widget.user.fullName,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      subtitle: Text(widget.user.userName, style: const TextStyle(fontSize: 14)),
+      subtitle:
+          Text(widget.user.userName, style: const TextStyle(fontSize: 14)),
       trailing: _buildActionButton(context, contactStatus, widget.user),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected ${widget.user.fullName}')),
-        );
+        if (contactStatus == ContactStatus.ACCEPTED) {
+          _handleUserSearchTap(widget.user.id);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            // Chỉ hiển thị thông báo khi người dùng chưa là bạn bè
+            const SnackBar(content: Text('You must be friends to chat')),
+          );
+        }
       },
     );
   }
 
   Widget? _buildActionButton(BuildContext context, String status, User user) {
-    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    final contactProvider =
+        Provider.of<ContactProvider>(context, listen: false);
     switch (status) {
       case ContactStatus.ACCEPTED:
         return null; // Không hiển thị nút nào nếu đã là bạn bè
@@ -233,23 +245,28 @@ class _UserTileState extends State<UserTile> {
     }
   }
 
-  Future<void> _acceptFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+  Future<void> _acceptFriendRequest(
+      BuildContext context, ContactProvider contactProvider, User user) async {
     try {
       final newStatus = await contactProvider.acceptFriendRequest(user.id);
       setState(() {
         contactStatus = newStatus;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Accepted friend request from ${user.fullName}')),
+        SnackBar(
+            content: Text('Accepted friend request from ${user.fullName}')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to accept friend request from ${user.fullName}')),
+        SnackBar(
+            content:
+                Text('Failed to accept friend request from ${user.fullName}')),
       );
     }
   }
 
-  Future<void> _cancelFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+  Future<void> _cancelFriendRequest(
+      BuildContext context, ContactProvider contactProvider, User user) async {
     try {
       final newStatus = await contactProvider.cancelFriendRequest(user.id);
       setState(() {
@@ -260,12 +277,15 @@ class _UserTileState extends State<UserTile> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to cancel friend request to ${user.fullName}')),
+        SnackBar(
+            content:
+                Text('Failed to cancel friend request to ${user.fullName}')),
       );
     }
   }
 
-  Future<void> _sendFriendRequest(BuildContext context, ContactProvider contactProvider, User user) async {
+  Future<void> _sendFriendRequest(
+      BuildContext context, ContactProvider contactProvider, User user) async {
     try {
       final newStatus = await contactProvider.sendFriendRequest(user.id);
       setState(() {
@@ -276,11 +296,41 @@ class _UserTileState extends State<UserTile> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send friend request to ${user.fullName}')),
+        SnackBar(
+            content: Text('Failed to send friend request to ${user.fullName}')),
       );
     }
   }
+
+  void _handleUserSearchTap(String userId) {
+    final _chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    // Duyệt tất cả các cuộc trò chuyện riêng tư và tìm cuộc trò chuyện có chứa user đang nhấn
+    // Tìm chat có chứa user với userId
+    final chat = _chatProvider.chats.firstWhere(
+      (chat) =>
+          chat.isGroup == false &&
+          chat.userChats.any((uc) => uc.userId == userId),
+      orElse: () => Chat(
+          isGroup: false,
+          userChats: [],
+          id: ''), // Cung cấp giá trị mặc định khi không tìm thấy phần tử nào
+    );
+
+// Kiểm tra nếu chat không phải là null và lấy chatId
+    if (chat.id.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatPage(chatId: chat.id)),
+      );
+    } else {
+      _chatProvider.startNewChat(ChatCreateDto(
+        isGroup: false,
+        userIds: [userId],
+      ));
+    }
+  }
 }
+
 class GroupTile extends StatelessWidget {
   final GroupChat groupChat;
 
@@ -368,10 +418,29 @@ class GroupTile extends StatelessWidget {
         ),
       ),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected ${groupChat.name}')),
-        );
+        _handleGroupSearchTap(context, groupChat.id);
       },
+    );
+  }
+
+  void _handleGroupSearchTap(BuildContext context, String groupChatId) {
+    final _chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    // Duyệt tất cả các cuộc trò chuyện riêng tư và tìm cuộc trò chuyện có chứa user đang nhấn
+    // Tìm chat có chứa user với groupChatId
+    final chat = _chatProvider.chats.firstWhere(
+      (chat) => chat.isGroup && chat.id == groupChatId,
+      orElse: () => Chat(
+          isGroup: false,
+          userChats: [],
+          id: ''), // Cung cấp giá trị mặc định khi không tìm thấy phần tử nào
+    );
+
+// Kiểm tra nếu chat không phải là null và lấy groupChatId
+    if (chat.id.isEmpty) return;
+    // Mở trang chat với chatId
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(chatId: chat.id)),
     );
   }
 }
