@@ -22,9 +22,9 @@ class CustomCircleAvatar extends StatelessWidget {
     return CircleAvatar(
       backgroundImage: !isGroupChat
           ? (backgroundImage ??
-              const CachedNetworkImageProvider(ImageConstants.defaultAvatarUrl))
-          : const CachedNetworkImageProvider(
-              ImageConstants.defaultGroupAvatarUrl),
+              // If no image is provided, show a placeholder image in assets/images/default_avatar.png
+              const AssetImage(ImageConstants.defaultAvatarPath))
+          : const AssetImage(ImageConstants.defaultGroupAvatarPath),
       radius: radius,
       child: child,
     );

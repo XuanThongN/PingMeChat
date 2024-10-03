@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/pages/login_page.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
 import 'package:provider/provider.dart';
 import '../../domain/models/account.dart';
 import '../../providers/auth_provider.dart';
@@ -11,49 +13,56 @@ class SettingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final currentUser = authProvider.currentUser;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(top: 20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+        child: Consumer<AuthProvider>(builder: (context, authProvider, child) {
+          final Account? currentUser = authProvider.currentUser;
+          if (currentUser == null) {
+            // Điều hướng đến trang đăng nhập nếu không có thông tin user
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(context, LoginPage.routeName);
+            });
+            return SizedBox.shrink(); // Return an empty widget if navigating
+          }
+          return Column(
+            children: [
+              _buildAppBar(context),
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      _buildUserInfo(currentUser),
+                      const SizedBox(height: 20),
+                      _buildSettingItem(
+                          Icons.key,
+                          'Account',
+                          'Privacy, security, change number',
+                          context,
+                          currentUser),
+                      const SizedBox(height: 20),
+                      _buildLogoutButton(context, authProvider),
+                    ],
                   ),
                 ),
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    _buildUserInfo(currentUser),
-                    const SizedBox(height: 20),
-                    _buildSettingItem(Icons.key, 'Account', 'Privacy, security, change number', context),
-                    // _buildSettingItem(Icons.chat_bubble, 'Chat', 'Chat history, theme, wallpapers', context),
-                    // _buildSettingItem(Icons.notifications, 'Notifications', 'Messages, group and others', context),
-                    // _buildSettingItem(Icons.help, 'Help', 'Help center, contact us, privacy policy', context  ),
-                    // _buildSettingItem(Icons.storage, 'Storage and data', 'Network usage, storage usage', context),
-                    // _buildSettingItem(Icons.person_add, 'Invite a friend', '', context),
-                    const SizedBox(height: 20),
-                    _buildLogoutButton(context, authProvider),
-                  ],
-                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -61,13 +70,17 @@ class SettingTab extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              // TODO: Handle back navigation
+              // Navigate back to the previous screen
+              Navigator.pop(context);
             },
           ),
           const Expanded(
             child: Text(
               'Settings',
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
           ),
@@ -82,7 +95,8 @@ class SettingTab extends StatelessWidget {
       children: [
         CustomCircleAvatar(
           radius: 30,
-          backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
+          backgroundImage:
+              user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -91,7 +105,8 @@ class SettingTab extends StatelessWidget {
             children: [
               Text(
                 user?.fullName ?? 'Unknown User',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               Text(
                 user?.email ?? user!.phoneNumber!,
@@ -110,7 +125,8 @@ class SettingTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingItem(IconData icon, String title, String subtitle, BuildContext context) {
+  Widget _buildSettingItem(IconData icon, String title, String subtitle,
+      BuildContext context, Account? currentUser) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.grey[200],
@@ -120,17 +136,14 @@ class SettingTab extends StatelessWidget {
       subtitle: Text(subtitle, style: TextStyle(color: Colors.grey[600])),
       onTap: () {
         if (title == 'Account') {
-          _showAccountDetails(context);
+          _showAccountDetails(context, currentUser);
         }
         // Xử lý các mục cài đặt khác ở đây
       },
     );
   }
 
-  void _showAccountDetails(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUser = authProvider.currentUser;
-
+  void _showAccountDetails(BuildContext context, Account? currentUser) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -161,14 +174,17 @@ class SettingTab extends StatelessWidget {
                           backgroundColor: AppColors.primary,
                           radius: 18,
                           child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                            icon: const Icon(Icons.camera_alt,
+                                size: 18, color: Colors.white),
                             onPressed: () async {
                               final ImagePicker _picker = ImagePicker();
-                              final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                              final XFile? image = await _picker.pickImage(
+                                  source: ImageSource.gallery);
                               if (image != null) {
                                 // TODO: Implement image upload and update user avatar
                                 // authProvider.updateUserAvatar(image.path);
-                                setState(() {}); // Refresh the bottom sheet to show new avatar
+                                setState(
+                                    () {}); // Refresh the bottom sheet to show new avatar
                               }
                             },
                           ),
@@ -179,12 +195,14 @@ class SettingTab extends StatelessWidget {
                   const SizedBox(height: 20),
                   TextField(
                     decoration: InputDecoration(labelText: 'Full Name'),
-                    controller: TextEditingController(text: currentUser?.fullName),
+                    controller:
+                        TextEditingController(text: currentUser?.fullName),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     decoration: InputDecoration(labelText: 'Status'),
-                    controller: TextEditingController(text: currentUser?.phoneNumber ?? currentUser?.email),
+                    controller: TextEditingController(
+                        text: currentUser?.phoneNumber ?? currentUser?.email),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -193,14 +211,22 @@ class SettingTab extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 24),
                     ),
                     onPressed: () {
                       // TODO: Implement update user information
                       // authProvider.updateUserInfo(newName, newStatus);
                       Navigator.pop(context);
                     },
-                    child: const Text('Update', style: TextStyle(fontSize: 16)),
+                    child: CustomElevatedButton(
+                      text: 'Create',
+                      height: 20,
+                      width: 100,
+                      onPressed: _updateUserInfo,
+                      foregroundColor: AppColors.white,
+                      backgroundColor: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
@@ -253,4 +279,7 @@ class SettingTab extends StatelessWidget {
       ),
     );
   }
+
+  //Update user information
+  void _updateUserInfo() {}
 }

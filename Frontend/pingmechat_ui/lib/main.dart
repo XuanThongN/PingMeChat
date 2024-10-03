@@ -15,6 +15,7 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 import 'config/theme.dart';
 
 import 'presentation/pages/login_page.dart';
+import 'providers/badge_provider.dart';
 import 'providers/search_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -22,12 +23,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authProvider = AuthProvider();
-  
+
   final chatService = ChatService(authProvider: authProvider);
 
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => BadgeProvider()),
         ChangeNotifierProvider(create: (_) => authProvider),
         Provider<ChatService>.value(value: chatService),
         ChangeNotifierProxyProvider<ChatService, ChatProvider>(
@@ -35,10 +37,10 @@ void main() async {
           update: (_, chatService, previous) =>
               previous ?? ChatProvider(chatService),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, ContactProvider>(
-          create: (context) => ContactProvider(authProvider),
-          update: (context, authProvider, previous) =>
-              previous ?? ContactProvider(authProvider),
+        ChangeNotifierProxyProvider2<AuthProvider, BadgeProvider, ContactProvider>(
+          create: (context) => ContactProvider(authProvider, context.read<BadgeProvider>()),
+          update: (context, authProvider, badgeProvider, previous) =>
+              previous ?? ContactProvider(authProvider, badgeProvider),
         ),
         ChangeNotifierProxyProvider<AuthProvider, SearchProvider>(
           create: (context) =>

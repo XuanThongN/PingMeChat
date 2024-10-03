@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pingmechat_ui/providers/auth_provider.dart';
+import 'package:pingmechat_ui/providers/badge_provider.dart';
 import 'dart:convert';
 
 import '../core/constants/constant.dart';
@@ -10,16 +11,27 @@ import '../domain/models/contact.dart';
 
 class ContactProvider extends ChangeNotifier {
   final AuthProvider _authProvider;
-  ContactProvider(this._authProvider);
+  final BadgeProvider _badgeProvider;
+  ContactProvider(this._authProvider, this._badgeProvider);
 
   List<Contact> _contacts = [];
   List<Account> _contactUsers = [];
+  List<Contact> _friendRequests = [];
+  List<Contact> _friends = [];
   bool _isLoading = false;
 
   List<Contact> get contacts => _contacts;
   List<Account> get contactUsers => _contactUsers;
   bool get isLoading => _isLoading;
   Account get currentUser => _authProvider.currentUser!;
+  List<Contact> get friendRequests => _friendRequests;
+  List<Contact> get friends => _friends;
+  List<Contact> getAllContacts() {
+    return _contacts
+        .map((contact) => _getContactUser(contact, currentUser.id))
+        .toList();
+  }
+
   Future<void> fetchContacts() async {
     _isLoading = true;
     notifyListeners();
@@ -44,6 +56,11 @@ class ContactProvider extends ChangeNotifier {
       } else {
         throw Exception('Failed to load contacts');
       }
+
+      _friendRequests = getFriendRequests(); // Lấy danh sách yêu cầu kết bạn
+      _friends = getFriends(); // Lấy danh sách bạn bè
+      // Cập nhật badge count
+      _badgeProvider.updateContactsCount(_friendRequests.length);
     } catch (error) {
       print('Error fetching contacts: $error');
     } finally {
@@ -52,13 +69,35 @@ class ContactProvider extends ChangeNotifier {
     }
   }
 
+// hàm để lấy danh sách bạn bè từ danh sách contacts
+  List<Contact> getFriends() {
+    return contacts.where((c) => c.status == ContactStatus.ACCEPTED).toList();
+  }
+
+  // Hàm để lấy danh sách yêu cầu kết bạn từ danh sách contacts
+  List<Contact> getFriendRequests() {
+    return contacts.where((c) => c.status == ContactStatus.PENDING).toList();
+  }
+
+  void _updateListFriendAndFriendRequest() {
+    _friendRequests = getFriendRequests();
+    _friends = getFriends();
+  }
+
   // Hàm mới để cập nhật danh sách contactUsers
   void _updateContactUsers() {
-    _contactUsers = _contacts.map((contact) {
-      return contact.user?.id != currentUser.id
-          ? contact.user!
-          : contact.contactUser!;
-    }).toList();
+    _contactUsers.clear(); // clear danh sách contactUsers
+    _contactUsers = _contacts
+        .map((contact) {
+          if (contact.status == ContactStatus.ACCEPTED) {
+            return contact.user?.id != currentUser.id
+                ? contact.user
+                : contact.contactUser;
+          }
+        })
+        .where((user) => user != null)
+        .cast<Account>()
+        .toList();
   }
 
   Future<void> addContact(AddContactRequest input) async {
@@ -125,10 +164,14 @@ class ContactProvider extends ChangeNotifier {
         final result = responseData['result'];
         final updatedContact = Contact.fromJson(result);
         final index =
-            _contacts.indexWhere((contact) => contact.id == contactId);
+            _contacts.indexWhere((contact) => contact.id == updatedContact.id);
         if (index != -1) {
-          _contacts[index] = updatedContact;
+          _contacts[index].status = updatedContact.status;
           _updateContactUsers();
+          // Cập nhật danh sách bạn bè và yêu cầu kết bạn
+          _updateListFriendAndFriendRequest();
+          // Cập nhật badge count
+          _badgeProvider.updateContactsCount(_friendRequests.length);
           notifyListeners();
         }
         return ContactStatus.ACCEPTED;
@@ -150,8 +193,12 @@ class ContactProvider extends ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        _contacts.removeWhere((contact) => contact.id == contactId);
+        _contacts.removeWhere((contact) => contact.user!.id == contactId);
         _updateContactUsers();
+        // Cập nhật danh sách bạn bè và yêu cầu kết bạn
+        _updateListFriendAndFriendRequest();
+        // Cập nhật badge count
+        _badgeProvider.updateContactsCount(_friendRequests.length);
         notifyListeners();
         return ContactStatus.CANCELLED;
       } else {
@@ -163,7 +210,7 @@ class ContactProvider extends ChangeNotifier {
     return ContactStatus.ACCEPTED;
   }
 
-  // Gửi yêu cầu kết bạn  
+  // Gửi yêu cầu kết bạn
   Future<String> sendFriendRequest(String userId) async {
     try {
       final response = await http.post(
@@ -200,5 +247,31 @@ class ContactProvider extends ChangeNotifier {
     _contacts = [];
     _contactUsers = [];
     notifyListeners();
+  }
+
+  Contact _getContactUser(Contact contact, String currentUserId) {
+    final contactUser =
+        contact.user!.id == currentUserId ? contact.contactUser : contact.user;
+    if (contactUser != null) {
+      contact.fullName = contactUser.fullName;
+      contact.avatarUrl = contactUser.avatarUrl;
+      contact.nickname = contactUser.email;
+      contact.phoneNumber = contactUser.phoneNumber;
+      contact.email = contactUser.email;
+    }
+    return contact;
+  }
+
+  List<Contact> getRecommendContacts() {
+    // Tạo danh sách người dùng khuyến nghị ảo
+    return List.generate(
+        5,
+        (index) => Contact(
+              id: index.toString(),
+              fullName: 'User $index',
+              avatarUrl: '',
+              email: 'User${index + 1}@gmail.com',
+              phoneNumber: '0123456789',
+            ));
   }
 }

@@ -120,21 +120,17 @@ class _MessageTabState extends State<MessageTab> {
   Widget _buildStatusList() {
     return Consumer<ContactProvider>(
       builder: (context, contactProvider, child) {
-        final contacts = contactProvider.contacts;
+        final contactUsers = contactProvider.contactUsers;
         return SizedBox(
           height: 80,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: contacts.length,
+            itemCount: contactUsers.length,
             itemBuilder: (context, index) {
-              final currentUserId = _authProvider.currentUser!.id;
-              final contact = contacts[index];
-              final contactUser = contact.user!.id == currentUserId
-                  ? contact.contactUser
-                  : contact.user;
+              final contact = contactUsers[index];
               return GestureDetector(
-                onTap: () => _handleContactStatusTap(contactUser.id),
-                child: _buildContactStatusItem(contactUser!),
+                onTap: () => _handleContactStatusTap(contact.id),
+                child: _buildContactStatusItem(contact!),
               );
             },
           ),
@@ -172,7 +168,6 @@ class _MessageTabState extends State<MessageTab> {
   }
 
   Widget _buildContactStatusItem(Account contactUser) {
-    // final isMe = contact.user!.id == currentUserId;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
