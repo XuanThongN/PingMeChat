@@ -338,6 +338,7 @@ class _ContactTabState extends State<ContactTab> {
     return InkWell(
       onTap: () {
         print('Start chat with ${contact.fullName}');
+        print('Start chat with ${contact.user!.id}');
           // _chatProvider.startNewChat(contact);
       },
       highlightColor: Colors.grey[200],

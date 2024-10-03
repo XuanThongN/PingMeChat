@@ -48,6 +48,8 @@ class ApiConstants {
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
 
+  static const String updateFCMTokenEndpoint = '$baseApiUrl/users/update-fcm-token'; // Cập nhật FCM token
+
   // Member chat
   static String getAddMembersToChatEndpoint(String chatId) {
     return '$baseApiUrl/chats/add-users-to-chat/$chatId';

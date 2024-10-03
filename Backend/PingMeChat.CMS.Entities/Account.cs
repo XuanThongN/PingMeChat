@@ -35,6 +35,9 @@ namespace PingMeChat.CMS.Entities.Users
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
 
+        public string? AvatarUrl { get; set; }
+        public string? FCMToken { get; set; } // token FCM
+
         public virtual ICollection<GroupUser> GroupUsers { get; set; }
         public virtual ICollection<UserMenu> UserMenus { get; set; }
         public virtual ICollection<UserSession> UserSessions { get; set; }

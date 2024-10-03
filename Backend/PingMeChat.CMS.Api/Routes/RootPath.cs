@@ -22,6 +22,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string DeleteRoute = "api/users/delete/{id}";
                 public const string PaginationRoute = "api/users/pagination";
                 public const string GetAllActive = "api/users/get-all-acctive";
+                public const string UpdateFCMTokenRoute = "api/users/update-fcm-token";
             }
             public static class Role
             {

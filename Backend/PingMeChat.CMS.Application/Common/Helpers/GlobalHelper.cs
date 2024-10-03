@@ -62,6 +62,8 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<IChatHubService, ChatHubService>() // Thêm dịch vụ ChatHubService
                     .AddSingleton<IUserConnectionManager, UserConnectionManager>()
                     .AddSingleton<IUserIdProvider, CustomUserIdProvider>()
+                    // Dang ky Dich vu FCM
+                    .AddScoped<IFCMService, FCMService>()
                     .AddSingleton<IUriService>(o =>
                     {
                         var accessor = o.GetRequiredService<IHttpContextAccessor>();
