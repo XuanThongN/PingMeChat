@@ -15,6 +15,8 @@ using PingMeChat.CMS.Application.Feature.ChatHubs;
 using CloudinaryDotNet;
 using Microsoft.Extensions.Options;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -203,6 +205,12 @@ builder.Services.AddSingleton(cloud =>
     return new Cloudinary(account);
 });
 #endregion
+
+// Initialize Firebase Admin SDK
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "firebase-adminsdk.json"))
+});
 
 var app = builder.Build();
 

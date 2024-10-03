@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/constant.dart';
+import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
+import '../presentation/pages/login_page.dart';
 import 'chat_provider.dart';
 import 'contact_provider.dart';
 import 'search_provider.dart';
@@ -102,11 +105,15 @@ class AuthProvider with ChangeNotifier {
         fullName: responseData['result']['fullName'],
       );
 
-      notifyListeners();
-      // await _saveUserData();
 
-// Call the onLoginSuccess callback if it's set
-      // onLoginSuccess?.call();
+      // After successful login, get and send FCM token to server
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        await _sendFCMTokenToServer(fcmToken);
+      }
+
+      
+      notifyListeners();
       await _handleSuccessfulLogin();
       return true; //Đăng nhập thành công
     } catch (error) {
@@ -142,6 +149,7 @@ class AuthProvider with ChangeNotifier {
     await _handleSuccessfulLogin();
     return true;
   }
+
   Future<void> _handleSuccessfulLogin() async {
     await _saveUserData();
     onLoginSuccess?.call();
@@ -157,7 +165,8 @@ class AuthProvider with ChangeNotifier {
 
     // Notify other providers to clear their data
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    final contactProvider =
+        Provider.of<ContactProvider>(context, listen: false);
     final searchProvider = Provider.of<SearchProvider>(context, listen: false);
 
     chatProvider.clearData();
@@ -196,5 +205,23 @@ class AuthProvider with ChangeNotifier {
     _expiryDate = null;
     _currentUser = null;
     notifyListeners();
+  }
+
+  // Firebase
+  Future<void> _sendFCMTokenToServer(String fcmToken) async {
+    final response = await http.post(
+      Uri.parse(ApiConstants.updateFCMTokenEndpoint),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        ...await getCustomHeaders(),
+      },
+      body: jsonEncode(<String, String>{
+        'FCMToken': fcmToken,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update FCM token');
+    }
   }
 }

@@ -52,19 +52,19 @@ public class SearchController : BaseController
                 pageSize,
                 predicate: x =>
                         x.Id != userId &&
-                       x.UserName.ToLower().Contains(keyword.ToLower()) ||
+                       (x.UserName.ToLower().Contains(keyword.ToLower()) ||
                         x.FullName!.ToLower().Contains(keyword.ToLower()) ||
                         x.Email!.ToLower().Contains(keyword.ToLower()) ||
-                        x.PhoneNumber!.ToLower().Contains(keyword.ToLower()),
+                        x.PhoneNumber!.ToLower().Contains(keyword.ToLower())),
                 orderBy: ord => ord.OrderBy(x => x.FullName));
-        
+
         var userSearchDtos = new List<UserSearchDto>();
         foreach (var user in users.Data)
         {
             // Check if there is a private chat between the current user and the searched user
             var privateChat = await _chatService.Find(x =>
-                    (x.UserChats.Any(u => u.UserId == userId) &&
-                    x.UserChats.Any(u => u.UserId == user.Id)) &&
+                    x.UserChats.Any(u => u.UserId == userId) &&
+                    x.UserChats.Any(u => u.UserId == user.Id) &&
                     !x.IsGroup);
             var userSearchDto = new UserSearchDto
             {

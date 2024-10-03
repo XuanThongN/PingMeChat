@@ -10,6 +10,7 @@ import '../data/datasources/file_upload_service.dart';
 import '../data/models/chat_model.dart';
 import '../domain/models/chat.dart';
 import '../domain/models/message.dart';
+import '../domain/models/userchat.dart';
 
 class ChatProvider extends ChangeNotifier {
   ChatService _chatService;
@@ -66,6 +67,7 @@ class ChatProvider extends ChangeNotifier {
     _setupCallbacks();
     await loadChats(); //Load tất cả đoạn chat từ server
   }
+
   void _setupCallbacks() {
     _chatService.onNewGroupChatCallback = _handleNewGroupChat;
     _chatService.onNewPrivateChatCallback = _handleNewPrivateChat;
@@ -327,6 +329,37 @@ class ChatProvider extends ChangeNotifier {
       _typingUserIds.remove(chatId);
     }
     notifyListeners();
+  }
+
+// Hàm thêm thành viên vào cuộc trò chuyện
+  Future<bool> addMembersToCurrentChat(
+      String chatId, List<String> selectedMembers) async {
+    // Thêm thành viên vào danh sách userChats của chat hiện tại
+    var result = await _chatService.addMembersToChat(chatId, selectedMembers);
+    if (result.isNotEmpty) {
+      // Cập nhật lại danh sách thành viên của chat hiện tại
+      final chatIndex = _chats.indexWhere((c) => c.id == chatId && c.isGroup);
+      if (chatIndex != -1) {
+        final members = _chats[chatIndex].userChats;
+        members.addAll(result);
+        notifyListeners();
+      }
+    }
+    return result.isNotEmpty;
+  }
+
+  // Hàm xóa thành viên khỏi cuộc trò chuyện
+  Future<bool> removeMemberFromCurrentChat(String chatId, String userId) async {
+    final result = await _chatService.removeMemberFromChat(chatId, userId);
+    if (result) {
+      final chatIndex = _chats.indexWhere((c) => c.id == chatId && c.isGroup);
+      if (chatIndex != -1) {
+        final members = _chats[chatIndex].userChats;
+        members.removeWhere((member) => member.userId == userId);
+        notifyListeners();
+      }
+    }
+    return result;
   }
 
 // Hàm xác định loại file

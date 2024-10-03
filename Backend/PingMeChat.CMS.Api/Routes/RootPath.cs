@@ -22,6 +22,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string DeleteRoute = "api/users/delete/{id}";
                 public const string PaginationRoute = "api/users/pagination";
                 public const string GetAllActive = "api/users/get-all-acctive";
+                public const string UpdateFCMTokenRoute = "api/users/update-fcm-token";
             }
             public static class Role
             {
@@ -68,7 +69,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string CreateChatRoute = "api/chats/create-chat";
                 public const string UpdateChatRoute = "api/chats/update-chat";
                 public const string DeleteChatRoute = "api/chats/delete-chat/{id}";
-                public const string AddUserToChatRoute = "api/chats/add-user-to-chat/{chatId}";
+                public const string AddUsersToChatRoute = "api/chats/add-users-to-chat/{chatId}";
                 public const string RemoveUserFromChatRoute = "api/chats/remove-user-from-chat/{chatId}";
             }
 

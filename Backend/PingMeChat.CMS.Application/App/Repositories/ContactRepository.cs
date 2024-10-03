@@ -34,7 +34,11 @@ namespace PingMeChat.CMS.Application.App.Repositories
             return await _dbContext.Set<Contact>()
                 .Include(c => c.User) // Bao gồm thông tin về người dùng
                 .Include(c => c.ContactUser) // Bao gồm thông tin về liên hệ của người dùng
-                .Where(c => (c.UserId == userId || c.ContactUserId == userId) && c.Status == ContactStatus.Accepted) // Tìm tất cả liên hệ của userId
+                .Where(c => (c.UserId == userId || c.ContactUserId == userId) // Lấy các liên hệ (đã gửi, đã chấp nhận, đang chờ)
+                                && (c.Status == ContactStatus.Accepted
+                                || c.Status == ContactStatus.Pending
+                                || c.Status == ContactStatus.Requested)
+                ) // Tìm tất cả liên hệ của userId
                 .ToListAsync();
         }
 

@@ -17,5 +17,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users.Dto
         [Phone]
         public string? PhoneNumber { get; set; }
         public List<string>? GroupIds { get; set; }
+        public string? FCMToken { get; set; }
+
     }
 }

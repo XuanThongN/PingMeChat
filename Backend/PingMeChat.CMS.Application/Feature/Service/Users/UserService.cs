@@ -125,6 +125,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users
             user.Email = dto.Email;
             user.IsLocked = dto.IsLocked;
             user.PhoneNumber = dto.PhoneNumber;
+            user.FCMToken = dto.FCMToken;
 
             // Cập nhật nhóm người dùng
             if (dto.GroupIds != null)

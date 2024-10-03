@@ -55,7 +55,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
                 ContactUserId = c.ContactUserId,
                 ContactUser = _mapper.Map<AccountDto>(c.ContactUser),
                 User = _mapper.Map<AccountDto>(c.User),
-                //Status = c.Status
+                Status = GetContactStatus(c, currentUserId),
+                CreatedDate = c.CreatedDate ?? DateTime.MinValue,
             }).ToList();
         }
 
@@ -136,6 +137,16 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             await _unitOfWork.SaveChangeAsync();
 
             return true;
+        }
+
+        //Hàm để lấy Status chính xác của contact
+        private ContactStatus GetContactStatus(Contact contact, string userId)
+        {
+            if (contact.Status == ContactStatus.Pending && contact.UserId == userId)
+            {
+                return ContactStatus.Requested;
+            }
+            return contact.Status;
         }
 
     }

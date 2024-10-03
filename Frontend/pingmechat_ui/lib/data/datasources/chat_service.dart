@@ -10,6 +10,7 @@ import 'package:signalr_core/signalr_core.dart';
 import '../../core/constants/constant.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
+import '../../domain/models/userchat.dart';
 import '../models/chat_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -41,7 +42,8 @@ class ChatService {
   Future<void> _initialize() async {
     if (hubConnection != null) {
       // Nếu hubConnection không phải là null và đang hoạt động, không cần khởi tạo lại
-      if (hubConnection?.state == HubConnectionState.connected || hubConnection?.state == HubConnectionState.connecting) {
+      if (hubConnection?.state == HubConnectionState.connected ||
+          hubConnection?.state == HubConnectionState.connecting) {
         print("Đã có kết nối trước đó, không cần khởi tạo lại.");
         return;
       }
@@ -351,5 +353,60 @@ class ChatService {
 
   Future<void> sendUserStopTyping(String chatId) async {
     await hubConnection!.invoke('UserStopTyping', args: [chatId]);
+  }
+
+  Future<List<UserChat>> addMembersToChat(
+      String chatId, List<String> selectedMembers) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.getAddMembersToChatEndpoint(chatId)),
+        headers: {
+          'Content-Type': 'application/json ; charset=UTF-8',
+          ...await authProvider.getCustomHeaders(),
+        },
+        body: json.encode(selectedMembers),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final List<dynamic> data = jsonResponse['result'];
+
+        // Kiểm tra xem data có null hay không và chuyển đổi từng phần tử trong 'data' thành đối tượng 'UserChat'
+        List<UserChat> newMembers =
+            data.map((json) => UserChat.fromJson(json)).toList();
+
+        return newMembers;
+      } else {
+        throw Exception(
+            'HTTP error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load messages: $e');
+    }
+  }
+
+  Future<bool> removeMemberFromChat(String chatId, String userId) async {
+    try {
+      final uri =
+          Uri.parse(ApiConstants.getRemoveMemberFromChatEndpoint(chatId))
+              .replace(queryParameters: {
+        'userId': userId,
+      });
+      final response = await http.delete(uri,
+          headers: await authProvider.getCustomHeaders());
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final data = jsonResponse['result'] as bool;
+
+        // Kiểm tra xem data có null hay không và chuyển thành true/false
+        return data;
+      } else {
+        throw Exception(
+            'HTTP error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      throw Exception('Failed to remove member from chat: $e');
+    }
   }
 }

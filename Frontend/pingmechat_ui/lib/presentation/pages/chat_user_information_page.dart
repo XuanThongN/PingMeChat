@@ -1,19 +1,52 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:pingmechat_ui/presentation/widgets/custom_circle_avatar.dart';
+import 'package:pingmechat_ui/providers/chat_provider.dart';
+import 'package:provider/provider.dart';
 
+import '../../domain/models/chat.dart';
+import '../../providers/auth_provider.dart';
 import 'chat_media_links_document_page.dart';
+import 'group_members_page.dart';
 
 class UserInformationPage extends StatefulWidget {
-  const UserInformationPage({super.key});
+  final String chatId;
+  const UserInformationPage({super.key, required this.chatId});
 
   @override
   _UserInformationPageState createState() => _UserInformationPageState();
 }
 
 class _UserInformationPageState extends State<UserInformationPage> {
-  final int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    // provider để lấy thông tin chi tiết của chat
+    final chatProvider = Provider.of<ChatProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final chat = chatProvider.chats.firstWhere((c) => c.id == widget.chatId);
+    if (chat.id.isEmpty) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Chat not found'),
+        ),
+      );
+    } // Chat được chọn
+    final otherUser = chat.userChats // Người dùng còn lại trong chat
+        .firstWhere((uc) => uc.userId != authProvider.currentUser!.id)
+        .user;
+    final chatAvatar = chat.isGroup
+        ? chat.avatarUrl!
+        : otherUser!.avatarUrl; // Ảnh đại diện của chat
+    final chatName =
+        chat.isGroup ? chat.name! : otherUser!.fullName; // Tên chat
+    final additionalInfo = chat.isGroup // Thông tin bổ sung
+        ? '${chat.userChats.length} members'
+        : otherUser!.phoneNumber ?? otherUser!.email;
+    final attachmentsNumber = chat.messages! // Số lượng tệp đính kèm trong chat
+        .where((m) => m.attachments != null)
+        .expand((m) => m.attachments!)
+        .length;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -32,25 +65,33 @@ class _UserInformationPageState extends State<UserInformationPage> {
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage: //Image from internet
-                        NetworkImage(
-                            'https://plus.unsplash.com/premium_photo-1670148434900-5f0af77ba500?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c3BsYXNofGVufDB8fDB8fHww'),
+                  CustomCircleAvatar(
+                      radius: 50,
+                      isGroupChat: chat.isGroup,
+                      backgroundImage: chatAvatar != null
+                          ? CachedNetworkImageProvider(chatAvatar)
+                          : null),
+                  Text(
+                    chatName,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'David Wayne',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    additionalInfo,
+                    style: const TextStyle(color: Colors.grey),
                   ),
-                  const Text(
-                    '(+44) 20 1234 5689',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.copy, color: Colors.grey),
-                    onPressed: () {},
-                  ),
+                  !chat.isGroup
+                      ? IconButton(
+                          icon: const Icon(Icons.copy, color: Colors.grey),
+                          onPressed: () {
+                            Clipboard.setData(
+                                ClipboardData(text: additionalInfo));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Copied to clipboard')),
+                            );
+                          },
+                        )
+                      : const SizedBox(),
                 ],
               ),
             ),
@@ -62,7 +103,9 @@ class _UserInformationPageState extends State<UserInformationPage> {
                   SettingsOption(
                     icon: Icons.link,
                     title: 'Media, Links & Documents',
-                    trailing: '152',
+                    trailing: attachmentsNumber > 0
+                        ? attachmentsNumber.toString()
+                        : null,
                     onTap: () {
                       //Chuyển tới trang Media, Links & Documents
                       Navigator.push(
@@ -79,56 +122,33 @@ class _UserInformationPageState extends State<UserInformationPage> {
                     value: false,
                     onChanged: (bool value) {},
                   ),
-                  SettingsOption(
-                    icon: Icons.notification_important,
-                    title: 'Custom Notification',
-                    onTap: () {},
-                  ),
-                  SettingsSwitchOption(
-                    icon: Icons.lock,
-                    title: 'Protected Chat',
-                    value: false,
-                    onChanged: (bool value) {},
-                  ),
-                  SettingsSwitchOption(
-                    icon: Icons.visibility_off,
-                    title: 'Hide Chat',
-                    value: false,
-                    onChanged: (bool value) {},
-                  ),
-                  SettingsSwitchOption(
-                    icon: Icons.history,
-                    title: 'Hide Chat History',
-                    value: false,
-                    onChanged: (bool value) {},
-                  ),
-                  SettingsOption(
-                    icon: Icons.group,
-                    title: 'Add To Group',
-                    onTap: () {},
-                  ),
-                  SettingsColorOption(
-                    icon: Icons.color_lens,
-                    title: 'Custom Color Chat',
-                    color: Colors.blue,
-                    onTap: () {},
-                  ),
-                  SettingsOption(
-                    icon: Icons.image,
-                    title: 'Custom Background Chat',
-                    onTap: () {},
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.report, color: Colors.red),
-                    title: const Text('Report', style: TextStyle(color: Colors.red)),
-                    onTap: () {},
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.block, color: Colors.red),
-                    title: const Text('Block', style: TextStyle(color: Colors.red)),
-                    onTap: () {},
-                  ),
+                  chat.isGroup
+                      ? SettingsOption(
+                          icon: Icons.group,
+                          title: 'Members',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    GroupMembersPage(chatId: chat.id),
+                              ),
+                            );
+                          },
+                        )
+                      : const SizedBox(),
+                  chat.isGroup // Nếu là nhóm thì hiển thị nút Leave Group
+                      ? SettingsOption(
+                          icon: Icons.exit_to_app,
+                          title: 'Leave Group',
+                          onTap: () {},
+                        )
+                      : ListTile(
+                          leading: const Icon(Icons.block, color: Colors.red),
+                          title: const Text('Block',
+                              style: TextStyle(color: Colors.red)),
+                          onTap: () {},
+                        ),
                 ],
               ),
             ),
@@ -146,7 +166,8 @@ class SettingsOption extends StatelessWidget {
   final VoidCallback onTap;
 
   const SettingsOption(
-      {super.key, required this.icon,
+      {super.key,
+      required this.icon,
       required this.title,
       this.trailing,
       required this.onTap});
@@ -171,7 +192,8 @@ class SettingsSwitchOption extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const SettingsSwitchOption(
-      {super.key, required this.icon,
+      {super.key,
+      required this.icon,
       required this.title,
       required this.value,
       required this.onChanged});
@@ -196,7 +218,8 @@ class SettingsColorOption extends StatelessWidget {
   final VoidCallback onTap;
 
   const SettingsColorOption(
-      {super.key, required this.icon,
+      {super.key,
+      required this.icon,
       required this.title,
       required this.color,
       required this.onTap});

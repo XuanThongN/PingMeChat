@@ -1,6 +1,9 @@
+using System.Security.Claims;
+using AutoMapper;
 using AutoWrapper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NPOI.HSSF.Record.Chart;
 using PingMeChat.CMS.API.Routes;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Filters;
@@ -16,9 +19,11 @@ namespace PingMeChat.CMS.Api.Controllers
     public class UserController : BaseController
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly IMapper _mapper;
+        public UserController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
+            _mapper = mapper;
         }
 
         [HttpPost]
@@ -92,8 +97,41 @@ namespace PingMeChat.CMS.Api.Controllers
             var email = GetEmail();
             dto.UpdatedBy = email;
             var result = await _userService.Update(dto);
-            
+
             return Ok(new ApiResponse(string.Format(Message.Success.UpdatedCompleted, "tài khoản người dùng"), result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.Feature.User.UpdateFCMTokenRoute)]
+        public async Task<IActionResult> UpdateFCMToken([FromBody] UpdateFCMTokenDto model)
+        {
+            var userId = GetUserId();
+            var user = await _userService.FindById(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            var updateUserDto = new UserUpdateDto {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FCMToken = model.FCMToken
+            };
+            
+            var result = await _userService.Update(updateUserDto);
+
+            if (result != null)
+            {
+                return Ok(new ApiResponse("FCM token updated successfully", result, StatusCodes.Status400BadRequest));
+            }
+
+            return Ok(new ApiResponse(string.Format(Message.Success.UpdatedCompleted, "tài khoản người dùng"), result, StatusCodes.Status200OK));
+        }
+
+        public class UpdateFCMTokenDto
+        {
+            public string FCMToken { get; set; }
         }
     }
 }

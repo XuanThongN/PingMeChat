@@ -36,7 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   flutter_slidable: ^3.1.1 #Giúp cho việc vuốt ngang từng đoạn chat
-  flutter_svg: ^0.22.0 #Hỗ trợ hiển thị ảnh svg`
+  flutter_svg: ^2.0.10+1 #Hỗ trợ hiển thị ảnh svg`
   cached_network_image: ^3.0.0 #Hỗ trợ load ảnh từ mạng
   flutter_localizations:
     sdk: flutter
@@ -55,6 +55,11 @@ dependencies:
   badges: ^2.0.1 #Hỗ trợ hiển thị badge
   shimmer: ^3.0.0 #Hỗ trợ hiển thị loading
 
+  # Firebase
+  firebase_core: ^2.32.0
+  firebase_messaging: ^14.0.0
+  firebase_analytics: ^10.0.0
+  flutter_local_notifications: ^17.0.0
 
 
 #  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc

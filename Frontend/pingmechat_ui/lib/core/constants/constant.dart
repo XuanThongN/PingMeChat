@@ -1,8 +1,7 @@
 // Đây là file chứa các hằng số dùng chung trong ứng dụng
 // Các hằng số này bao gồm các URL API, thông tin authen, thông tin chatHub
 // Để sử dụng các hằng số này, ta chỉ cần import file này vào nơi cần sử dụng
-const String baseUrl = 'https://pjmrgdlv-7043.asse.devtunnels.ms';
-
+const String baseUrl = 'https://jxhq42vd-7043.asse.devtunnels.ms';
 class ApiConstants {
   // Base URL
   static const String baseApiUrl = '$baseUrl/api';
@@ -48,6 +47,17 @@ class ApiConstants {
 
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
+
+  static const String updateFCMTokenEndpoint = '$baseApiUrl/users/update-fcm-token'; // Cập nhật FCM token
+
+  // Member chat
+  static String getAddMembersToChatEndpoint(String chatId) {
+    return '$baseApiUrl/chats/add-users-to-chat/$chatId';
+  }
+
+  static String getRemoveMemberFromChatEndpoint(String chatId) {
+    return '$baseApiUrl/chats/remove-user-from-chat/$chatId';
+  }
 }
 
 // ChatHub
@@ -57,17 +67,15 @@ class ChatHubConstants {
 
 // Ảnh tĩnh
 class ImageConstants {
-  // static const String defaultAvatar = 'assets/images/default_avatar.png';
-  static const String defaultAvatarUrl = 'https://thumbs.dreamstime.com/b/default-avatar-profile-icon-social-media-user-vector-image-icon-default-avatar-profile-icon-social-media-user-vector-image-209162840.jpg';
-  static const String defaultGroupAvatarUrl =
-      'https://static.vecteezy.com/system/resources/previews/026/019/617/original/group-profile-avatar-icon-default-social-media-forum-profile-photo-vector.jpg';
+  static const String defaultAvatarPath = 'assets/images/default_avatar.png';
+  static const String defaultGroupAvatarPath  = 'assets/images/default_group_avatar.jpg';
 }
 
-// Status của user 
+// Status của user
 class ContactStatus {
   static const String PENDING = 'Pending'; // Đang chờ
   static const String ACCEPTED = 'Accepted'; // Đã chấp nhận
-  static const String BLOCKED = 'Blocked';  // Bị chặn
+  static const String BLOCKED = 'Blocked'; // Bị chặn
   static const String STRANGER = 'Stranger'; // Người lạ
   static const String REQUESTED = 'Requested'; // Đã gửi yêu cầu
   static const String CANCELLED = 'Cancelled'; // Đã hủy yêu cầu

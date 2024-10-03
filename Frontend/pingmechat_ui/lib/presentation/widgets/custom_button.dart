@@ -9,7 +9,9 @@ class CustomElevatedButton extends StatelessWidget {
       required this.foregroundColor,
       required this.backgroundColor,
       this.child,
-      this.isLoading = false});
+      this.isLoading = false,
+      this.height = 50,
+      this.width = double.infinity});
 
   final String text;
   final VoidCallback onPressed;
@@ -17,12 +19,14 @@ class CustomElevatedButton extends StatelessWidget {
   final Color backgroundColor;
   final Widget? child;
   final bool isLoading;
+  final double height;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: 50,
+      width: width,
+      height: height,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
