@@ -277,7 +277,7 @@ android/app/release
 .idea/
 
 # Android related
-*.gradle
+#*.gradle
 *.idea
 .gradle
 local.properties
@@ -490,7 +490,7 @@ captures/
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
-google-services.json
+#google-services.json
 
 # Freeline
 freeline.py
@@ -753,7 +753,7 @@ captures/
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
-google-services.json
+#google-services.json
 
 # Freeline
 freeline.py

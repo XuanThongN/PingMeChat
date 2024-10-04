@@ -60,11 +60,18 @@ dependencies:
   firebase_messaging: ^14.0.0
   firebase_analytics: ^10.0.0
   flutter_local_notifications: ^17.0.0
+  flutter_launcher_icons: ^0.13.1 #Hỗ trợ tạo icon cho app
 
 
 #  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
 #  audio_waveforms: ^1.0.5 #Hỗ trợ hiển thị sóng nhạc
-
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/img.png"
+  adaptive_icon_background: "#ffffff" # Tùy chọn: màu nền cho adaptive icon
+  adaptive_icon_foreground: "assets/images/img.png" # Tùy chọn: foreground cho adaptive icon
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "890604881878",
+    "project_id": "fcm-pingmechat",
+    "storage_bucket": "fcm-pingmechat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890604881878:android:7036d3f9d4cb5ab1b8c677",
+        "android_client_info": {
+          "package_name": "com.xuanthongn.pingmechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAH7a0eRwXKbPwDeiuTl9xCnQJlrXKoQ2E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
