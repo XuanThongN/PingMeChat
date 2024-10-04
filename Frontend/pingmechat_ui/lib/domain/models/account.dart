@@ -1,6 +1,7 @@
 class Account {
   final String id;
   final String fullName;
+  final String? userName;
   final String email;
   final String? phoneNumber;
   final String? avatarUrl;
@@ -8,6 +9,7 @@ class Account {
   Account({
     required this.id,
     required this.fullName,
+     this.userName,
     required this.email,
     this.phoneNumber,
     this.avatarUrl,
@@ -17,6 +19,7 @@ class Account {
     return Account(
       id: json['id'],
       fullName: json['fullName'],
+      userName: json['userName'] ?? '',
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       avatarUrl: json['avatarUrl'],

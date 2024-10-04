@@ -17,7 +17,9 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 import 'config/theme.dart';
 
 import 'data/datasources/notification_service.dart';
+import 'presentation/pages/forgot_password_page.dart';
 import 'presentation/pages/login_page.dart';
+import 'presentation/pages/verify_code_page.dart';
 import 'providers/badge_provider.dart';
 import 'providers/search_provider.dart';
 
@@ -58,11 +60,10 @@ void main() async {
       print('Message also contained a notification: ${message.notification}');
     }
   });
-  
+
   // Khoi tao notification service
   NotificationService notificationService = NotificationService();
   await notificationService.initialize();
-
 
   // Khoi tao auth provider
   final authProvider = AuthProvider();
@@ -100,49 +101,6 @@ void main() async {
   );
 }
 
-// void showIncomingCallDialog(BuildContext context, String callerId,
-//     String chatId, bool isVideoCall, CallProvider callProvider) {
-//   showDialog(
-//     context: context,
-//     barrierDismissible: false,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: Text('Incoming ${isVideoCall ? 'Video' : 'Audio'} Call'),
-//         content: Text('Call from $callerId'),
-//         actions: <Widget>[
-//           TextButton(
-//             child: Text('Reject'),
-//             onPressed: () {
-//               callProvider.endCall();
-//               Navigator.of(context).pop();
-//             },
-//           ),
-//           TextButton(
-//             child: Text('Accept'),
-//             onPressed: () {
-//               callProvider.acceptCall();
-//               Navigator.of(context).pop();
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (context) => CallPage(
-//                     chatId: chatId,
-//                     isVideo: isVideoCall,
-//                     onEndCall: () {
-//                       callProvider.endCall();
-//                       Navigator.pop(context);
-//                     },
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -159,6 +117,7 @@ class MyApp extends StatelessWidget {
         RegisterPage.routeName: (context) => const RegisterPage(),
         HomePage.routeName: (context) => const HomePage(),
         SearchResultsScreen.routeName: (context) => SearchResultsScreen(),
+        ForgotPasswordPage.routeName: (context) => ForgotPasswordPage(),
       },
       localizationsDelegates: [
         AppLocalizations.delegate,

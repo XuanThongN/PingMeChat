@@ -8,11 +8,11 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users.Dto
     {
         [Required]
         public string FullName { get; set; }
-        [Required]
-        [Email]
-        public string Email { get; set; }
+        // [Required]
+        // [Email]
+        // public string Email { get; set; }
         public bool IsLocked { get; set; }
-
+        public string? AvatarUrl { get; set; }
         [Required]
         [Phone]
         public string? PhoneNumber { get; set; }

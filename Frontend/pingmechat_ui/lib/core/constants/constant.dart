@@ -9,9 +9,21 @@ class ApiConstants {
   // Auth
   static const String loginEndpoint = '$baseApiUrl/auth/login';
   static const String registerEndpoint = '$baseApiUrl/auth/register';
+  static const String updateFCMTokenEndpoint =
+      '$baseApiUrl/users/update-fcm-token';
+  static const String reSendVerificationCodeEndpoint =
+      '$baseApiUrl/auth/resend-verification-code';
+  static const String verifyCodeEndpoint = '$baseApiUrl/auth/verify-code';
+  static const String verifyResetCodeEndpoint =
+      '$baseApiUrl/auth/verify-reset-code';
+  static const String forgotPasswordEndpoint =
+      '$baseApiUrl/auth/forgot-password';
+  static const String resetPasswordEndpoint = '$baseApiUrl/auth/reset-password';
 
   // Profile
-  static const String userProfileEndpoint = '$baseApiUrl/user/profile';
+  static const String userProfileEndpoint = '$baseApiUrl/users/profile';
+  static const String updateUserInfoEndpoint = '$baseApiUrl/users/update-profile';
+  static const String updateUserAvatarEndpoint = '$baseApiUrl/users/update-avatar';
 
   // Chat
   static const String getChatListEndpoint = '$baseApiUrl/chats/get-chat-list';
@@ -48,8 +60,6 @@ class ApiConstants {
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
 
-  static const String updateFCMTokenEndpoint = '$baseApiUrl/users/update-fcm-token'; // Cập nhật FCM token
-
   // Member chat
   static String getAddMembersToChatEndpoint(String chatId) {
     return '$baseApiUrl/chats/add-users-to-chat/$chatId';
@@ -68,7 +78,8 @@ class ChatHubConstants {
 // Ảnh tĩnh
 class ImageConstants {
   static const String defaultAvatarPath = 'assets/images/default_avatar.png';
-  static const String defaultGroupAvatarPath  = 'assets/images/default_group_avatar.jpg';
+  static const String defaultGroupAvatarPath =
+      'assets/images/default_group_avatar.jpg';
 }
 
 // Status của user

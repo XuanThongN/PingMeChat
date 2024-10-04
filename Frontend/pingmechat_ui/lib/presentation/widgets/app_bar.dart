@@ -1,21 +1,32 @@
-//Create a custom app bar widget
 import 'package:flutter/material.dart';
-
 import '../../config/theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  // add custom Function to handle back button  
   final Function()? onBackButtonPressed;
-  const CustomAppBar({super.key, this.onBackButtonPressed});
+  final String? title;
+  final Color? backgroundColor;
+  final Color? textColor;
+
+  const CustomAppBar({
+    Key? key, 
+    this.onBackButtonPressed,
+    this.title,
+    this.backgroundColor,
+    this.textColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: Icon(Icons.arrow_back, color: textColor ?? AppColors.secondary),
         onPressed: onBackButtonPressed ?? () => Navigator.of(context).pop(),
       ),
-      backgroundColor: AppColors.white,
+      title: title != null ? Text(
+        title!,
+        style: TextStyle(color: textColor ?? AppColors.secondary),
+      ) : null,
+      backgroundColor: backgroundColor ?? AppColors.white,
       elevation: 0,
     );
   }

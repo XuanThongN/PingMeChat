@@ -6,6 +6,7 @@ using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.App.Repositories;
 using PingMeChat.CMS.Application.Feature.ChatHubs;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth;
+using PingMeChat.CMS.Application.Feature.Indentity.Email;
 using PingMeChat.CMS.Application.Feature.Indentity.RefreshTokens;
 using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
@@ -62,6 +63,7 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<IChatHubService, ChatHubService>() // Thêm dịch vụ ChatHubService
                     .AddSingleton<IUserConnectionManager, UserConnectionManager>()
                     .AddSingleton<IUserIdProvider, CustomUserIdProvider>()
+                    .AddScoped<IEmailService, EmailService>()
                     // Dang ky Dich vu FCM
                     .AddScoped<IFCMService, FCMService>()
                     .AddSingleton<IUriService>(o =>

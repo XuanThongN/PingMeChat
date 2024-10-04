@@ -75,7 +75,8 @@ namespace PingMeChat.Shared.Utils
                 public const string LockAccountCompleted = "Khóa tài khoản thành công";
                 public const string UnLockAccountCompleted = "Mở khóa tài khoản thành công";
                 public const string ChangePasswordCompleted = "Thay đổi mật khẩu thành công";
-
+                public const string CodeVerified = "Mã xác thực đã được xác minh";
+                public const string CodeResent = "Mã xác thực đã được gửi lại";
             }
             #endregion
             #region feature

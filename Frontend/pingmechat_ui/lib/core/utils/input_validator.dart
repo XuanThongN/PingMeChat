@@ -1,5 +1,7 @@
 // Create a input validator class
 
+import 'package:flutter/src/widgets/framework.dart';
+
 class InputValidator {
   // Validate username field with minimum 3 characters required and not include special characters and spaces between characters
   static String? validateUsername(String? value) {
@@ -14,7 +16,6 @@ class InputValidator {
     }
     return null;
   }
-
 
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -44,6 +45,21 @@ class InputValidator {
     }
     if (value.length < 8) {
       return 'Password must be at least 8 characters';
+    }
+    if (value.length < 8 || value.length > 20) {
+      return 'Password must be between 8 and 20 characters long.';
+    }
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return 'Password must contain at least one lowercase letter.';
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Password must contain at least one digit.';
+    }
+    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      return 'Password must contain at least one special character.';
     }
     return null;
   }
@@ -75,6 +91,23 @@ class InputValidator {
     }
     if (!RegExp(r'^0[0-9]{9}$').hasMatch(value)) {
       return 'Please enter a valid phone number';
+    }
+    return null;
+  }
+
+  static String? validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please select your gender';
+    }
+    return null;
+  }
+
+  static String? validateCode(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Code is required';
+    }
+    if (value.length != 6) {
+      return 'Code must be 6 characters';
     }
     return null;
   }

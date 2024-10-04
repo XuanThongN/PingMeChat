@@ -118,5 +118,58 @@ namespace PingMeChat.CMS.Api.Controllers
             if (!data) return BadRequest(new ApiResponse(Message.Error.ChangePasswordFail, null, StatusCodes.Status400BadRequest));
             return Ok(new ApiResponse(Message.Success.Auth.ChangePasswordCompleted, data, 200));
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ServiceFilter(typeof(ModelStateFilter))]
+        [Route(ApiRoutes.Auth.VerifyCodeRoute)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyCode([FromBody] VerifyCodeRequest request)
+        {
+            var result = await _authService.VerifyCode(request.Email, request.Code);
+            return Ok(new ApiResponse(Message.Success.Auth.CodeVerified, result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ServiceFilter(typeof(ModelStateFilter))]
+        [Route(ApiRoutes.Auth.ResendVerificationCode)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ResendVerificationCode([FromBody] string email)
+        {
+            var result = await _authService.ResendVerificationCode(email);
+            return Ok(new ApiResponse(Message.Success.Auth.CodeResent, result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Auth.ForgotPasswordRoute)]
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
+        {
+            var result = await _authService.ForgotPassword(email);
+            return Ok(new ApiResponse("Reset password code sent", result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Auth.VerifyResetCodeRoute)]
+        [ServiceFilter(typeof(ModelStateFilter))]
+        public async Task<IActionResult> VerifyResetCode([FromBody] VerifyResetCodeRequest request)
+        {
+            var result = await _authService.VerifyResetCode(request.Email, request.Code);
+            return Ok(new ApiResponse("Reset code verified", result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Auth.ResetPasswordRoute)]
+        [ServiceFilter(typeof(ModelStateFilter))]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var result = await _authService.ResetPassword(request.Email, request.NewPassword);
+            return Ok(new ApiResponse("Password reset successful", result, StatusCodes.Status200OK));
+        }
     }
+
+    
 }
