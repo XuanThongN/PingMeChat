@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +89,7 @@ class AuthProvider with ChangeNotifier {
           'password': password,
         }),
         headers: {'Content-Type': 'application/json'},
-      );
+      ).timeout(const Duration(seconds: 10)); // Thời gian chờ là 10 giây
 
       final responseData = json.decode(response.body);
       if (responseData['statusCode'] != 200) {
@@ -105,20 +106,21 @@ class AuthProvider with ChangeNotifier {
         fullName: responseData['result']['fullName'],
       );
 
-
       // After successful login, get and send FCM token to server
       String? fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
         await _sendFCMTokenToServer(fcmToken);
       }
 
-      
       notifyListeners();
       await _handleSuccessfulLogin();
-      return true; //Đăng nhập thành công
+      return true; // Đăng nhập thành công
+    } on TimeoutException catch (_) {
+      print('Login request timed out');
+      return false; // Đăng nhập thất bại do hết thời gian chờ
     } catch (error) {
       print('Login error: $error');
-      return false; //Đăng nhập thất bại
+      return false; // Đăng nhập thất bại
     }
   }
 
@@ -222,6 +224,50 @@ class AuthProvider with ChangeNotifier {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to update FCM token');
+    }
+  }
+
+  // Thêm hàm gửi mã xác thực
+  Future<void> sendVerificationCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.sendVerificationCodeEndpoint),
+        body: json.encode({
+          'email': email,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = json.decode(response.body);
+      if (responseData['statusCode'] != 200) {
+        throw Exception(responseData['message']);
+      }
+    } catch (error) {
+      print('Send verification code error: $error');
+    }
+  }
+
+  // Thêm hàm xác thực mã
+  Future<bool> verifyCode(String email, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.verifyCodeEndpoint),
+        body: json.encode({
+          'email': email,
+          'code': code,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = json.decode(response.body);
+      if (responseData['statusCode'] != 200) {
+        throw Exception(responseData['message']);
+      }
+
+      return true;
+    } catch (error) {
+      print('Verify code error: $error');
+      return false;
     }
   }
 }

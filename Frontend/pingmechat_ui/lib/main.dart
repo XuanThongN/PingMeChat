@@ -100,49 +100,6 @@ void main() async {
   );
 }
 
-// void showIncomingCallDialog(BuildContext context, String callerId,
-//     String chatId, bool isVideoCall, CallProvider callProvider) {
-//   showDialog(
-//     context: context,
-//     barrierDismissible: false,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: Text('Incoming ${isVideoCall ? 'Video' : 'Audio'} Call'),
-//         content: Text('Call from $callerId'),
-//         actions: <Widget>[
-//           TextButton(
-//             child: Text('Reject'),
-//             onPressed: () {
-//               callProvider.endCall();
-//               Navigator.of(context).pop();
-//             },
-//           ),
-//           TextButton(
-//             child: Text('Accept'),
-//             onPressed: () {
-//               callProvider.acceptCall();
-//               Navigator.of(context).pop();
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (context) => CallPage(
-//                     chatId: chatId,
-//                     isVideo: isVideoCall,
-//                     onEndCall: () {
-//                       callProvider.endCall();
-//                       Navigator.pop(context);
-//                     },
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

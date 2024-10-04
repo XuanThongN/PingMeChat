@@ -10,6 +10,10 @@ namespace PingMeChat.CMS.API.Routes
             public const string ChangePasswordRoute = "api/auth/change-password";
             public const string LockAccountRoute = "api/auth/lock-account/{id}";
             public const string UnLockAccountRoute = "api/auth/unlock-account/{id}";
+            public const string VerifyCodeRoute = "api/auth/verify-code";
+            public const string ResendVerificationCode = "api/auth/resend-verification-code";
+            
+            
         }
         public static class Feature
         {

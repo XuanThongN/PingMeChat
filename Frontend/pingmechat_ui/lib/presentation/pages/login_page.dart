@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/core/utils/input_validator.dart';
+import 'package:pingmechat_ui/presentation/pages/register_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_text_field.dart';
@@ -75,8 +76,8 @@ class _LoginPageState extends State<LoginPage> {
       appBar: CustomAppBar(
         onBackButtonPressed: () {
           // Navigate to onboarding screen with named route
-          Navigator.of(context).pushReplacementNamed(OnboardingScreen.routeName);
-
+          Navigator.of(context)
+              .pushReplacementNamed(OnboardingScreen.routeName);
         },
       ),
       body: SingleChildScrollView(
@@ -152,12 +153,44 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               Center(
-                child: TextButton(
-                  onPressed: () {},
-                  child: const Text(
+                child: Column(
+                  children: [
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text(
                     'Forgot password?',
                     style: TextStyle(color: AppColors.primary),
+                    ),
                   ),
+                  SizedBox(height: 8), // Add spacing between the buttons
+                  TextButton(
+                    onPressed: () {
+                    Navigator.of(context)
+                      .pushReplacementNamed(RegisterPage.routeName);
+                    },
+                    child: RichText(
+                    text: const TextSpan(
+                      children: [
+                      TextSpan(
+                        text: 'Don\'t have an account? ',
+                        style: TextStyle(
+                        color: AppColors.tertiary,
+                        fontSize: 16,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Register',
+                        style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ],
+                    ),
+                    ),
+                  ),
+                  ],
                 ),
               ),
             ],
@@ -193,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
       label: 'Password',
       isPassword: true,
       controller: _passwordController,
-       validator: (value) {
+      validator: (value) {
         if (!_hasInteractedWithPassword) return null;
         return InputValidator.validatePassword(value);
       },
@@ -210,6 +243,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() async {
+    setState(() {
+      _hasInteractedWithEmail = true;
+      _hasInteractedWithPassword = true;
+    });
     if (_formKey.currentState!.validate()) {
       _isLoading.value = true;
       try {

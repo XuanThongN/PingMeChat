@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
+using PingMeChat.CMS.Application.Feature.Indentity.Email;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.Entities;
 using PingMeChat.CMS.Entities.Users;
@@ -29,7 +30,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
         Task<bool> UpdateInfoAndPassword(UpdateAccountInfoDto model, string email);
         Task<IEnumerable<SelectListItem>> GetSelectListUser();
         Task<bool> VerifyPassword(string email, string password);
-
+        Task<bool> VerifyCode(string email, string code);
+        Task<bool> ResendVerificationCode(string email);
         //Task<bool> IsExistEmail(string email);
         //Task<AccountDto> GetByEmail(string email);
         //Task<bool> VerifyPassword(string email, string password);
@@ -54,6 +56,7 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
         private readonly IJwtLib _jwtLib;
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
+        private readonly IEmailService _emailService;
 
 
         public AuthService(IUnitOfWork unitOfWork,
@@ -64,7 +67,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             IMapper mapper,
             IJwtLib jwtLib,
             IConfiguration configuration,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _accountRepository = accountRepository;
@@ -75,6 +79,7 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             _jwtLib = jwtLib;
             _configuration = configuration;
             _tokenService = tokenService;
+            _emailService = emailService;
         }
 
         public async Task<TokenDto> Login(LoginDto model, string deviceInfo, string ipAddress)
@@ -167,11 +172,15 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             {
                 if (user.UserName == model.UserName)
                 {
-                    throw new AppException("Tài khoản đã tồn tại trong hệ thống", 400);
+                    throw new AppException(string.Format(Message.Error.IsExisted, "Account"), 400);
                 }
                 else if (user.Email == model.Email)
                 {
-                    throw new AppException("Email đã tồn tại trong hệ thống", 400);
+                    throw new AppException(string.Format(Message.Error.IsExisted, "Email"), 400);
+                }
+                else if (user.PhoneNumber == model.Phone)
+                {
+                    throw new AppException(string.Format(Message.Error.IsExisted, "Phone number"), 400);
                 }
             }
 
@@ -182,11 +191,16 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
                 Password = model.Password.HashPassword(),
                 FullName = model.FullName,
                 PhoneNumber = model.Phone,
-                IsLocked = false,
+                IsLocked = true, // Khoá tài khoản cho đến khi xác thực email
+                VerificationCode = new Random().Next(100000, 999999).ToString(), // Random 6 số
+                CodeExpiryTime = DateTime.UtcNow.AddMinutes(10),
             };
 
             await _accountRepository.Add(account);
             await _unitOfWork.SaveChangeAsync();
+
+            // Send email logic here (use any email service)
+            await _emailService.SendEmailAsync(account.Email, "Your verification code", $"Your verification code is {account.VerificationCode}");
 
             return true;
         }
@@ -195,8 +209,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
         {
             var userSession = await _userSessionRepository.Find(x => x.AccessToken == accessToken);
             if (userSession == null)
-            {
-                throw new AppException("AccessToken không được tìm thấy");
+            { 
+                throw new AppException(string.Format(Message.Error.NotFound, "AccessToken"), StatusCodes.Status404NotFound);
             }
 
 
@@ -417,92 +431,128 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
 
             return HelperMethod.VerifyPassword(password, user.Password);
         }
+
+        public async Task<bool> VerifyCode(string email, string code)
+        {
+            var user = await _accountRepository.Find(x => x.Email == email);
+            if (user == null) throw new AppException(string.Format(Message.Error.NotFound, "Account"), StatusCodes.Status404NotFound);
+
+            if (user.VerificationCode != code || user.CodeExpiryTime < DateTime.UtcNow)
+            {
+                throw new AppException("Invalid or expired verification code", 400);
+            }
+
+            user.IsLocked = false; // unlock account
+            user.VerificationCode = null;
+            user.CodeExpiryTime = null;
+
+            await _accountRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
+
+        public async Task<bool> ResendVerificationCode(string email)
+        {
+            var user = await _accountRepository.Find(x => x.Email == email);
+            if (user == null) throw new AppException("User not found", 404);
+
+            user.VerificationCode = new Random().Next(100000, 999999).ToString();
+            user.CodeExpiryTime = DateTime.UtcNow.AddMinutes(10);
+
+            await _accountRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+
+            // Send email logic here (use any email service)
+            await _emailService.SendEmailAsync(user.Email, "Your new verification code", $"Your new verification code is {user.VerificationCode}");
+
+            return true;
+        }
+        //public async Task<AccountDto> GetByEmail(string email)
+        //{
+        //    var account = await _accountRepository.Find(x=> x.Email == email);
+        //    if (account == null) throw new AppException($"Không tìm thấy tài khoản với email {email}", 404);
+        //    var accountDto = _mapper.Map<AccountDto>(account);
+        //    return accountDto;
+        //}
+
+
+
+
+
+
+
+        //}
+
+
+
+
+        //public async Task<bool> AssignRoleToUser(string userId, string roleId)
+        //{
+        //    var user = await _accountRepository.FindById(userId);
+        //    var role = await _roleRepository.FindById(roleId);
+        //    if (user != null && role != null)
+        //    {
+        //        var result = await _accountRepository.AddToRole(user, role);
+        //        return result.Succeeded;
+        //    }
+        //    return false;
+        //}
+
+        //public async Task<bool> RemoveRoleFromUser(string userId, string roleId)
+        //{
+        //    var user = await _accountRepository.FindById(userId);
+        //    var role = await _roleRepository.FindById(roleId);
+
+        //    if (user != null && role != null)
+        //    {
+        //        var result = await _accountRepository.RemoveFromRole(user, role);
+        //        return result.Succeeded;
+        //    }
+        //    return false;
+        //}
+
+        //public async Task<bool> AssignMenuToUser(string userId, string menuId)
+        //{
+        //    var userMenu = new UsersMenus { AccountId = userId, MenusId = menuId };
+        //    await _usersMenuRepository.Add(userMenu);
+        //    await _unitOfWork.SaveChangeAsync();
+        //    return true;
+        //}
+
+        //public async Task<bool> RemoveMenuFromUser(string userId, string menuId)
+        //{
+        //    var userMenu = await _usersMenuRepository.Find(um => um.AccountId == userId && um.MenusId == menuId);
+        //    if (userMenu != null)
+        //    {
+        //        await _usersMenuRepository.Delete(userMenu);
+        //        await _unitOfWork.SaveChangeAsync();
+        //        return true;
+        //    }
+        //    return false;
+        //}
+
+        //public async Task<IEnumerable<MenuDto>> GetUserMenus(string userId)
+        //{
+        //    var userMenus = await _usersMenuRepository.FindAll(match: um => um.AccountId == userId, include: inc => inc.Include(x => x.Menu));
+        //    var menus = userMenus.Select(um => um.Menu);
+        //    var menuDtos = _mapper.Map<IEnumerable<MenuDto>>(menus);
+
+        //    return menuDtos;
+        //}
+
+        //public async Task<bool> ChangeStatus(string id, string email)
+        //{
+        //    var user = await _accountRepository.FindById(id);
+        //    if (user == null) return false;
+
+        //    user.UpdatedBy = email;
+        //    user.IsLocked = !user.IsLocked;
+
+        //    await _accountRepository.Update(user);
+        //    await _unitOfWork.SaveChangeAsync();
+        //    return true;
+        //}
+
     }
-    //public async Task<AccountDto> GetByEmail(string email)
-    //{
-    //    var account = await _accountRepository.Find(x=> x.Email == email);
-    //    if (account == null) throw new AppException($"Không tìm thấy tài khoản với email {email}", 404);
-    //    var accountDto = _mapper.Map<AccountDto>(account);
-    //    return accountDto;
-    //}
-
-
-
-
-
-
-
-    //}
-
-
-
-
-    //public async Task<bool> AssignRoleToUser(string userId, string roleId)
-    //{
-    //    var user = await _accountRepository.FindById(userId);
-    //    var role = await _roleRepository.FindById(roleId);
-    //    if (user != null && role != null)
-    //    {
-    //        var result = await _accountRepository.AddToRole(user, role);
-    //        return result.Succeeded;
-    //    }
-    //    return false;
-    //}
-
-    //public async Task<bool> RemoveRoleFromUser(string userId, string roleId)
-    //{
-    //    var user = await _accountRepository.FindById(userId);
-    //    var role = await _roleRepository.FindById(roleId);
-
-    //    if (user != null && role != null)
-    //    {
-    //        var result = await _accountRepository.RemoveFromRole(user, role);
-    //        return result.Succeeded;
-    //    }
-    //    return false;
-    //}
-
-    //public async Task<bool> AssignMenuToUser(string userId, string menuId)
-    //{
-    //    var userMenu = new UsersMenus { AccountId = userId, MenusId = menuId };
-    //    await _usersMenuRepository.Add(userMenu);
-    //    await _unitOfWork.SaveChangeAsync();
-    //    return true;
-    //}
-
-    //public async Task<bool> RemoveMenuFromUser(string userId, string menuId)
-    //{
-    //    var userMenu = await _usersMenuRepository.Find(um => um.AccountId == userId && um.MenusId == menuId);
-    //    if (userMenu != null)
-    //    {
-    //        await _usersMenuRepository.Delete(userMenu);
-    //        await _unitOfWork.SaveChangeAsync();
-    //        return true;
-    //    }
-    //    return false;
-    //}
-
-    //public async Task<IEnumerable<MenuDto>> GetUserMenus(string userId)
-    //{
-    //    var userMenus = await _usersMenuRepository.FindAll(match: um => um.AccountId == userId, include: inc => inc.Include(x => x.Menu));
-    //    var menus = userMenus.Select(um => um.Menu);
-    //    var menuDtos = _mapper.Map<IEnumerable<MenuDto>>(menus);
-
-    //    return menuDtos;
-    //}
-
-    //public async Task<bool> ChangeStatus(string id, string email)
-    //{
-    //    var user = await _accountRepository.FindById(id);
-    //    if (user == null) return false;
-
-    //    user.UpdatedBy = email;
-    //    user.IsLocked = !user.IsLocked;
-
-    //    await _accountRepository.Update(user);
-    //    await _unitOfWork.SaveChangeAsync();
-    //    return true;
-    //}
-
-
 }

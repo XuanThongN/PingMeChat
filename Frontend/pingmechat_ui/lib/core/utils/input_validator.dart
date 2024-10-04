@@ -1,5 +1,7 @@
 // Create a input validator class
 
+import 'package:flutter/src/widgets/framework.dart';
+
 class InputValidator {
   // Validate username field with minimum 3 characters required and not include special characters and spaces between characters
   static String? validateUsername(String? value) {
@@ -14,7 +16,6 @@ class InputValidator {
     }
     return null;
   }
-
 
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -75,6 +76,13 @@ class InputValidator {
     }
     if (!RegExp(r'^0[0-9]{9}$').hasMatch(value)) {
       return 'Please enter a valid phone number';
+    }
+    return null;
+  }
+
+  static String? validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please select your gender';
     }
     return null;
   }

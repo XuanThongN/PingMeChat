@@ -38,6 +38,9 @@ namespace PingMeChat.CMS.Entities.Users
         public string? AvatarUrl { get; set; }
         public string? FCMToken { get; set; } // token FCM
 
+        public string? VerificationCode { get; set; } // mã xác thực
+        public DateTime? CodeExpiryTime { get; set; } // thời gian hết hạn mã xác thực
+
         public virtual ICollection<GroupUser> GroupUsers { get; set; }
         public virtual ICollection<UserMenu> UserMenus { get; set; }
         public virtual ICollection<UserSession> UserSessions { get; set; }

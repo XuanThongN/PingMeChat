@@ -118,5 +118,27 @@ namespace PingMeChat.CMS.Api.Controllers
             if (!data) return BadRequest(new ApiResponse(Message.Error.ChangePasswordFail, null, StatusCodes.Status400BadRequest));
             return Ok(new ApiResponse(Message.Success.Auth.ChangePasswordCompleted, data, 200));
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Auth.VerifyCodeRoute)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> VerifyCode([FromBody] VerifyCodeRequest request)
+        {
+            var result = await _authService.VerifyCode(request.Email, request.Code);
+            return Ok(new ApiResponse(Message.Success.Auth.CodeVerified, result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Auth.ResendVerificationCode)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ResendVerificationCode([FromBody] string email)
+        {
+            var result = await _authService.ResendVerificationCode(email);
+            return Ok(new ApiResponse(Message.Success.Auth.CodeResent, result, StatusCodes.Status200OK));
+        }
     }
 }

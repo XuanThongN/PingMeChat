@@ -9,6 +9,9 @@ class ApiConstants {
   // Auth
   static const String loginEndpoint = '$baseApiUrl/auth/login';
   static const String registerEndpoint = '$baseApiUrl/auth/register';
+  static const String updateFCMTokenEndpoint = '$baseApiUrl/users/update-fcm-token';
+  static const String sendVerificationCodeEndpoint = '$baseApiUrl/auth/send-verification-code';
+  static const String verifyCodeEndpoint = '$baseApiUrl/auth/verify-code';
 
   // Profile
   static const String userProfileEndpoint = '$baseApiUrl/user/profile';
@@ -47,8 +50,6 @@ class ApiConstants {
 
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
-
-  static const String updateFCMTokenEndpoint = '$baseApiUrl/users/update-fcm-token'; // Cập nhật FCM token
 
   // Member chat
   static String getAddMembersToChatEndpoint(String chatId) {
