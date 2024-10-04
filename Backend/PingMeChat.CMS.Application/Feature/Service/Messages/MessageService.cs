@@ -151,7 +151,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                                     { "messageId", message.Id },
                                     { "senderId", messageCreateDto.SenderId }
                                 };
-                                await _fcmService.SendNotificationAsync(recipient.User.FCMToken, "New Message", $"You have a new message from {userChat.User.FullName}", data);
+                                await _fcmService.SendNotificationAsync(recipient.User.FCMToken, message.Sender.FullName! ?? message.Sender.UserName, message.Content ?? $"{message.Sender.FullName} sent a new message", data);
                             }
                         }
 
