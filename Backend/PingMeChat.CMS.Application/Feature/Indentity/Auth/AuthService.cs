@@ -32,6 +32,9 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
         Task<bool> VerifyPassword(string email, string password);
         Task<bool> VerifyCode(string email, string code);
         Task<bool> ResendVerificationCode(string email);
+        Task<bool> ForgotPassword(string email);
+        Task<bool> VerifyResetCode(string email, string code);
+        Task<bool> ResetPassword(string email, string newPassword);
         //Task<bool> IsExistEmail(string email);
         //Task<AccountDto> GetByEmail(string email);
         //Task<bool> VerifyPassword(string email, string password);
@@ -85,13 +88,15 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
         public async Task<TokenDto> Login(LoginDto model, string deviceInfo, string ipAddress)
         {
             var userNameOrEmail = model.UserName.ToLower();
-            var user = await _accountRepository.Find(x => x.UserName.ToLower() == userNameOrEmail || x.Email.ToLower() == userNameOrEmail);
+            var user = await _accountRepository.Find(x => x.UserName.ToLower() == userNameOrEmail
+                                                    || x.Email.ToLower() == userNameOrEmail);
             if (user == null || !HelperMethod.VerifyPassword(model.Password, user.Password))
             {
                 throw new AppException("Tài khoản hoặc mật khẩu không hợp lệ", 404);
 
             }
             if (user.IsLocked) throw new AppException("Tài khoản đã bị khóa", 400);
+            if (!user.IsVerified) throw new AppException("Account is not verified", 400);
 
             var accessToken = _jwtLib.GenerateToken(user);
             var refreshToken = _jwtLib.GenerateRefreshToken();
@@ -130,7 +135,10 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
                 RefreshTokenExpiresMinutes = (60 * 24 * Int32.Parse(refreshTokenExpiresDays)).ToString(),
                 FullName = user.FullName,
                 Email = user.Email,
-                UserId = user.Id
+                UserId = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                UserName = user.UserName,
+                AvatarUrl = user.AvatarUrl
             };
         }
 
@@ -191,7 +199,8 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
                 Password = model.Password.HashPassword(),
                 FullName = model.FullName,
                 PhoneNumber = model.Phone,
-                IsLocked = true, // Khoá tài khoản cho đến khi xác thực email
+                IsLocked = false,
+                IsVerified = false, // chưa xác thực
                 VerificationCode = new Random().Next(100000, 999999).ToString(), // Random 6 số
                 CodeExpiryTime = DateTime.UtcNow.AddMinutes(10),
             };
@@ -200,16 +209,36 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             await _unitOfWork.SaveChangeAsync();
 
             // Send email logic here (use any email service)
-            await _emailService.SendEmailAsync(account.Email, "Your verification code", $"Your verification code is {account.VerificationCode}");
+            await SendVerificationEmail(account.Email, account.VerificationCode, account.FullName);
 
             return true;
         }
 
+        private async Task SendVerificationEmail(string email, string code, string fullName)
+        {
+            string subject = "Welcome to PingMeChat - Verify Your Account";
+            string body = $@"
+        <html>
+        <body style='font-family: Arial, sans-serif; color: #333;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;'>
+                <h1 style='color: #4a4a4a; text-align: center;'>Welcome to PingMeChat!</h1>
+                <p>Dear {fullName},</p>
+                <p>Thank you for joining PingMeChat. To complete your registration, please use the following verification code:</p>
+                <h2 style='text-align: center; color: #007bff; font-size: 24px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'>{code}</h2>
+                <p>This code will expire in 10 minutes.</p>
+                <p>If you didn't request this code, please ignore this email.</p>
+                <p>Best regards,<br>The PingMeChat Team</p>
+            </div>
+        </body>
+        </html>";
+
+            await _emailService.SendEmailAsync(email, subject, body);
+        }
         public async Task<bool> Logout(string accessToken)
         {
             var userSession = await _userSessionRepository.Find(x => x.AccessToken == accessToken);
             if (userSession == null)
-            { 
+            {
                 throw new AppException(string.Format(Message.Error.NotFound, "AccessToken"), StatusCodes.Status404NotFound);
             }
 
@@ -445,6 +474,7 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             user.IsLocked = false; // unlock account
             user.VerificationCode = null;
             user.CodeExpiryTime = null;
+            user.IsVerified = true; // Kích hoạt tài khoản
 
             await _accountRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
@@ -464,9 +494,74 @@ namespace PingMeChat.CMS.Application.Feature.Indentity.Auth
             await _unitOfWork.SaveChangeAsync();
 
             // Send email logic here (use any email service)
-            await _emailService.SendEmailAsync(user.Email, "Your new verification code", $"Your new verification code is {user.VerificationCode}");
+            await SendVerificationEmail(user.Email, user.VerificationCode, user.FullName);
 
             return true;
+        }
+
+        public async Task<bool> ForgotPassword(string email)
+        {
+            var user = await _accountRepository.Find(x => x.Email == email);
+            if (user == null) throw new AppException("User not found", 404);
+
+            user.ResetPasswordCode = new Random().Next(100000, 999999).ToString();
+            user.ResetPasswordCodeExpiryTime = DateTime.UtcNow.AddMinutes(10);
+
+            await _accountRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+
+            await SendResetPasswordEmail(user.Email, user.ResetPasswordCode, user.FullName);
+
+            return true;
+        }
+
+        public async Task<bool> VerifyResetCode(string email, string code)
+        {
+            var user = await _accountRepository.Find(x => x.Email == email);
+            if (user == null) throw new AppException("User not found", 404);
+
+            if (user.ResetPasswordCode != code || user.ResetPasswordCodeExpiryTime < DateTime.UtcNow)
+            {
+                throw new AppException("Invalid or expired reset code", 400);
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ResetPassword(string email, string newPassword)
+        {
+            var user = await _accountRepository.Find(x => x.Email == email);
+            if (user == null) throw new AppException("User not found", 404);
+
+            user.Password = newPassword.HashPassword();
+            user.ResetPasswordCode = null;
+            user.ResetPasswordCodeExpiryTime = null;
+
+            await _accountRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
+
+        private async Task SendResetPasswordEmail(string email, string code, string fullName)
+        {
+            string subject = "PingMeChat - Reset Your Password";
+            string body = $@"
+    <html>
+    <body style='font-family: Arial, sans-serif; color: #333;'>
+        <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;'>
+            <h1 style='color: #4a4a4a; text-align: center;'>PingMeChat Password Reset</h1>
+            <p>Dear {fullName},</p>
+            <p>We received a request to reset your password. Please use the following code to reset your password:</p>
+            <h2 style='text-align: center; color: #007bff; font-size: 24px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'>{code}</h2>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you didn't request this code, please ignore this email.</p>
+            <p>Best regards,<br>The PingMeChat Team</p>
+        </div>
+    </body>
+    </html>";
+
+            await _emailService.SendEmailAsync(email, subject, body);
         }
         //public async Task<AccountDto> GetByEmail(string email)
         //{

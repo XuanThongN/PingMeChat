@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../widgets/custom_button.dart';
+import 'login_page.dart';
 
 class VerifyCodePage extends StatefulWidget {
   final String email;
@@ -32,9 +35,9 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
 
     final code = _controllers.map((controller) => controller.text).join();
     try {
-      final response = await ApiService.verifyCode(widget.email, code);
+      final response = await _authProvider.verifyCode(widget.email, code);
       setState(() {
-        _isVerified = response['success'];
+        _isVerified = response;
         _isLoading = false;
       });
     } catch (e) {
@@ -45,43 +48,69 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   }
 
   void _resendCode() async {
-    await ApiService.sendVerificationCode(widget.email);
+    await _authProvider.sendVerificationCode(widget.email);
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('Verification code resent')));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isVerified) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Email verified successfully!')),
+        );
+        Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
+      });
+      return Container(); // This will be replaced immediately
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text('Verify Code')),
       body: Center(
         child: _isLoading
             ? CircularProgressIndicator()
-            : _isVerified
-                ? Text('Email verified successfully!')
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Enter the 6-digit code sent to your email',
-                          style: TextStyle(fontSize: 16)),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(6, (index) {
-                          return _buildCodeInputField(index);
-                        }),
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _verifyCode,
-                        child: Text('Verify'),
-                      ),
-                      TextButton(
-                        onPressed: _resendCode,
-                        child: Text('Resend Code'),
-                      ),
-                    ],
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Enter the 6-digit code sent to your email',
+                      style: TextStyle(fontSize: 16)),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) {
+                      return _buildCodeInputField(index);
+                    }),
                   ),
+                  SizedBox(height: 20),
+                  CustomElevatedButton(
+                    text: 'Verify',
+                    onPressed: _verifyCode,
+                    foregroundColor: AppColors.white,
+                    backgroundColor: AppColors.primary,
+                  ),
+                  SizedBox(height: 20),
+                  TextButton.icon(
+                    onPressed: _resendCode,
+                    icon: Icon(Icons.refresh, color: AppColors.primary),
+                    label: const Text(
+                      'Resend Code',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: AppColors.primary),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -89,17 +118,35 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   Widget _buildCodeInputField(int index) {
     return Container(
       width: 40,
+      height: 50,
+      margin: EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: TextField(
         controller: _controllers[index],
         decoration: InputDecoration(
-          border: OutlineInputBorder(),
+          border: InputBorder.none,
+          counterText: "",
         ),
+        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         maxLength: 1,
         onChanged: (value) {
           if (value.length == 1 && index < 5) {
             FocusScope.of(context).nextFocus();
+          } else if (value.isEmpty && index > 0) {
+            FocusScope.of(context).previousFocus();
           }
         },
       ),

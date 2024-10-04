@@ -109,11 +109,11 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users
             {
                 throw new AppException("Không tìm thấy người dùng theo yêu cầu", 400);
             }
-            // Kiểm tra email có tồn tại không
-            if (await IsExitEmailOtherCurrent(dto.Email, dto.Id))
-            {
-                throw new AppException("Email đã tồn tại", 400);
-            }
+            // Kiểm tra email có tồn tại không (Không cho phép cập nhật Email - vì email dùng để nhận mã xác thực)
+            // if (await IsExitEmailOtherCurrent(dto.Email, dto.Id))
+            // {
+            //     throw new AppException("Email đã tồn tại", 400);
+            // }
             // Kiểm tra số điện thoại có tồn tại không
             if (await IsExitPhoneNumberOtherCurrent(dto.PhoneNumber, dto.Id))
             {
@@ -122,10 +122,15 @@ namespace PingMeChat.CMS.Application.Feature.Service.Users
 
             // Cập nhật thông tin người dùng
             user.FullName = dto.FullName;
-            user.Email = dto.Email;
+            // user.Email = dto.Email;
             user.IsLocked = dto.IsLocked;
             user.PhoneNumber = dto.PhoneNumber;
             user.FCMToken = dto.FCMToken;
+
+            if (!string.IsNullOrEmpty(dto.AvatarUrl))
+            {
+                user.AvatarUrl = dto.AvatarUrl;
+            }
 
             // Cập nhật nhóm người dùng
             if (dto.GroupIds != null)

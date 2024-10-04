@@ -40,6 +40,10 @@ namespace PingMeChat.CMS.Entities.Users
 
         public string? VerificationCode { get; set; } // mã xác thực
         public DateTime? CodeExpiryTime { get; set; } // thời gian hết hạn mã xác thực
+        public bool IsVerified { get; set; } = false; // đã xác thực, mặc định là chưa xác thực
+
+        public string? ResetPasswordCode { get; set; } // mã reset password
+        public DateTime? ResetPasswordCodeExpiryTime { get; set; } // thời gian hết hạn mã reset password
 
         public virtual ICollection<GroupUser> GroupUsers { get; set; }
         public virtual ICollection<UserMenu> UserMenus { get; set; }

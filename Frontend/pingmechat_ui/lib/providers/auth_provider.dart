@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/constant.dart';
-import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
-import '../presentation/pages/login_page.dart';
 import 'chat_provider.dart';
 import 'contact_provider.dart';
 import 'search_provider.dart';
@@ -88,7 +89,7 @@ class AuthProvider with ChangeNotifier {
           'userName': email,
           'password': password,
         }),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
       ).timeout(const Duration(seconds: 10)); // Thời gian chờ là 10 giây
 
       final responseData = json.decode(response.body);
@@ -103,6 +104,9 @@ class AuthProvider with ChangeNotifier {
       _currentUser = Account(
         id: responseData['result']['userId'],
         email: responseData['result']['email'],
+        phoneNumber: responseData['result']['phoneNumber'],
+        userName: responseData['result']['userName'],
+        avatarUrl: responseData['result']['avatarUrl'],
         fullName: responseData['result']['fullName'],
       );
 
@@ -146,6 +150,9 @@ class AuthProvider with ChangeNotifier {
       id: _userId as String,
       email: extractedUserData['email'] as String,
       fullName: extractedUserData['fullName'] as String,
+      phoneNumber: extractedUserData['phoneNumber'] as String,
+      userName: extractedUserData['userName'] as String,
+      avatarUrl: extractedUserData['avatarUrl'] as String,
     );
     notifyListeners();
     await _handleSuccessfulLogin();
@@ -231,11 +238,11 @@ class AuthProvider with ChangeNotifier {
   Future<void> sendVerificationCode(String email) async {
     try {
       final response = await http.post(
-        Uri.parse(ApiConstants.sendVerificationCodeEndpoint),
-        body: json.encode({
-          'email': email,
-        }),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(ApiConstants.reSendVerificationCodeEndpoint),
+        body: json.encode(email),
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+        },
       );
 
       final responseData = json.decode(response.body);
@@ -267,6 +274,131 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (error) {
       print('Verify code error: $error');
+      return false;
+    }
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.forgotPasswordEndpoint),
+        body: json.encode(email),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = json.decode(response.body);
+      if (responseData['statusCode'] != 200) {
+        throw Exception(responseData['message']);
+      }
+
+      return true;
+    } catch (error) {
+      print('Forgot password error: $error');
+      return false;
+    }
+  }
+
+  Future<bool> verifyResetCode(String email, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.verifyResetCodeEndpoint),
+        body: json.encode({
+          'email': email,
+          'code': code,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = json.decode(response.body);
+      if (responseData['statusCode'] != 200) {
+        throw Exception(responseData['message']);
+      }
+
+      return true;
+    } catch (error) {
+      print('Verify reset code error: $error');
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.resetPasswordEndpoint),
+        body: json.encode({
+          'email': email,
+          'newPassword': newPassword,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = json.decode(response.body);
+      if (responseData['statusCode'] != 200) {
+        throw Exception(responseData['message']);
+      }
+
+      return true;
+    } catch (error) {
+      print('Reset password error: $error');
+      return false;
+    }
+  }
+
+  Future<bool> updateUserInfo(Map<String, dynamic> userInfo) async {
+    try {
+      final response = await http.put(
+        Uri.parse(ApiConstants.updateUserInfoEndpoint),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          ...await getCustomHeaders(),
+        },
+        body: json.encode(userInfo),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        // Update the local user data
+        _currentUser = Account.fromJson(responseData['result']);
+        notifyListeners();
+        return true;
+      } else {
+        throw Exception('Failed to update user info');
+      }
+    } catch (error) {
+      print('Update user info error: $error');
+      return false;
+    }
+  }
+
+  Future<bool> updateAvatar(File imageFile) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiConstants.updateUserAvatarEndpoint),
+      );
+
+      request.headers.addAll(await getCustomHeaders());
+
+      final mimeType = lookupMimeType(imageFile.path);
+      request.files.add(await http.MultipartFile.fromPath(
+        'avatar',
+        imageFile.path,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+      ));
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(await response.stream.bytesToString());
+        // Update the local user data
+        _currentUser = Account.fromJson(responseData['result']);
+        notifyListeners();
+        return true;
+      } else {
+        throw Exception('Failed to update avatar');
+      }
+    } catch (error) {
+      print('Update avatar error: $error');
       return false;
     }
   }

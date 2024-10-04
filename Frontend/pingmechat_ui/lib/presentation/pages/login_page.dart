@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 import '../../splash_screen.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/social_button.dart';
+import 'forgot_password_page.dart';
 import 'home.dart';
 
 class LoginPage extends StatefulWidget {
@@ -155,41 +156,45 @@ class _LoginPageState extends State<LoginPage> {
               Center(
                 child: Column(
                   children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(color: AppColors.primary),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context)
+                            .pushNamed(ForgotPasswordPage.routeName);
+                      },
+                      child: const Text(
+                        'Forgot password?',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8), // Add spacing between the buttons
-                  TextButton(
-                    onPressed: () {
-                    Navigator.of(context)
-                      .pushReplacementNamed(RegisterPage.routeName);
-                    },
-                    child: RichText(
-                    text: const TextSpan(
-                      children: [
-                      TextSpan(
-                        text: 'Don\'t have an account? ',
-                        style: TextStyle(
-                        color: AppColors.tertiary,
-                        fontSize: 16,
+                    SizedBox(height: 8), // Add spacing between the buttons
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context)
+                            .pushReplacementNamed(RegisterPage.routeName);
+                      },
+                      child: RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Don\'t have an account? ',
+                              style: TextStyle(
+                                color: AppColors.tertiary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Register',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      TextSpan(
-                        text: 'Register',
-                        style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ],
                     ),
-                    ),
-                  ),
                   ],
                 ),
               ),

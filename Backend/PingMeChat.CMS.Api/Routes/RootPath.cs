@@ -12,7 +12,9 @@ namespace PingMeChat.CMS.API.Routes
             public const string UnLockAccountRoute = "api/auth/unlock-account/{id}";
             public const string VerifyCodeRoute = "api/auth/verify-code";
             public const string ResendVerificationCode = "api/auth/resend-verification-code";
-            
+            public const string ForgotPasswordRoute = "api/auth/forgot-password";
+            public const string VerifyResetCodeRoute = "api/auth/verify-reset-code";
+            public const string ResetPasswordRoute = "api/auth/reset-password";
             
         }
         public static class Feature
@@ -27,6 +29,8 @@ namespace PingMeChat.CMS.API.Routes
                 public const string PaginationRoute = "api/users/pagination";
                 public const string GetAllActive = "api/users/get-all-acctive";
                 public const string UpdateFCMTokenRoute = "api/users/update-fcm-token";
+                public const string UpdateProfileRoute = "api/users/update-profile";
+                public const string UpdateAvatarRoute = "api/users/update-avatar";
             }
             public static class Role
             {

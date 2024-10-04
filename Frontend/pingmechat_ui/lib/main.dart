@@ -17,7 +17,9 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 import 'config/theme.dart';
 
 import 'data/datasources/notification_service.dart';
+import 'presentation/pages/forgot_password_page.dart';
 import 'presentation/pages/login_page.dart';
+import 'presentation/pages/verify_code_page.dart';
 import 'providers/badge_provider.dart';
 import 'providers/search_provider.dart';
 
@@ -58,11 +60,10 @@ void main() async {
       print('Message also contained a notification: ${message.notification}');
     }
   });
-  
+
   // Khoi tao notification service
   NotificationService notificationService = NotificationService();
   await notificationService.initialize();
-
 
   // Khoi tao auth provider
   final authProvider = AuthProvider();
@@ -116,6 +117,7 @@ class MyApp extends StatelessWidget {
         RegisterPage.routeName: (context) => const RegisterPage(),
         HomePage.routeName: (context) => const HomePage(),
         SearchResultsScreen.routeName: (context) => SearchResultsScreen(),
+        ForgotPasswordPage.routeName: (context) => ForgotPasswordPage(),
       },
       localizationsDelegates: [
         AppLocalizations.delegate,

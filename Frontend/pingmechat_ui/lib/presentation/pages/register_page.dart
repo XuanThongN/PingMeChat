@@ -2,17 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/core/utils/input_validator.dart';
-import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/app_bar.dart';
-import 'package:pingmechat_ui/presentation/widgets/custom_divider.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_text_field.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/social_button.dart';
+import 'verify_code_page.dart';
 
 class RegisterPage extends StatefulWidget {
   static const routeName = '/register';
@@ -45,7 +43,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordFocusNode = FocusNode();
   final _usernameFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
-  final _genderFocusNode = FocusNode();
 
   bool _hasInteractedWithName = false;
   bool _hasInteractedWithEmail = false;
@@ -456,12 +453,12 @@ class _RegisterPageState extends State<RegisterPage> {
           _phoneController.text.trim(),
         );
         if (success) {
-          // Đăng ký thành công thì thông báo và chuyển hướng đến trang đăng nhập
+          // Đăng ký thành công thì thông báo và chuyển hướng đến trang xác nhận mã
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registration successful')),
           );
-          // Đăng ký thành công thì thông báo và chuyển hướng đến trang đăng nhập
-          Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
+          // Đăng ký thành công thì thông báo và chuyển hướng đến trang xác nhận mã
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => VerifyCodePage(email: _emailController.text.trim())));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registration failed')),

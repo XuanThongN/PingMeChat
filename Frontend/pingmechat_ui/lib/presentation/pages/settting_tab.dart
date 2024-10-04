@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
@@ -7,6 +9,8 @@ import '../../providers/auth_provider.dart';
 import '../widgets/custom_circle_avatar.dart';
 import '../../config/theme.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../widgets/custom_text_field.dart';
 
 class SettingTab extends StatelessWidget {
   const SettingTab({Key? key}) : super(key: key);
@@ -136,103 +140,9 @@ class SettingTab extends StatelessWidget {
       subtitle: Text(subtitle, style: TextStyle(color: Colors.grey[600])),
       onTap: () {
         if (title == 'Account') {
-          _showAccountDetails(context, currentUser);
+          _showProfileBottomSheet(context);
         }
         // Xử lý các mục cài đặt khác ở đây
-      },
-    );
-  }
-
-  void _showAccountDetails(BuildContext context, Account? currentUser) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CustomCircleAvatar(
-                        radius: 50,
-                        backgroundImage: currentUser?.avatarUrl != null
-                            ? NetworkImage(currentUser!.avatarUrl!)
-                            : null,
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: CircleAvatar(
-                          backgroundColor: AppColors.primary,
-                          radius: 18,
-                          child: IconButton(
-                            icon: const Icon(Icons.camera_alt,
-                                size: 18, color: Colors.white),
-                            onPressed: () async {
-                              final ImagePicker _picker = ImagePicker();
-                              final XFile? image = await _picker.pickImage(
-                                  source: ImageSource.gallery);
-                              if (image != null) {
-                                // TODO: Implement image upload and update user avatar
-                                // authProvider.updateUserAvatar(image.path);
-                                setState(
-                                    () {}); // Refresh the bottom sheet to show new avatar
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Full Name'),
-                    controller:
-                        TextEditingController(text: currentUser?.fullName),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Status'),
-                    controller: TextEditingController(
-                        text: currentUser?.phoneNumber ?? currentUser?.email),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 24),
-                    ),
-                    onPressed: () {
-                      // TODO: Implement update user information
-                      // authProvider.updateUserInfo(newName, newStatus);
-                      Navigator.pop(context);
-                    },
-                    child: CustomElevatedButton(
-                      text: 'Create',
-                      height: 20,
-                      width: 100,
-                      onPressed: _updateUserInfo,
-                      foregroundColor: AppColors.white,
-                      backgroundColor: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
       },
     );
   }
@@ -242,26 +152,38 @@ class SettingTab extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.red,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        elevation: 3,
       ),
       onPressed: () {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('Logout'),
-              content: const Text('Are you sure you want to logout?'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text('Logout',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              content: const Text('Are you sure you want to logout?',
+                  style: TextStyle(fontSize: 16)),
               actions: <Widget>[
                 TextButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  child: const Text('Cancel',
+                      style: TextStyle(color: Colors.grey)),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-                TextButton(
-                  child: const Text('Logout'),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Logout',
+                      style: TextStyle(color: Colors.white)),
                   onPressed: () {
                     authProvider.logout(context);
                     Navigator.of(context).pop();
@@ -275,11 +197,162 @@ class SettingTab extends StatelessWidget {
       },
       child: const Text(
         'Logout',
-        style: TextStyle(fontSize: 16, color: Colors.white),
+        style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
 
-  //Update user information
-  void _updateUserInfo() {}
+  void _showProfileBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => ProfileBottomSheet(),
+    );
+  }
+}
+
+class ProfileBottomSheet extends StatefulWidget {
+  @override
+  _ProfileBottomSheetState createState() => _ProfileBottomSheetState();
+}
+
+class _ProfileBottomSheetState extends State<ProfileBottomSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  File? _avatarFile;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (user != null) {
+      _nameController.text = user.fullName;
+      _phoneController.text = user.phoneNumber ?? '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).currentUser;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildAvatarSection(user?.avatarUrl),
+              SizedBox(height: 24),
+              CustomTextField(
+                label: 'Full Name',
+                controller: _nameController,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your name' : null,
+              ),
+              SizedBox(height: 16),
+              CustomTextField(
+                label: 'Phone Number',
+                controller: _phoneController,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your phone number' : null,
+                keyboardType: TextInputType.phone,
+              ),
+              SizedBox(height: 24),
+              CustomElevatedButton(
+                text: 'Update Profile',
+                onPressed: _isLoading ? () {} : _handleUpdateProfile,
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarSection(String? avatarUrl) {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: CircleAvatar(
+        radius: 50,
+        backgroundImage: _avatarFile != null
+            ? FileImage(_avatarFile!)
+            : (avatarUrl != null ? NetworkImage(avatarUrl) : null)
+                as ImageProvider?,
+        child: _avatarFile == null && avatarUrl == null
+            ? Icon(Icons.camera_alt, size: 50, color: Colors.white)
+            : null,
+      ),
+    );
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _avatarFile = File(pickedFile.path);
+      });
+      // Upload avatar to server
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final result = await authProvider.updateAvatar(_avatarFile!);
+      if (result) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Avatar updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update avatar')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleUpdateProfile() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      try {
+        // Update user info
+        final userInfoUpdated = await authProvider.updateUserInfo({
+          'fullName': _nameController.text.trim(),
+          'phoneNumber': _phoneController.text.trim(),
+        });
+
+        if (userInfoUpdated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Profile updated successfully')),
+          );
+          Navigator.of(context).pop(); // Close the bottom sheet
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update profile')),
+          );
+          throw Exception('Failed to update profile');
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: $error')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 }

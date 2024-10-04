@@ -8,6 +8,7 @@ using PingMeChat.CMS.API.Routes;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Filters;
 using PingMeChat.CMS.Application.Common.Pagination;
+using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.Users;
 using PingMeChat.CMS.Application.Feature.Service.Users.Dto;
 using PingMeChat.Shared;
@@ -20,10 +21,12 @@ namespace PingMeChat.CMS.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        public UserController(IUserService userService, IMapper mapper)
+        private readonly IAttachmentService _attachmentService;
+        public UserController(IUserService userService, IMapper mapper, IAttachmentService attachmentService)
         {
             _userService = userService;
             _mapper = mapper;
+            _attachmentService = attachmentService;
         }
 
         [HttpPost]
@@ -111,14 +114,15 @@ namespace PingMeChat.CMS.Api.Controllers
             {
                 return NotFound("User not found");
             }
-            var updateUserDto = new UserUpdateDto {
+            var updateUserDto = new UserUpdateDto
+            {
                 Id = user.Id,
                 FullName = user.FullName,
-                Email = user.Email,
+                // Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 FCMToken = model.FCMToken
             };
-            
+
             var result = await _userService.Update(updateUserDto);
 
             if (result != null)
@@ -127,6 +131,68 @@ namespace PingMeChat.CMS.Api.Controllers
             }
 
             return Ok(new ApiResponse(string.Format(Message.Success.UpdatedCompleted, "tài khoản người dùng"), result, StatusCodes.Status200OK));
+        }
+
+        [HttpPut]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Feature.User.UpdateProfileRoute)]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+        {
+            var userId = GetUserId();
+            var user = await _userService.FindById(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var updateUserDto = new UserUpdateDto
+            {
+                Id = user.Id,
+                FullName = dto.FullName,
+                PhoneNumber = dto.PhoneNumber,
+                // Email = user.Email,
+                UpdatedBy = userId
+            };
+
+            var result = await _userService.Update(updateUserDto);
+
+            return Ok(new ApiResponse(string.Format(Message.Success.UpdatedCompleted, "thông tin người dùng"), result, StatusCodes.Status200OK));
+        }
+
+        [HttpPost]
+        [ValidateUserAndModel]
+        [Route(ApiRoutes.Feature.User.UpdateAvatarRoute)]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateAvatar([FromForm] IFormFile avatar)
+        {
+            var userId = GetUserId();
+            var user = await _userService.FindById(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            if (avatar == null || avatar.Length == 0)
+            {
+                return BadRequest("No file uploaded");
+            }
+
+            var uploadResult = await _attachmentService.UploadFileAsync(avatar);
+
+            var updateUserDto = new UserUpdateDto
+            {
+                Id = user.Id,
+                FullName = user.FullName!,
+                // Email = user.Email!,
+                PhoneNumber = user.PhoneNumber!,
+                AvatarUrl = uploadResult.Url,
+                UpdatedBy = userId
+            };
+
+            var result = await _userService.Update(updateUserDto);
+
+            return Ok(new ApiResponse(string.Format(Message.Success.UpdatedCompleted, "avatar người dùng"), result, StatusCodes.Status200OK));
         }
 
         public class UpdateFCMTokenDto
