@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -184,7 +185,7 @@ class _MessageTabState extends State<MessageTab> {
                 ),
                 child: CustomCircleAvatar(
                   backgroundImage: contactUser.avatarUrl != null
-                      ? AssetImage(contactUser.avatarUrl!)
+                      ? CachedNetworkImageProvider(contactUser.avatarUrl!)
                       : null,
                   radius: 26,
                 ),
@@ -330,6 +331,12 @@ class _MessageTabState extends State<MessageTab> {
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user
             ?.fullName;
+    final avatarUrl = item.isGroup
+        ? item.avatarUrl
+        : item.userChats
+            .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
+            .user
+            ?.avatarUrl;
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
@@ -340,8 +347,8 @@ class _MessageTabState extends State<MessageTab> {
         leading: Stack(children: [
           CustomCircleAvatar(
             radius: 24,
-            backgroundImage: item.avatarUrl!.isNotEmpty
-                ? NetworkImage(item.avatarUrl!)
+            backgroundImage: avatarUrl != null
+                ? CachedNetworkImageProvider(avatarUrl)
                 : null,
             isGroupChat: item.isGroup,
           ),
@@ -497,6 +504,8 @@ class _MessageTabState extends State<MessageTab> {
       formattedTime = '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
       formattedTime = DateFormat('HH:mm').format(lastMessageTime);
+    } else if (difference.inDays == 1) {
+      formattedTime = 'Yesterday';
     } else if (difference.inDays < 7) {
       formattedTime = DateFormat('EEEE', 'en')
           .format(lastMessageTime); // Hiển thị thứ bằng tiếng Việt

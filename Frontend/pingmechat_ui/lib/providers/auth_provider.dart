@@ -192,6 +192,9 @@ class AuthProvider with ChangeNotifier {
       'expiryDate': _expiryDate!.toIso8601String(),
       'email': _currentUser!.email,
       'fullName': _currentUser!.fullName,
+      'phoneNumber': _currentUser!.phoneNumber,
+      'userName': _currentUser!.userName,
+      'avatarUrl': _currentUser!.avatarUrl,
     });
     prefs.setString('userData', userData);
   }
