@@ -2,11 +2,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using PingMeChat.CMS.Application.Common.Attributes;
 using PingMeChat.CMS.Application.Common.Exceptions;
+using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
+using PingMeChat.CMS.Application.Feature.Services;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 using PingMeChat.CMS.Entities.Feature;
+using PingMeChat.Shared.Enum;
 using PingMeChat.Shared.Utils;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -17,16 +21,25 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
     [Authorize]
     public class ChatHub : Hub
     {
+        private readonly IRabbitMQService _rabbitMQService;
         private readonly IChatHubService _chatHubService;
         private readonly IChatService _chatService;
         private readonly IMessageService _messageService;
-        private readonly IUserConnectionManager _userConnectionManager; // Service quản lý connect ws của user
-        public ChatHub(IChatHubService chatHubService, IChatService chatService, IMessageService messageService, IUserConnectionManager userConnectionManager)
+        private readonly IRedisConnectionManager _redisConnectionManager; // Service quản lý connect ws của user
+        private static readonly SemaphoreSlim _throttler = new SemaphoreSlim(100, 100);
+        private static readonly TimeSpan _throttlePeriod = TimeSpan.FromSeconds(1);
+        public ChatHub(
+            IRabbitMQService rabbitMQService,
+            IChatHubService chatHubService,
+            IChatService chatService,
+            IMessageService messageService,
+            IRedisConnectionManager redisConnectionManager)
         {
+            _rabbitMQService = rabbitMQService;
             _chatHubService = chatHubService;
             _chatService = chatService;
             _messageService = messageService;
-            _userConnectionManager = userConnectionManager;
+            _redisConnectionManager = redisConnectionManager;
         }
 
         public override async Task OnConnectedAsync()
@@ -36,21 +49,9 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
             if (!string.IsNullOrEmpty(userId))
             {
-                _userConnectionManager.AddConnection(userId, Context.ConnectionId); // Thêm ConnectionId vào Nhóm UserId để quản lý toàn bộ connection thuộc user đó
-
-                // Thêm người dùng vào nhóm cá nhân để hỗ trợ tin nhắn 1-1
+                await _redisConnectionManager.AddConnectionAsync(userId, Context.ConnectionId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-
-                // Lấy danh sách tất cả các cuộc trò chuyện mà người dùng tham gia (bao gồm cả chat private và chat nhóm)
-                var userChats = await _chatService.GetChatListAsync(userId);
-
-                // Thêm người dùng vào tất cả các nhóm chat
-                foreach (var chat in userChats)
-                {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, chat.Id);
-                }
-
-                // Thông báo cho các người dùng khác về việc người dùng này online
+                _ = JoinUserChatsAsync(userId, Context.ConnectionId); // Thêm user vào các group 1 cách bất đồng bộ
                 await Clients.All.SendAsync("NewUserJoined", $"{userId} has joined");
             }
 
@@ -63,7 +64,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
             if (!string.IsNullOrEmpty(userId))
             {
-                _userConnectionManager.RemoveConnection(userId, Context.ConnectionId);
+                await _redisConnectionManager.RemoveConnectionAsync(userId, Context.ConnectionId);
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
             }
 
@@ -92,10 +93,11 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             // Thêm các người dùng vào nhóm SignalR với chatId mới
             foreach (var user in newChat.UserChats)
             {
-                _userConnectionManager.GetConnections(user.UserId)?.ToList().ForEach(async connectionId =>
-                {
-                    await Groups.AddToGroupAsync(connectionId, newChat.Id);
-                });
+                (await _redisConnectionManager.GetConnectionsAsync(user.UserId))?.ToList()
+                     .ForEach(async connectionId =>
+                         {
+                             await Groups.AddToGroupAsync(connectionId, newChat.Id);
+                         });
             }
 
             // Kiểm tra chỉ tạo mới cuộc trò chuyện nhóm thì mới thông báo tới những người thành viên
@@ -111,6 +113,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
         public async Task SendMessage(MessageCreateDto messageCreateDto)
         {
+            await ThrottleAsync();
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -120,12 +123,33 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             {
                 throw new AppException("Access denied");
             }
-            // Gửi realtime tới những người tham gia đoạn chat
-            //await _chatHubService.SendMessageAsync(chatId, userId, message, DateTime.UtcNow);
             // Gán người gửi vào dto
             messageCreateDto.SenderId = userId;
-            // Lưu tin nhắn vào database
-            await _messageService.SendMessageAsync(messageCreateDto);
+            // // Lưu tin nhắn vào database
+            // await _messageService.SendMessageAsync(messageCreateDto);
+
+            // Đưa tin nhắn vào hàng đợi RabbitMQ
+            _rabbitMQService.PublishMessage("chat_messages", messageCreateDto);
+            // Gửi thông báo realtime cho người dùng
+            var attachments = messageCreateDto.Attachments?.Select(a =>
+                            {
+                                return new AttachmentDto
+                                {
+                                    FilePath = a.FileUrl,
+                                    FileName = a.FileName,
+                                    FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType).GetDescription(),
+                                    FileSize = a.FileSize
+                                };
+                            }).ToList();
+            var result = new MessageDto
+            {
+                ChatId = messageCreateDto.ChatId,
+                SenderId = userId,
+                Content = messageCreateDto.Content!,
+                CreatedDate = DateTime.UtcNow,
+                Attachments = attachments
+            };
+            await _chatHubService.SendMessageAsync(result);
         }
 
         public async Task JoinChat(string chatId)
@@ -172,45 +196,28 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             return await _chatService.CanUserAccessChat(chatId, userId);
         }
 
-
-        //Call audio/Video
-        // Hàm này được gọi khi một người dùng muốn bắt đầu một cuộc gọi
-        // chatId: ID của cuộc trò chuyện
-        // isVideo: true nếu là cuộc gọi video, false nếu là cuộc gọi âm thanh
-        public async Task InitiateCall(string chatId, bool isVideo)
+        private async Task JoinUserChatsAsync(string userId, string connectionId)
         {
-            var callerUserId = Context.User.FindFirstValue("UserId");
-            await Clients.Group(chatId).SendAsync("IncomingCall", callerUserId, chatId, isVideo);
+            var userChats = await _chatService.GetChatListAsync(userId);
+            var joinTasks = userChats.Select(chat => Groups.AddToGroupAsync(connectionId, chat.Id));
+            await Task.WhenAll(joinTasks);
         }
 
-        public async Task AnswerCall(string chatId, bool accept)
+        private async Task ThrottleAsync()
         {
-            var answeringUserId = Context.User.FindFirstValue("UserId");
-            await Clients.Group(chatId).SendAsync("CallAnswered", answeringUserId, chatId, accept);
-        }
+            if (!await _throttler.WaitAsync(TimeSpan.Zero))
+            {
+                throw new HubException("Too many requests. Please try again later.");
+            }
 
-        public async Task IceCandidate(string chatId, string candidate)
-        {
-            var userId = Context.User.FindFirstValue("UserId");
-            await Clients.OthersInGroup(chatId).SendAsync("IceCandidate", userId, candidate);
-        }
-
-        public async Task Offer(string chatId, string sdp)
-        {
-            var userId = Context.User.FindFirstValue("UserId");
-            await Clients.OthersInGroup(chatId).SendAsync("Offer", userId, sdp);
-        }
-
-        public async Task Answer(string chatId, string sdp)
-        {
-            var userId = Context.User.FindFirstValue("UserId");
-            await Clients.OthersInGroup(chatId).SendAsync("Answer", userId, sdp);
-        }
-
-        public async Task EndCall(string chatId)
-        {
-            var userId = Context.User.FindFirstValue("UserId");
-            await Clients.Group(chatId).SendAsync("CallEnded", userId);
+            try
+            {
+                await Task.Delay(_throttlePeriod);
+            }
+            finally
+            {
+                _throttler.Release();
+            }
         }
     }
 

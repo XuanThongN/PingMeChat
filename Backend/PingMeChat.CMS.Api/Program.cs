@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -136,6 +137,11 @@ builder.Services.AddControllers(op => { })
         op.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+#endregion
+
+#region RabbitMQServices
+builder.Services.AddHostedService<MessageProcessingService>();
+builder.Services.AddScoped<MessageProcessor>();
 #endregion
 
 #region Swagger Api

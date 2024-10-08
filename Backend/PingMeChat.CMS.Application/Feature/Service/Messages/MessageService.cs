@@ -134,7 +134,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         var result = _mapper.Map<MessageDto>(message);
                         // Thông báo tin nhắn mới tới những người tham gia đoạn chat
-                        await _chatHubService.SendMessageAsync(result);
+                        // await _chatHubService.SendMessageAsync(result);
 
                         // Send push notification to all recipients except sender 
                         var recipients = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId

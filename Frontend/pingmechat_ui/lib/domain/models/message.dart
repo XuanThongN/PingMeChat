@@ -10,7 +10,7 @@ class Message {
   final List<Attachment>? attachments;
   final List<MessageReader>? messageReaders;
   final Chat? chat;
-  final Account? sender;
+  Account? sender;
 
   Message({
     required this.chatId,
