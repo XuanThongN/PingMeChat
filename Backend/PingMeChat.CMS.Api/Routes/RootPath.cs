@@ -15,7 +15,7 @@ namespace PingMeChat.CMS.API.Routes
             public const string ForgotPasswordRoute = "api/auth/forgot-password";
             public const string VerifyResetCodeRoute = "api/auth/verify-reset-code";
             public const string ResetPasswordRoute = "api/auth/reset-password";
-            
+
         }
         public static class Feature
         {
@@ -42,7 +42,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string PaginationRoute = "api/roles/pagination";
                 public const string GetAllActive = "api/roles/get-all-acctive";
             }
-            
+
             public static class Menu
             {
                 public const string GetAllByCurrentUserRoute = "api/menus/get-all-by-current-user";
@@ -103,6 +103,8 @@ namespace PingMeChat.CMS.API.Routes
                 public const string AcceptFriendRequestRoute = "api/contacts/accept-friend-request/{contactId}";
                 public const string CancelFriendRequestRoute = "api/contacts/cancel-friend-request/{contactId}";
                 public const string SendFriendRequestRoute = "api/contacts/send-friend-request";
+                public const string RecommendFriendsRoute = "api/contacts/recommend-friends";
+
             }
 
             // Attachment api routes

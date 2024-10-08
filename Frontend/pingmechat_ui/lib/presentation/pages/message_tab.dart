@@ -326,7 +326,8 @@ class _MessageTabState extends State<MessageTab> {
   Widget _buildChatItem(Chat item) {
     // lấy tên của người dùng hoặc tên nhóm
     final chatName = item.isGroup
-        ? item.name
+        // Nếu là nhóm thì hiển thị tên nhóm hoặc nếu tên nhóm không có thì hiển thị tên đầu tiên của các thành viên nối lại bằng dấu phẩy
+        ? item.name != '' ? item.name : item.userChats.map((uc) => uc.user!.fullName.split(' ').first).join(', ')
         : item.userChats
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user

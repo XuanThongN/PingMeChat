@@ -152,7 +152,7 @@ class AuthProvider with ChangeNotifier {
       fullName: extractedUserData['fullName'] as String,
       phoneNumber: extractedUserData['phoneNumber'] as String,
       userName: extractedUserData['userName'] as String,
-      avatarUrl: extractedUserData['avatarUrl'] as String,
+      avatarUrl: extractedUserData['avatarUrl'] as String? ?? '',
     );
     notifyListeners();
     await _handleSuccessfulLogin();

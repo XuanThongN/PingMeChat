@@ -23,6 +23,13 @@ namespace PingMeChat.Shared.Enum
         Error = 5,
     }
 
+    public enum Gender
+    {
+        [Display(Name = "Nam")]
+        Male = 1,
+        [Display(Name = "Nữ")]
+        Female = 0,
+    }
     public enum FileType
     {
         [Display(Name = "Ảnh")]

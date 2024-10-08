@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/config/theme.dart';
 import 'package:pingmechat_ui/core/constants/constant.dart';
+import 'package:pingmechat_ui/domain/models/account.dart';
 import 'package:pingmechat_ui/domain/models/contact.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_circle_avatar.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
@@ -27,6 +28,12 @@ class _ContactTabState extends State<ContactTab> {
     super.initState();
     _contactProvider = context.read<ContactProvider>();
     _chatProvider = context.read<ChatProvider>();
+
+    // Đợi quá trình build hoàn thành trước khi gọi fetchContacts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _contactProvider.fetchContacts();
+      _contactProvider.fetchRecommendedFriends();
+    });
   }
 
   @override
@@ -39,8 +46,8 @@ class _ContactTabState extends State<ContactTab> {
             child: Consumer2<ContactProvider, AuthProvider>(
               builder: (context, contactProvider, authProvider, child) {
                 final contacts = contactProvider.getAllContacts();
-                final recommendContacts =
-                    contactProvider.getRecommendContacts();
+                // final recommendContacts =
+                //     contactProvider.fetchRecommendedFriends();
                 final pendingContacts = contactProvider.friendRequests;
                 final friends = contactProvider.friends;
 
@@ -70,7 +77,7 @@ class _ContactTabState extends State<ContactTab> {
                         child: TabBarView(
                           children: [
                             _buildMyContactsTab(friends, pendingContacts),
-                            _buildRecommendedFriendsTab(recommendContacts),
+                            _buildRecommendedFriendsTab(),
                           ],
                         ),
                       ),
@@ -309,28 +316,35 @@ class _ContactTabState extends State<ContactTab> {
     );
   }
 
-  Widget _buildRecommendedFriendsTab(List<Contact> recommendContacts) {
-    return ListView(
-      padding: const EdgeInsets.only(top: 20),
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            'People You May Know',
-            style: TextStyle(
-              color: Color(0xFF1E2746),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+  Widget _buildRecommendedFriendsTab() {
+    return Consumer<ContactProvider>(
+      builder: (context, contactProvider, child) {
+        final recommendContacts = contactProvider.recommendedFriends;
+
+        return ListView(
+          padding: const EdgeInsets.only(top: 20),
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Text(
+                'People You May Know',
+                style: TextStyle(
+                  color: Color(0xFF1E2746),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-        ),
-        ...recommendContacts
-            .map((contact) => _buildRecommendedFriend(
-                contact.fullName!,
-                'Based on your contacts', // You can customize this based on your logic
-                contact.avatarUrl!))
-            .toList(),
-      ],
+            ...recommendContacts
+                .map((contact) => _buildRecommendedFriend(
+                    contact.id,
+                    contact.fullName,
+                    'Based on your contacts', // You can customize this based on your logic
+                    contact.avatarUrl ?? ''))
+                .toList(),
+          ],
+        );
+      },
     );
   }
 
@@ -339,7 +353,7 @@ class _ContactTabState extends State<ContactTab> {
       onTap: () {
         print('Start chat with ${contact.fullName}');
         print('Start chat with ${contact.user!.id}');
-          // _chatProvider.startNewChat(contact);
+        // _chatProvider.startNewChat(contact);
       },
       highlightColor: Colors.grey[200],
       splashColor: Colors.grey[300], // Màu splash khi click
@@ -366,37 +380,52 @@ class _ContactTabState extends State<ContactTab> {
     );
   }
 
-  Widget _buildRecommendedFriend(String name, String reason, String avatarUrl) {
-    return ListTile(
-      leading: CustomCircleAvatar(
-        backgroundImage:
-            avatarUrl.isNotEmpty ? CachedNetworkImageProvider(avatarUrl) : null,
-        radius: 25,
-      ),
-      title: Text(
-        name,
-        style: const TextStyle(
-          color: Color(0xFF1E2746),
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      subtitle: Text(
-        reason,
-        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-      ),
-      trailing: ElevatedButton(
-        onPressed: () {
-          // TODO: Implement add friend functionality
-        },
-        child: const Text('Add', style: TextStyle(color: AppColors.white)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+  Widget _buildRecommendedFriend(
+      String userId, String name, String reason, String avatarUrl) {
+    return Consumer<ContactProvider>(
+      builder: (context, contactProvider, child) {
+        final isRequested = contactProvider.contacts.any((contact) =>
+            contact.contactUser?.id == userId &&
+            contact.status == ContactStatus.REQUESTED);
+
+        return ListTile(
+          leading: CustomCircleAvatar(
+            backgroundImage: avatarUrl.isNotEmpty
+                ? CachedNetworkImageProvider(avatarUrl)
+                : null,
+            radius: 25,
           ),
-        ),
-      ),
+          title: Text(
+            name,
+            style: const TextStyle(
+              color: Color(0xFF1E2746),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Text(
+            reason,
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
+          trailing: ElevatedButton(
+            onPressed: isRequested
+                ? null
+                : () async {
+                    await contactProvider.sendFriendRequest(userId);
+                  },
+            child: Text(
+              isRequested ? 'Requested' : 'Add',
+              style: const TextStyle(color: AppColors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isRequested ? Colors.grey : AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

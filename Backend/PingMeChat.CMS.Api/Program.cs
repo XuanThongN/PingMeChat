@@ -193,6 +193,7 @@ GlobalHelper.RegisterAutoMapper(builder.Services);
 GlobalHelper.RegisterServiceLifetimer(builder.Services);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();  // Thêm dịch vụ bộ nhớ cache
+builder.Services.AddHttpClient();
 #endregion 
 
 #region Cloudinary

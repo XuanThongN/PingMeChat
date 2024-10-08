@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/pages/home.dart';
 import 'package:pingmechat_ui/presentation/pages/login_page.dart';
 import 'package:pingmechat_ui/presentation/widgets/custom_button.dart';
 import 'package:provider/provider.dart';
@@ -74,8 +75,9 @@ class SettingTab extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              // Navigate back to the previous screen
-              Navigator.pop(context);
+              // Navigate back to the home screen
+              Navigator.popAndPushNamed(context, HomePage.routeName);
+
             },
           ),
           const Expanded(

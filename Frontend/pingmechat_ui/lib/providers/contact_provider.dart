@@ -18,6 +18,7 @@ class ContactProvider extends ChangeNotifier {
   List<Account> _contactUsers = [];
   List<Contact> _friendRequests = [];
   List<Contact> _friends = [];
+  List<Account> _recommendedFriends = [];
   bool _isLoading = false;
 
   List<Contact> get contacts => _contacts;
@@ -26,6 +27,7 @@ class ContactProvider extends ChangeNotifier {
   Account get currentUser => _authProvider.currentUser!;
   List<Contact> get friendRequests => _friendRequests;
   List<Contact> get friends => _friends;
+  List<Account> get recommendedFriends => _recommendedFriends;
   List<Contact> getAllContacts() {
     return _contacts
         .map((contact) => _getContactUser(contact, currentUser.id))
@@ -226,6 +228,8 @@ class ContactProvider extends ChangeNotifier {
         final responseData = json.decode(response.body);
         final result = responseData['result'];
         final newContact = Contact.fromJson(result);
+        // Thay đổi trạng thái của contact
+        newContact.status = ContactStatus.REQUESTED;
         _contacts.add(newContact);
         _updateContactUsers();
         notifyListeners();
@@ -262,16 +266,32 @@ class ContactProvider extends ChangeNotifier {
     return contact;
   }
 
-  List<Contact> getRecommendContacts() {
-    // Tạo danh sách người dùng khuyến nghị ảo
-    return List.generate(
-        5,
-        (index) => Contact(
-              id: index.toString(),
-              fullName: 'User $index',
-              avatarUrl: '',
-              email: 'User${index + 1}@gmail.com',
-              phoneNumber: '0123456789',
-            ));
+  Future<void> fetchRecommendedFriends() async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConstants.getRecommendedFriendsEndpoint),
+        headers: await _authProvider.getCustomHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        // Lấy phần 'result' và truy cập vào 'data' trong đó
+        final List<dynamic> data = jsonResponse['result'];
+        if (data.isNotEmpty) {
+          _recommendedFriends =
+              data.map((data) => Account.fromJson(data)).toList();
+        } else {
+          _recommendedFriends = [];
+        }
+      } else {
+        throw Exception('Failed to load contacts');
+      }
+    } catch (error) {
+      print('Error fetching contacts: $error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

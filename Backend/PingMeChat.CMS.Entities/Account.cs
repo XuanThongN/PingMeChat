@@ -1,4 +1,5 @@
 using PingMeChat.CMS.Entities.Interfaces;
+using PingMeChat.Shared.Enum;
 
 namespace PingMeChat.CMS.Entities.Users
 {
@@ -34,6 +35,9 @@ namespace PingMeChat.CMS.Entities.Users
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
+        public DateTime? DateOfBirth { get; set; } // ngày sinh
+        // Thêm giới tính
+        public bool Gender { get; set; } // giới tính true: Nam, false: Nữ
 
         public string? AvatarUrl { get; set; }
         public string? FCMToken { get; set; } // token FCM
@@ -52,4 +56,5 @@ namespace PingMeChat.CMS.Entities.Users
 
     }
 
+    
 }

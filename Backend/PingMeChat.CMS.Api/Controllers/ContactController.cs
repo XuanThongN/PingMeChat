@@ -2,14 +2,18 @@ using AutoWrapper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Octokit.Internal;
 using PingMeChat.CMS.API.Routes;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Filters;
 using PingMeChat.CMS.Application.Common.Pagination;
+using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Contacts;
 using PingMeChat.CMS.Application.Feature.Service.Contacts.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Users;
 using PingMeChat.Shared;
+using PingMeChat.Shared.Enum;
 using PingMeChat.Shared.Utils;
 
 namespace PingMeChat.CMS.Api.Controllers
@@ -18,9 +22,15 @@ namespace PingMeChat.CMS.Api.Controllers
     public class ContactController : BaseController
     {
         private readonly IContactService _contactService;
-        public ContactController(IContactService contactService)
+        private readonly IConfiguration _configuration;
+        private readonly IUserService _accountService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        public ContactController(IContactService contactService, IConfiguration configuration, IUserService userService, IHttpClientFactory httpClient)
         {
             _contactService = contactService;
+            _configuration = configuration;
+            _accountService = userService;
+            _httpClientFactory = httpClient;
         }
 
         [HttpGet]
@@ -111,6 +121,44 @@ namespace PingMeChat.CMS.Api.Controllers
 
             var newContact = await _contactService.SendFriendRequest(currentUserId, contact.ContactUserId);
             return Created(string.Empty, new ApiResponse("Đã gửi lời mời kết bạn.", newContact, StatusCodes.Status201Created));
+        }
+
+        // Gợi ý kết bạn
+        [HttpGet]
+        [Route(ApiRoutes.Feature.Contact.RecommendFriendsRoute)]
+        [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> RecommendFriends()
+        {
+            var currentUserId = GetUserId();
+            var recommendationApiUrl = _configuration["RecommendationApiUrl"];
+
+            // Sử dụng HttpClient để gọi API khuyến nghị bạn bè
+            var httpClient = _httpClientFactory.CreateClient();
+            var response = await httpClient.GetAsync($"{recommendationApiUrl}?user_id={currentUserId}");
+            var apiResponse = await response.Content.ReadFromJsonAsync<RecommendationResponseDto>();
+
+            if (apiResponse == null || apiResponse.Recommendations == null || !apiResponse.Recommendations.Any())
+            {
+                return Ok(new ApiResponse("No recommendations found", new List<AccountDto>(), StatusCodes.Status200OK));
+            }
+            var recommendedAccountIds = apiResponse.Recommendations;
+            // Lọc ra các tài khoản đã là bạn bè hoặc đã gửi lời mời kết bạn
+            var contactIdsDictionary = await _contactService.GetAllContactIds(currentUserId);
+            // Loại bỏ các tài khoản đã là bạn bè hoặc đã gửi lời mời kết bạn
+            recommendedAccountIds = apiResponse.Recommendations
+                .Where(r => !contactIdsDictionary.ContainsKey(r))
+                .ToList();
+            // lấy thông tin chi tiết của các tài khoản được khuyến nghị dựa theo id 
+            // và vị trí thứ tự phải giữ nguyên với danh sách được khuyến nghị
+            var recommendedAccounts = await _accountService.FindAll(x => recommendedAccountIds.Contains(x.Id));
+
+            // Sắp xếp lại danh sách recommendedAccounts theo thứ tự của recommendedAccountIds
+            var sortedRecommendedAccounts = recommendedAccountIds
+                .Select(id => recommendedAccounts.FirstOrDefault(account => account.Id == id))
+                .Where(account => account != null)
+                .ToList();
+
+            return Ok(new ApiResponse("Friend recommendations retrieved successfully", sortedRecommendedAccounts, StatusCodes.Status200OK));
         }
     }
 }

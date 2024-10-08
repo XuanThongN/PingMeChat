@@ -52,6 +52,9 @@ class ApiConstants {
       '$baseApiUrl/contacts/cancel-friend-request'; // Hủy lời mời kết bạn
   static const String sendFriendRequestEndpoint =
       '$baseApiUrl/contacts/send-friend-request'; // Gửi lời mời kết bạn
+  static const String getRecommendedFriendsEndpoint = 
+      '$baseApiUrl/contacts/recommend-friends'; // Lấy danh sách bạn bè gợi ý
+
 
   // File upload
   static const String uploadFileEndpoint =
@@ -59,6 +62,7 @@ class ApiConstants {
 
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
+
 
   // Member chat
   static String getAddMembersToChatEndpoint(String chatId) {

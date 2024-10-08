@@ -401,89 +401,92 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
-  final chatName = chat!.isGroup
-      ? chat.name
-      : chat.userChats
-          .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
-          .user!
-          .fullName;
-  final chatAvatarUrl = chat.isGroup
-      ? chat.avatarUrl
-      : chat.userChats
-          .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
-          .user!
-          .avatarUrl;
+    final chatName = chat!.isGroup
+        ? chat.name
+        : chat.userChats
+            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+            .user!
+            .fullName;
+    final chatAvatarUrl = chat.isGroup
+        ? chat.avatarUrl
+        : chat.userChats
+            .firstWhere((userChat) => userChat.user!.id != currentUser?.id)
+            .user!
+            .avatarUrl;
 
-  return AppBar(
-    backgroundColor: Colors.white,
-    elevation: 0,
-    leadingWidth: 40,
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
-      onPressed: () => Navigator.of(context).pop(),
-    ),
-    title: GestureDetector(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => UserInformationPage(chatId: chat.id)));
-      },
-      child: Row(
-        children: [
-          Hero(
-            tag: 'profileImage${chat.id}',
-            child: Stack(
-              children: [
-                CustomCircleAvatar(
-                  radius: 20,
-                  backgroundImage: chatAvatarUrl != null && chatAvatarUrl.isNotEmpty
-                      ? NetworkImage(chatAvatarUrl)
-                      : null,
-                  isGroupChat: chat.isGroup,
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leadingWidth: 40,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => UserInformationPage(chatId: chat.id)));
+        },
+        child: Row(
+          children: [
+            Hero(
+              tag: 'profileImage${chat.id}',
+              child: Stack(
+                children: [
+                  CustomCircleAvatar(
+                    radius: 20,
+                    backgroundImage:
+                        chatAvatarUrl != null && chatAvatarUrl.isNotEmpty
+                            ? NetworkImage(chatAvatarUrl)
+                            : null,
+                    isGroupChat: chat.isGroup,
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  chatName ?? '',
-                  style: AppTypography.subH3.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.secondary,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    chatName ?? '',
+                    style: AppTypography.subH3.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.secondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Active now',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.secondary,
+                  Text(
+                    'Active now',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.secondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMessageItem(Message message, bool showAvatar, bool showTimestamp,
       String currentUserId, bool showDateDivider) {
@@ -628,30 +631,43 @@ class _ChatPageState extends State<ChatPage> {
   // }
 
   // Hàm chọn ảnh từ thư viện
+  // Future<void> _pickImage() async {
+  //   // Xin quyền truy cập vào bộ nhớ
+  //   var status = await Permission.storage.request();
+
+  //   if (status.isGranted) {
+  //     // Nếu quyền được cấp, mở image picker
+  //     final ImagePicker picker = ImagePicker();
+  //     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+  //     setState(() {
+  //       if (image != null) {
+  //         _selectedAttachments!.add(File(image.path));
+  //       }
+  //     });
+  //   } else if (status.isDenied) {
+  //     // Nếu quyền bị từ chối, hiển thị thông báo
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //           content: Text(
+  //               'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.')),
+  //     );
+  //   } else if (status.isPermanentlyDenied) {
+  //     // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
+  //     openAppSettings();
+  //   }
+  // }
+
   Future<void> _pickImage() async {
     // Xin quyền truy cập vào bộ nhớ
-    var status = await Permission.storage.request();
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (status.isGranted) {
-      // Nếu quyền được cấp, mở image picker
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
+    if (pickedFile != null) {
       setState(() {
-        if (image != null) {
-          _selectedAttachments!.add(File(image.path));
-        }
+        _selectedAttachments!.add(File(pickedFile.path));
+        _isComposing = true;
       });
-    } else if (status.isDenied) {
-      // Nếu quyền bị từ chối, hiển thị thông báo
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.')),
-      );
-    } else if (status.isPermanentlyDenied) {
-      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
-      openAppSettings();
     }
   }
 
