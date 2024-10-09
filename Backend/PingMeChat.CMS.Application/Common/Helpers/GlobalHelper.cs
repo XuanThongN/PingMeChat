@@ -1,6 +1,8 @@
+using System.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.App.Repositories;
@@ -23,9 +25,12 @@ using PingMeChat.CMS.Application.Feature.Service.Notifications;
 using PingMeChat.CMS.Application.Feature.Service.Roles;
 using PingMeChat.CMS.Application.Feature.Service.UserChats;
 using PingMeChat.CMS.Application.Feature.Service.Users;
+using PingMeChat.CMS.Application.Feature.Services;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace PingMeChat.CMS.Application.Common.Config
 {
@@ -61,47 +66,56 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddScoped<INotificationService, NotificationService>()
                     .AddSingleton<IMvcControllerDiscoveryService, MvcControllerDiscoveryService>()
                     .AddScoped<IChatHubService, ChatHubService>() // Thêm dịch vụ ChatHubService
-                    .AddSingleton<IUserConnectionManager, UserConnectionManager>()
+                    .AddSingleton<IRedisConnectionManager, RedisConnectionManager>()
                     .AddSingleton<IUserIdProvider, CustomUserIdProvider>()
                     .AddScoped<IEmailService, EmailService>()
                     // Dang ky Dich vu FCM
                     .AddScoped<IFCMService, FCMService>()
-                    .AddSingleton<IUriService>(o =>
+                    // Đăng ký RabbitMQ
+                    .AddSingleton<IRabbitMQService, RabbitMQService>()
+                    // Đăng ký redis
+                    .AddSingleton<IConnectionMultiplexer>(sp =>
                     {
-                        var accessor = o.GetRequiredService<IHttpContextAccessor>();
-                        var request = accessor.HttpContext.Request;
-                        var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
-                        return new UriService(uri);
+                        var configuration = sp.GetRequiredService<IConfiguration>();
+                        return ConnectionMultiplexer.Connect(configuration.GetValue<string>("Redis:ConnectionString"));
                     })
+                    .AddSingleton<IRedisConnectionManager, RedisConnectionManager>()
+                                .AddSingleton<IUriService>(o =>
+                                {
+                                    var accessor = o.GetRequiredService<IHttpContextAccessor>();
+                                    var request = accessor.HttpContext.Request;
+                                    var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
+                                    return new UriService(uri);
+                                })
 
-                    .AddScoped<IJwtLib, JwtLib>()
-                    .AddScoped<IUnitOfWork, UnitOfWork>()
-                    .AddScoped<IDbContextTransaction>(_ => null)
-                    .AddScoped<IRoleRepository, RoleRepository>()
-                    .AddScoped<IGroupRoleRepository, GroupRoleRepository>()
-                    .AddScoped<IGroupUserRepository, GroupUserRepository>()
-                    .AddScoped<IAccountRepository, AccountReponsitory>()
-                    .AddScoped<INotificationRepository, NotificationRepository>()
-                    .AddScoped<IRoleRepository, RoleRepository>()
-                    .AddScoped<IMediaRepository, MediaRepository>()
-                    .AddScoped<IRoleRepository, RoleRepository>()
-                    .AddScoped<IMenuRepository, MenuRepository>()
-                    .AddScoped<IRolesMenuRepository, RolesMenuRepository>()
-                    .AddScoped<IUsersMenuRepository, UsersMenuRepository>()
-                    .AddScoped<IGroupsRepository, GroupsRepository>()
-                    .AddScoped<ILogErrorRepository, LogErrorRepository>()
-                    .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
-                    .AddScoped<IUserSessionRepository, UserSessionRepository>()
-                    .AddScoped<IUserChatRepository, UserChatRepository>()
-                    .AddScoped<ICallRepository, CallRepository>()
-                    .AddScoped<ICallParticipantRepository, CallParticipantRepository>()
-                    .AddScoped<IChatRepository, ChatRepository>()
-                    .AddScoped<IContactRepository, ContactRepository>()
-                    .AddScoped<IMessageRepository, MessageRepository>()
-                    .AddScoped<IMessageStatusRepository, MessageStatusRepository>()
-                    .AddScoped<INotificationRepository, NotificationRepository>()
-                    .AddScoped<IAttachmentRepository, AttachmentRepository>()
-                    ;
+                                .AddScoped<IJwtLib, JwtLib>()
+                                .AddScoped<IUnitOfWork, UnitOfWork>()
+                                .AddScoped<IDbContextTransaction>(_ => null)
+                                .AddScoped<IRoleRepository, RoleRepository>()
+                                .AddScoped<IGroupRoleRepository, GroupRoleRepository>()
+                                .AddScoped<IGroupUserRepository, GroupUserRepository>()
+                                .AddScoped<IAccountRepository, AccountReponsitory>()
+                                .AddScoped<INotificationRepository, NotificationRepository>()
+                                .AddScoped<IRoleRepository, RoleRepository>()
+                                .AddScoped<IMediaRepository, MediaRepository>()
+                                .AddScoped<IRoleRepository, RoleRepository>()
+                                .AddScoped<IMenuRepository, MenuRepository>()
+                                .AddScoped<IRolesMenuRepository, RolesMenuRepository>()
+                                .AddScoped<IUsersMenuRepository, UsersMenuRepository>()
+                                .AddScoped<IGroupsRepository, GroupsRepository>()
+                                .AddScoped<ILogErrorRepository, LogErrorRepository>()
+                                .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()
+                                .AddScoped<IUserSessionRepository, UserSessionRepository>()
+                                .AddScoped<IUserChatRepository, UserChatRepository>()
+                                .AddScoped<ICallRepository, CallRepository>()
+                                .AddScoped<ICallParticipantRepository, CallParticipantRepository>()
+                                .AddScoped<IChatRepository, ChatRepository>()
+                                .AddScoped<IContactRepository, ContactRepository>()
+                                .AddScoped<IMessageRepository, MessageRepository>()
+                                .AddScoped<IMessageStatusRepository, MessageStatusRepository>()
+                                .AddScoped<INotificationRepository, NotificationRepository>()
+                                .AddScoped<IAttachmentRepository, AttachmentRepository>()
+                                ;
         }
     }
 }

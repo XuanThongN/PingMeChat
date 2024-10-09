@@ -134,26 +134,26 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         var result = _mapper.Map<MessageDto>(message);
                         // Thông báo tin nhắn mới tới những người tham gia đoạn chat
-                        await _chatHubService.SendMessageAsync(result);
+                        // await _chatHubService.SendMessageAsync(result);
 
                         // Send push notification to all recipients except sender 
-                        var recipients = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId
-                                                                                    && uc.UserId != messageCreateDto.SenderId,
-                                                                                    include: uc => uc.Include(c => c.User)
-                                                                                    );
-                        foreach (var recipient in recipients)
-                        {
-                            if (!string.IsNullOrEmpty(recipient.User.FCMToken))
-                            {
-                                var data = new Dictionary<string, string>
-                                {
-                                    { "chatId", messageCreateDto.ChatId },
-                                    { "messageId", message.Id },
-                                    { "senderId", messageCreateDto.SenderId }
-                                };
-                                await _fcmService.SendNotificationAsync(recipient.User.FCMToken, message.Sender.FullName! ?? message.Sender.UserName, message.Content ?? $"{message.Sender.FullName} sent a new message", data);
-                            }
-                        }
+                        // var recipients = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId
+                        //                                                             && uc.UserId != messageCreateDto.SenderId,
+                        //                                                             include: uc => uc.Include(c => c.User)
+                        //                                                             );
+                        // foreach (var recipient in recipients)
+                        // {
+                        //     if (!string.IsNullOrEmpty(recipient.User.FCMToken))
+                        //     {
+                        //         var data = new Dictionary<string, string>
+                        //         {
+                        //             { "chatId", messageCreateDto.ChatId },
+                        //             { "messageId", message.Id },
+                        //             { "senderId", messageCreateDto.SenderId }
+                        //         };
+                        //         await _fcmService.SendNotificationAsync(recipient.User.FCMToken, message.Sender.FullName! ?? message.Sender.UserName, message.Content ?? $"{message.Sender.FullName} sent a new message", data);
+                        //     }
+                        // }
 
                         return result;
                     }

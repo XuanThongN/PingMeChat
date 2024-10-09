@@ -8,6 +8,7 @@ import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
 import '../data/datasources/chat_service.dart';
 import '../data/datasources/file_upload_service.dart';
 import '../data/models/chat_model.dart';
+import '../domain/models/account.dart';
 import '../domain/models/chat.dart';
 import '../domain/models/message.dart';
 import '../domain/models/userchat.dart';
@@ -125,31 +126,59 @@ class ChatProvider extends ChangeNotifier {
       // Chat not found, fetch it from the database
       try {
         final newChat = await _chatService.getChatById(message.chatId);
-        // _chats.clear();
-        // Thêm đoạn chat vào đầu danh sách chats
         _chats.insert(0, newChat);
+
+        // Find the sender in the chat's userChats
+        final sender = newChat.userChats
+                .firstWhere(
+                  (userChat) => userChat.userId == message.senderId,
+                  orElse: () => UserChat(
+                      userId: message.senderId,
+                      chatId: message.chatId,
+                      isAdmin: false,
+                      id: ''),
+                )
+                .user ??
+            Account(id: message.senderId, email: '', fullName: '');
+
+        message.sender = sender;
         _messagesByChatId[message.chatId]?.add(message);
       } catch (error) {
         print('Error fetching chat: $error');
       }
     } else {
-      // Chat found, add the message to the existing chat
-      _messagesByChatId[message.chatId]?.add(Message(
-        chatId: message.chatId,
-        senderId: message.senderId,
-        content: message.content,
-        createdDate: message.createdDate,
-        attachments: message.attachments,
-        sender: message.sender,
-      ));
+      // Chat found, find the sender in the existing chat's userChats
+      final sender = _chats[chatIndex]
+              .userChats
+              .firstWhere(
+                (userChat) => userChat.userId == message.senderId,
+                orElse: () => UserChat(
+                    userId: message.senderId,
+                    chatId: message.chatId,
+                    isAdmin: false,
+                    id: ''),
+              )
+              .user ??
+          Account(id: message.senderId, email: '', fullName: '');
+
+        final new_message = Message(
+          chatId: message.chatId,
+          senderId: message.senderId,
+          content: message.content,
+          createdDate: message.createdDate,
+          attachments: message.attachments,
+          sender: sender,
+        );
+      // Add the message to the existing chat
+      _messagesByChatId[message.chatId]?.add(new_message);
 
       // Update the last message of the chat
       if (_chats[chatIndex].messages!.isNotEmpty) {
         _chats[chatIndex].messages!.clear();
       }
-      _chats[chatIndex].messages!.insert(0, message);
+      _chats[chatIndex].messages!.insert(0, new_message);
 
-      // Sort chats by the last message date
+      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được 
       _chats.sort((a, b) {
         final lastMessageA = a.messages!.isNotEmpty
             ? a.messages!.first.createdDate
@@ -161,7 +190,7 @@ class ChatProvider extends ChangeNotifier {
       });
     }
 
-    print("Tin nhắn nhận đc từ server: ");
+    print("Tin nhắn nhận được từ server: ${message.content}");
     notifyListeners();
   }
 
