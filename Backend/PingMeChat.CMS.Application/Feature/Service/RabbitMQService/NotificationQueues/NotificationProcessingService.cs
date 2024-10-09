@@ -62,9 +62,11 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.Notificat
                     var chat = await chatService.Find(x => x.Id == notificationDto!.ChatId,
                                                         include: x => x.Include(c => c.UserChats)
                                                                     .ThenInclude(uc => uc.User));
+                    // Lấy ảnh đại diện của người gửi
+                    var sender = chat.UserChats.Where(uc => uc.UserId == notificationDto.SenderId).FirstOrDefault()!.UserDto;
                     // Xoá người gửi khỏi danh sách người nhận
                     chat.UserChats = chat.UserChats.Where(uc => uc.UserId != notificationDto!.SenderId).ToList();
-
+                    
                     // Gửi thông báo cho từng người nhận
                     foreach (var userReceiver in chat.UserChats)
                     {
@@ -76,8 +78,9 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.Notificat
                                     notificationDto.Content ?? $"Sent a new message",
                                     new Dictionary<string, string>
                             {
-                                { "ChatId", notificationDto.ChatId },
-                                { "SenderId", notificationDto.SenderId }
+                                { "chatId", notificationDto.ChatId },
+                                { "sender", notificationDto.SenderId },
+                                { "avatarUrl", sender!.AvatarUrl!}
                             });
                         }
                     }

@@ -161,23 +161,24 @@ class ChatProvider extends ChangeNotifier {
               .user ??
           Account(id: message.senderId, email: '', fullName: '');
 
+        final new_message = Message(
+          chatId: message.chatId,
+          senderId: message.senderId,
+          content: message.content,
+          createdDate: message.createdDate,
+          attachments: message.attachments,
+          sender: sender,
+        );
       // Add the message to the existing chat
-      _messagesByChatId[message.chatId]?.add(Message(
-        chatId: message.chatId,
-        senderId: message.senderId,
-        content: message.content,
-        createdDate: message.createdDate,
-        attachments: message.attachments,
-        sender: sender,
-      ));
+      _messagesByChatId[message.chatId]?.add(new_message);
 
       // Update the last message of the chat
       if (_chats[chatIndex].messages!.isNotEmpty) {
         _chats[chatIndex].messages!.clear();
       }
-      _chats[chatIndex].messages!.insert(0, message);
+      _chats[chatIndex].messages!.insert(0, new_message);
 
-      // Sort chats by the last message date
+      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được 
       _chats.sort((a, b) {
         final lastMessageA = a.messages!.isNotEmpty
             ? a.messages!.first.createdDate
