@@ -18,6 +18,8 @@ using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQueues;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.NotificationQueues;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,6 +144,8 @@ builder.Services.AddControllers(op => { })
 #region RabbitMQServices
 builder.Services.AddHostedService<MessageProcessingService>();
 builder.Services.AddScoped<MessageProcessor>();
+builder.Services.AddHostedService<NotificationProcessingService>();
+
 #endregion
 
 #region Swagger Api

@@ -8,6 +8,7 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices
     public interface IRabbitMQService
     {
         void PublishMessage(string queueName, object message);
+        void PublishNotification(string queueName, object notification);
     }
 
     public class RabbitMQService : IRabbitMQService, IDisposable
@@ -32,6 +33,19 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices
             _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
 
             var json = JsonSerializer.Serialize(message);
+            var body = Encoding.UTF8.GetBytes(json);
+
+            var properties = _channel.CreateBasicProperties();
+            properties.Persistent = true;
+
+            _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
+        }
+
+        public void PublishNotification(string queueName, object notification)
+        {
+            _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+            var json = JsonSerializer.Serialize(notification);
             var body = Encoding.UTF8.GetBytes(json);
 
             var properties = _channel.CreateBasicProperties();

@@ -1,7 +1,7 @@
 using PingMeChat.CMS.Application.Feature.Service.Messages;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 
-namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices
+namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQueues
 {
     public class MessageProcessor
     {

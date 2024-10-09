@@ -7,6 +7,7 @@ using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Notifications.Dto;
 using PingMeChat.CMS.Application.Feature.Services;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 using PingMeChat.CMS.Entities.Feature;
@@ -44,18 +45,25 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
         public override async Task OnConnectedAsync()
         {
-            var httpContext = Context.GetHttpContext();
-            var userId = httpContext?.User?.FindFirstValue("UserId");
-
-            if (!string.IsNullOrEmpty(userId))
+            try
             {
-                await _redisConnectionManager.AddConnectionAsync(userId, Context.ConnectionId);
-                await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-                _ = JoinUserChatsAsync(userId, Context.ConnectionId); // Thêm user vào các group 1 cách bất đồng bộ
-                await Clients.All.SendAsync("NewUserJoined", $"{userId} has joined");
-            }
+                var httpContext = Context.GetHttpContext();
+                var userId = httpContext?.User?.FindFirstValue("UserId");
 
-            await base.OnConnectedAsync();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    await _redisConnectionManager.AddConnectionAsync(userId, Context.ConnectionId);
+                    await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+                    await JoinUserChatsAsync(userId, Context.ConnectionId); // Thêm user vào các group 1 cách bất đồng bộ
+                }
+
+                await base.OnConnectedAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine("Error on connected" + ex.Message);
+                throw;
+            }
         }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
@@ -130,7 +138,8 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
             // Đưa tin nhắn vào hàng đợi RabbitMQ
             _rabbitMQService.PublishMessage("chat_messages", messageCreateDto);
-            // Gửi thông báo realtime cho người dùng
+
+            // Gửi tín hiệu SignalR để cập nhật giao diện người dùng
             var attachments = messageCreateDto.Attachments?.Select(a =>
                             {
                                 return new AttachmentDto
@@ -150,6 +159,16 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 Attachments = attachments
             };
             await _chatHubService.SendMessageAsync(result);
+
+            // Đưa thông báo vào hàng đợi RabbitMQ
+            var notification = new NotificationDto
+            {
+                ChatId = messageCreateDto.ChatId,
+                SenderId = userId,
+                Content = messageCreateDto.Content,
+                Metadata = new Dictionary<string, object> { { "message", result } }
+            };
+            _rabbitMQService.PublishNotification("notification_queue", notification);
         }
 
         public async Task JoinChat(string chatId)
@@ -198,10 +217,32 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
         private async Task JoinUserChatsAsync(string userId, string connectionId)
         {
-            var userChats = await _chatService.GetChatListAsync(userId);
-            var joinTasks = userChats.Select(chat => Groups.AddToGroupAsync(connectionId, chat.Id));
-            await Task.WhenAll(joinTasks);
+            try
+            {
+                var userChats = await _chatService.GetChatListAsync(userId);
+                if (userChats != null && userChats.Any())
+                {
+                    Console.WriteLine($"User {userId} is joining {userChats.Count()} chats.");
+                    var joinTasks = userChats.Select(chat =>
+                    {
+                        Console.WriteLine($"User {userId} is joining chat {chat.Id} with connection {connectionId}");
+                        return Groups.AddToGroupAsync(connectionId, chat.Id);
+                    });
+
+                    await Task.WhenAll(joinTasks);  // Chạy song song việc thêm vào các nhóm
+                    Console.WriteLine($"User {userId} has successfully joined all chats.");
+                }
+                else
+                {
+                    Console.WriteLine($"User {userId} has no chats to join.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error joining user {userId} to chats: {ex.Message}");
+            }
         }
+
 
         private async Task ThrottleAsync()
         {
