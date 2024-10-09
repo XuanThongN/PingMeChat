@@ -137,7 +137,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             // await _messageService.SendMessageAsync(messageCreateDto);
 
             // Đưa tin nhắn vào hàng đợi RabbitMQ
-            _rabbitMQService.PublishMessage("chat_messages", messageCreateDto);
+            _rabbitMQService.PublishMessageAsync("chat_messages", messageCreateDto);
 
             // Gửi tín hiệu SignalR để cập nhật giao diện người dùng
             var attachments = messageCreateDto.Attachments?.Select(a =>
@@ -168,7 +168,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 Content = messageCreateDto.Content,
                 Metadata = new Dictionary<string, object> { { "message", result } }
             };
-            _rabbitMQService.PublishNotification("notification_queue", notification);
+            await _rabbitMQService.PublishNotificationAsync("notification_queue", notification);
         }
 
         public async Task JoinChat(string chatId)

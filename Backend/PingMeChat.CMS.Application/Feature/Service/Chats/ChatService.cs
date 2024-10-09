@@ -7,6 +7,7 @@ using PingMeChat.CMS.Application.Common.Pagination;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Application.Feature.Service.UserChats.Dto;
+using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.Entities;
@@ -33,6 +34,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IMessageRepository _messageRepository;
         private readonly IMemoryCache _cache; // Bộ nhớ cache để lưu trữ số lượng lệnh trong khoảng thời gian
+        private readonly ICacheService _cacheService; // cache redis
+        private const string ChatListCacheKey = "ChatList_{0}_{1}_{2}"; // userId_page_pageSize
+        private const string ChatDetailCacheKey = "ChatDetail_{0}"; // chatId
 
         public ChatService(
             IChatRepository repository,
@@ -42,12 +46,15 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             IUserChatRepository userChatRepository,
             ILogErrorRepository logErrorRepository,
             IMessageRepository messageRepository,
-            IMemoryCache cache) : base(repository, unitOfWork, mapper, uriService)
+            IMemoryCache cache,
+            ICacheService cacheService
+            ) : base(repository, unitOfWork, mapper, uriService)
         {
             _userChatRepository = userChatRepository;
             _logErrorRepository = logErrorRepository;
             _messageRepository = messageRepository;
             _cache = cache;
+            _cacheService = cacheService;
         }
 
         public async Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId)
@@ -100,6 +107,12 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                     include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
                 );
 
+                // Remove chat list cache for all participants
+                foreach (var participantId in chatCreateDto.UserIds.Concat(new[] { userId }))
+                {
+                    await _cacheService.RemoveAsync(string.Format(ChatListCacheKey, participantId, "*", "*"));
+                }
+
                 return _mapper.Map<ChatDto>(createdChat);
             }
             catch (Exception ex)
@@ -121,28 +134,34 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         {
             try
             {
-                var chat = await _repository.Find(
-                    c => c.Id == chatId,
-                    include: q => q
-                    .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
-                    .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
-                    .ThenInclude(m => m.Sender)
+                string cacheKey = string.Format(ChatDetailCacheKey, chatId);
+                return await _cacheService.GetOrCreateAsync(cacheKey, async () =>
+                {
+                    var chat = await _repository.Find(
+                        c => c.Id == chatId,
+                        include: q => q
+                        .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
+                        .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
+                        .ThenInclude(m => m.Sender)
+                    );
+
+                    if (chat == null)
+                    {
+                        throw new AppException("Chat not found", 404);
+                    }
+
+                    var userChat = chat.UserChats.FirstOrDefault(uc => uc.UserId == userId);
+                    if (userChat == null)
+                    {
+                        throw new AppException("User is not a member of this chat", 403);
+                    }
+
+                    var chatDto = _mapper.Map<ChatDto>(chat);
+
+                    return chatDto;
+                },
+                TimeSpan.FromMinutes(5) // Cache for 5 minutes 
                 );
-
-                if (chat == null)
-                {
-                    throw new AppException("Chat not found", 404);
-                }
-
-                var userChat = chat.UserChats.FirstOrDefault(uc => uc.UserId == userId);
-                if (userChat == null)
-                {
-                    throw new AppException("User is not a member of this chat", 403);
-                }
-
-                var chatDto = _mapper.Map<ChatDto>(chat);
-
-                return chatDto;
             }
             catch (Exception ex)
             {
@@ -182,29 +201,33 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             }
         }
         public async Task<PagedResponse<List<ChatDto>>> GetChatListAsync(
-    string userId,
-    int pageNumber,
-    int pageSize,
-    string route = null)
+            string userId,
+            int pageNumber,
+            int pageSize,
+            string route = null)
         {
-            return await Pagination(
-                pageNumber,
-                pageSize,
-                predicate: c => c.UserChats.Any(uc => uc.UserId == userId) && (c.IsGroup || c.Messages.Any()),
-                orderBy: q => q.OrderByDescending(c => c.Messages
-                    .OrderByDescending(m => m.CreatedDate)
-                    .Select(m => (DateTime?)m.CreatedDate)
-                    .FirstOrDefault() ?? c.CreatedDate), // Nếu không có tin nhắn, dùng DateTime.MinValue để xếp cuối cùng
-                include: q => q
-                    .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
-                    .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
-                    .ThenInclude(m => m.Sender)
-                    , // Lấy tin nhắn cuối cùng
-                route: route
+            string cacheKey = string.Format(ChatListCacheKey, userId, pageNumber, pageSize);
+            return await _cacheService.GetOrCreateAsync(cacheKey, async () =>
+            {
+                return await Pagination(
+                    pageNumber,
+                    pageSize,
+                    predicate: c => c.UserChats.Any(uc => uc.UserId == userId) && (c.IsGroup || c.Messages.Any()),
+                    orderBy: q => q.OrderByDescending(c => c.Messages
+                        .OrderByDescending(m => m.CreatedDate)
+                        .Select(m => (DateTime?)m.CreatedDate)
+                        .FirstOrDefault() ?? c.CreatedDate), // Nếu không có tin nhắn, dùng DateTime.MinValue để xếp cuối cùng
+                    include: q => q
+                        .Include(c => c.UserChats).ThenInclude(uc => uc.User) // Bao gồm thông tin người dùng
+                        .Include(c => c.Messages.OrderByDescending(m => m.CreatedDate).Take(1))
+                        .ThenInclude(m => m.Sender)
+                        , // Lấy tin nhắn cuối cùng
+                    route: route
+                );
+            },
+            TimeSpan.FromMinutes(5) // Cache for 5 minutes
             );
         }
-
-
 
         public async Task<List<UserChatDto>> AddUsersToChatAsync(string chatId, List<string> userIds, string currentUserId)
         {

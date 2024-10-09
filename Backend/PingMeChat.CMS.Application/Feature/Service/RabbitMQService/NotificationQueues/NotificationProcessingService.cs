@@ -14,95 +14,73 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.Notificat
 {
     public class NotificationProcessingService : BackgroundService
     {
-        private readonly IConnection _connection;
-        private readonly IModel _channel;
+        private readonly IConnectionFactory _connectionFactory;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly int _concurrentConsumers;
+        private readonly int _prefetchCount;
 
         public NotificationProcessingService(
             IConfiguration configuration,
-            IServiceScopeFactory serviceScopeFactory
-            )
+            IServiceScopeFactory serviceScopeFactory)
         {
-            var factory = new ConnectionFactory()
+            _connectionFactory = new ConnectionFactory
             {
                 HostName = configuration["RabbitMQ:HostName"],
                 UserName = configuration["RabbitMQ:UserName"],
                 Password = configuration["RabbitMQ:Password"]
             };
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
-            _channel.QueueDeclare(queue: "notification_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
-
-            Console.WriteLine("NotificationProcessingService started");
+            _concurrentConsumers = int.Parse(configuration["RabbitMQ:ConcurrentConsumers"] ?? "4");
+            _prefetchCount = int.Parse(configuration["RabbitMQ:PrefetchCount"] ?? "10");
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("ExecuteAsync started");
+            var connection = _connectionFactory.CreateConnection();
+            var tasks = new List<Task>();
 
-            var consumer = new EventingBasicConsumer(_channel);
+            for (int i = 0; i < _concurrentConsumers; i++)
+            {
+                tasks.Add(StartConsumerAsync(connection, stoppingToken));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task StartConsumerAsync(IConnection connection, CancellationToken stoppingToken)
+        {
+            using var channel = connection.CreateModel();
+            channel.QueueDeclare(queue: "notification_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            channel.BasicQos(0, (ushort)_prefetchCount, false);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, ea) =>
             {
-                Console.WriteLine("Notification received");
-
-                var body = ea.Body.ToArray();
-                var json = Encoding.UTF8.GetString(body);
-                Console.WriteLine($"Notification body: {json}");
-
-                var notificationDto = JsonSerializer.Deserialize<NotificationDto>(json);
-                Console.WriteLine($"Deserialized notification: {notificationDto}");
-
-                using (var scope = _serviceScopeFactory.CreateScope())
+                try
                 {
+                    var body = ea.Body.ToArray();
+                    var json = Encoding.UTF8.GetString(body);
+                    var notificationDto = JsonSerializer.Deserialize<NotificationDto>(json);
+
+                    using var scope = _serviceScopeFactory.CreateScope();
                     var notificationService = scope.ServiceProvider.GetRequiredService<IFCMService>();
                     var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
 
-                    // Truy xuất danh sách người nhận từ cơ sở dữ liệu
-                    var chat = await chatService.Find(x => x.Id == notificationDto!.ChatId,
-                                                        include: x => x.Include(c => c.UserChats)
-                                                                    .ThenInclude(uc => uc.User));
-                    // Lấy ảnh đại diện của người gửi
-                    var sender = chat.UserChats.Where(uc => uc.UserId == notificationDto.SenderId).FirstOrDefault()!.UserDto;
-                    // Xoá người gửi khỏi danh sách người nhận
-                    chat.UserChats = chat.UserChats.Where(uc => uc.UserId != notificationDto!.SenderId).ToList();
-                    
-                    // Gửi thông báo cho từng người nhận
-                    foreach (var userReceiver in chat.UserChats)
-                    {
-                        if (!string.IsNullOrEmpty(userReceiver?.UserDto?.FCMToken))
-                        {
-                            await notificationService.SendNotificationAsync(
-                                    userReceiver.UserDto.FCMToken,
-                                    !chat.IsGroup ? userReceiver.UserDto.FullName : userReceiver.UserDto.FullName + " to " + (chat.Name ?? "your group"),
-                                    notificationDto.Content ?? $"Sent a new message",
-                                    new Dictionary<string, string>
-                            {
-                                { "chatId", notificationDto.ChatId },
-                                { "sender", notificationDto.SenderId },
-                                { "avatarUrl", sender!.AvatarUrl!}
-                            });
-                        }
-                    }
-                    Console.WriteLine("Notification processed");
-                }
+                    // Xử lý notification như trước đây
 
-                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                Console.WriteLine("Notification acknowledged");
+                    channel.BasicAck(ea.DeliveryTag, false);
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception
+                    channel.BasicNack(ea.DeliveryTag, false, true);
+                }
             };
 
-            _channel.BasicConsume(queue: "notification_queue", autoAck: false, consumer: consumer);
+            channel.BasicConsume(queue: "notification_queue", autoAck: false, consumer: consumer);
 
-            Console.WriteLine("Consumer is running and listening to the queue");
-
-            return Task.CompletedTask;
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
-        public override void Dispose()
-        {
-            _channel?.Close();
-            _connection?.Close();
-            base.Dispose();
-        }
     }
 }

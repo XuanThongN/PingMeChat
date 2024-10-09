@@ -20,6 +20,10 @@ using Google.Apis.Auth.OAuth2;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQueues;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.NotificationQueues;
+using PingMeChat.CMS.Application.Feature.Services.SignalR;
+using PingMeChat.CMS.Application.Feature.Services.SignalR.PingMeChat.CMS.Application.Feature.Services.SignalR;
+using Microsoft.AspNetCore.SignalR;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,7 +136,11 @@ builder.Services.AddControllers(op => { })
         options.SuppressModelStateInvalidFilter = true;
         options.InvalidModelStateResponseFactory = CustomValidator.MakeValidationResponse;
     })
-    .ConfigureApiBehaviorOptions(op => { op.SuppressModelStateInvalidFilter = true; })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+        options.InvalidModelStateResponseFactory = CustomValidator.MakeValidationResponse;
+    })
     .AddJsonOptions(op =>
     {
         op.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -186,7 +194,12 @@ builder.Services.AddSwaggerGenNewtonsoftSupport();
 #endregion
 
 #region register SignalR
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+                    .AddHubOptions<ChatHub>(options =>
+                            {
+                                options.EnableDetailedErrors = true;
+                            });
+builder.Services.AddSingleton<HubLifetimeManager<ChatHub>, RabbitMQBackplane>();
 #endregion
 
 builder.Services.AddControllers();
@@ -204,6 +217,11 @@ GlobalHelper.RegisterServiceLifetimer(builder.Services);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();  // Thêm dịch vụ bộ nhớ cache
 builder.Services.AddHttpClient();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:ConnectionString"];
+    options.InstanceName = "PingMeChat_";
+});
 #endregion 
 
 #region Cloudinary
@@ -228,7 +246,7 @@ var app = builder.Build();
 #region add middlware
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RateLimitingMiddleware>();  // Thêm middleware xử lý rate limiting
-    //.UseMiddleware<TokenRefreshMiddleware>();
+                                              //.UseMiddleware<TokenRefreshMiddleware>();
 #endregion
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

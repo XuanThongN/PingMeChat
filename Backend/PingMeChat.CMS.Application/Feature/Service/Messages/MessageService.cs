@@ -14,6 +14,9 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 using PingMeChat.CMS.Application.Feature.ChatHubs;
 using PingMeChat.CMS.Application.Feature.Service.Notifications;
+using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
+using Org.BouncyCastle.Asn1.Cms;
+using PingMeChat.CMS.Application.Feature.Service.Chats;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Messages
 {
@@ -30,6 +33,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
         private readonly IChatHubService _chatHubService;
         private readonly IAccountRepository _accountRepository;
         private readonly IFCMService _fcmService;
+        private readonly ICacheService _cacheService; // cache redis
+        private const string ChatMessagesCacheKey = "ChatMessages_{0}_{1}_{2}"; // chatId_page_pageSize
+        private const string ChatListCacheKey = "ChatList_{0}_{1}_{2}"; // userId_page_pageSize
+
         public MessageService(
             IMessageRepository repository,
             IUnitOfWork unitOfWork,
@@ -39,7 +46,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
             ILogErrorRepository logErrorRepository,
             IChatHubService chatHubService,
             IAccountRepository accountRepository,
-            IFCMService fcmService)
+            IFCMService fcmService,
+            ICacheService cacheService)
             : base(repository, unitOfWork, mapper, uriService)
         {
             _userChatRepository = userChatRepository;
@@ -47,6 +55,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
             _chatHubService = chatHubService;
             _accountRepository = accountRepository;
             _fcmService = fcmService;
+            _cacheService = cacheService; // cache redis
         }
         public override async Task<PagedResponse<List<MessageDto>>> Pagination(
         int pageNumber,
@@ -74,14 +83,18 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
         int pageSize,
         string route = null)
         {
-            return await Pagination(
-                pageNumber,
-                pageSize,
-                predicate: m => m.ChatId == chatId,
-                orderBy: q => q.OrderByDescending(m => m.SentAt),
-                include: m => m.Include(o => o.Sender),
-                route: route
-                );
+            string cacheKey = string.Format(ChatMessagesCacheKey, chatId, pageNumber, pageSize);
+            return await _cacheService.GetOrCreateAsync(cacheKey, async () =>
+            {
+                return await Pagination(
+                    pageNumber,
+                    pageSize,
+                    predicate: m => m.ChatId == chatId,
+                    orderBy: q => q.OrderByDescending(m => m.SentAt),
+                    include: m => m.Include(o => o.Sender),
+                    route: route
+                    );
+            }, TimeSpan.FromMinutes(2));
         }
         public async Task<MessageDto> SendMessageAsync(MessageCreateDto messageCreateDto)
         {
@@ -133,28 +146,15 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                         message.Sender = userChat.User;
 
                         var result = _mapper.Map<MessageDto>(message);
-                        // Thông báo tin nhắn mới tới những người tham gia đoạn chat
-                        // await _chatHubService.SendMessageAsync(result);
 
-                        // Send push notification to all recipients except sender 
-                        // var recipients = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId
-                        //                                                             && uc.UserId != messageCreateDto.SenderId,
-                        //                                                             include: uc => uc.Include(c => c.User)
-                        //                                                             );
-                        // foreach (var recipient in recipients)
-                        // {
-                        //     if (!string.IsNullOrEmpty(recipient.User.FCMToken))
-                        //     {
-                        //         var data = new Dictionary<string, string>
-                        //         {
-                        //             { "chatId", messageCreateDto.ChatId },
-                        //             { "messageId", message.Id },
-                        //             { "senderId", messageCreateDto.SenderId }
-                        //         };
-                        //         await _fcmService.SendNotificationAsync(recipient.User.FCMToken, message.Sender.FullName! ?? message.Sender.UserName, message.Content ?? $"{message.Sender.FullName} sent a new message", data);
-                        //     }
-                        // }
-
+                        // Invalidate chat messages cache
+                        await _cacheService.RemoveAsync(string.Format(ChatMessagesCacheKey, messageCreateDto.ChatId, "*", "*"));
+                        // fetch all participants in the chat
+                        var participants = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId);
+                        foreach (var participant in participants)
+                        {
+                            await _cacheService.RemoveAsync(string.Format(ChatListCacheKey, participant.UserId, "*", "*"));
+                        }
                         return result;
                     }
                     catch (Exception ex)
