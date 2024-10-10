@@ -13,71 +13,70 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQu
 {
     public class MessageProcessingService : BackgroundService
     {
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly int _concurrentConsumers;
-        private readonly int _prefetchCount;
+
 
         public MessageProcessingService(
             IConfiguration configuration,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory
+            )
         {
-            _connectionFactory = new ConnectionFactory
+            var factory = new ConnectionFactory()
             {
                 HostName = configuration["RabbitMQ:HostName"],
                 UserName = configuration["RabbitMQ:UserName"],
                 Password = configuration["RabbitMQ:Password"]
             };
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
-            _concurrentConsumers = int.Parse(configuration["RabbitMQ:ConcurrentConsumers"] ?? "4");
-            _prefetchCount = int.Parse(configuration["RabbitMQ:PrefetchCount"] ?? "10");
+            _channel.QueueDeclare(queue: "chat_messages", durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+            Console.WriteLine("MessageProcessingService started");
+
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var connection = _connectionFactory.CreateConnection();
-            var tasks = new List<Task>();
+            Console.WriteLine("ExecuteAsync started");
 
-            for (int i = 0; i < _concurrentConsumers; i++)
-            {
-                tasks.Add(StartConsumerAsync(connection, stoppingToken));
-            }
-
-            await Task.WhenAll(tasks);
-        }
-
-        private async Task StartConsumerAsync(IConnection connection, CancellationToken stoppingToken)
-        {
-            using var channel = connection.CreateModel();
-            channel.QueueDeclare(queue: "chat_messages", durable: true, exclusive: false, autoDelete: false, arguments: null);
-            channel.BasicQos(0, (ushort)_prefetchCount, false);
-
-            var consumer = new AsyncEventingBasicConsumer(channel);
+            var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
-                try
-                {
-                    var body = ea.Body.ToArray();
-                    var json = Encoding.UTF8.GetString(body);
-                    var messageDto = JsonSerializer.Deserialize<MessageCreateDto>(json);
+                Console.WriteLine("Message received");
 
-                    using var scope = _serviceScopeFactory.CreateScope();
+                var body = ea.Body.ToArray();
+                var json = Encoding.UTF8.GetString(body);
+                Console.WriteLine($"Message body: {json}");
+
+                var messageDto = JsonSerializer.Deserialize<MessageCreateDto>(json);
+                Console.WriteLine($"Deserialized message: {messageDto}");
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
                     var messageProcessor = scope.ServiceProvider.GetRequiredService<MessageProcessor>();
                     await messageProcessor.ProcessMessageAsync(messageDto);
+                    Console.WriteLine("Message processed");
+                }
 
-                    channel.BasicAck(ea.DeliveryTag, false);
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception
-                    channel.BasicNack(ea.DeliveryTag, false, true);
-                }
+                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                Console.WriteLine("Message acknowledged");
             };
 
-            channel.BasicConsume(queue: "chat_messages", autoAck: false, consumer: consumer);
+            _channel.BasicConsume(queue: "chat_messages", autoAck: false, consumer: consumer);
 
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+            Console.WriteLine("Consumer is running and listening to the queue");
+
+            return Task.CompletedTask;
         }
 
+        public override void Dispose()
+        {
+            _channel?.Close();
+            _connection?.Close();
+            base.Dispose();
+        }
     }
 }

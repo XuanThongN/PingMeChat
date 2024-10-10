@@ -20,8 +20,6 @@ using Google.Apis.Auth.OAuth2;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQueues;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.NotificationQueues;
-using PingMeChat.CMS.Application.Feature.Services.SignalR;
-using PingMeChat.CMS.Application.Feature.Services.SignalR.PingMeChat.CMS.Application.Feature.Services.SignalR;
 using Microsoft.AspNetCore.SignalR;
 using System.Configuration;
 
@@ -194,12 +192,8 @@ builder.Services.AddSwaggerGenNewtonsoftSupport();
 #endregion
 
 #region register SignalR
-builder.Services.AddSignalR()
-                    .AddHubOptions<ChatHub>(options =>
-                            {
-                                options.EnableDetailedErrors = true;
-                            });
-builder.Services.AddSingleton<HubLifetimeManager<ChatHub>, RabbitMQBackplane>();
+builder.Services.AddSignalR();
+// builder.Services.AddSingleton<HubLifetimeManager<ChatHub>, RabbitMQBackplane>();
 #endregion
 
 builder.Services.AddControllers();
