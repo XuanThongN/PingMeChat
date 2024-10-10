@@ -42,6 +42,7 @@ class Message {
           .toList(),
       // Map json['sender'] to Account object
       sender: json['sender'] != null ? Account.fromJson(json['sender']) : null,
+      status: json['status'] != null ? MessageStatus.values.byName(json['status']) : MessageStatus.sent,
     );
   }
 
@@ -115,11 +116,13 @@ class MessageReader {
 
 // Tạo class Message cho send message
 class MessageSendDto {
+  final String tempId;
   final String chatId;
   final String? content;
   final List<Attachment>? attachments;
 
   MessageSendDto({
+    required this.tempId,
     this.content,
     required this.chatId,
     this.attachments,
@@ -127,6 +130,7 @@ class MessageSendDto {
 
   Map<String, dynamic> toJson() {
     return {
+      'tempId': tempId,
       'chatId': chatId,
       'content': content,
       'attachments': attachments?.map((i) => i.toJson()).toList(),

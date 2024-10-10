@@ -13,6 +13,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages.Dto
 {
     public class MessageCreateDto : CreateDto
     {
+        public string? TempId { get; set; } // id tạm thời để xác định tin nhắn
         [Required]
         public string ChatId { get; set; }
         public string SenderId { get; set; }

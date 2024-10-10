@@ -81,7 +81,9 @@ class ChatMessageWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: isCurrentUser
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
                         children: [
                           if (message.attachments != null &&
                               message.attachments!.isNotEmpty)
@@ -112,7 +114,10 @@ class ChatMessageWidget extends StatelessWidget {
                             ),
                           ),
                         const SizedBox(width: 4),
-                        _buildStatusIcon(message.status ?? MessageStatus.sent),
+                        if (isCurrentUser &&
+                            message.status != MessageStatus.sent)
+                          _buildStatusIcon(
+                              message.status ?? MessageStatus.sending),
                       ],
                     ),
                   ],

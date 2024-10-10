@@ -76,30 +76,8 @@ class ChatProvider extends ChangeNotifier {
     _chatService.onReceiveMessageCallback = _handleNewMessage;
     _chatService.onUserTypingCallback = _handleUserTyping;
     _chatService.onUserStopTypingCallback = _handleUserStopTyping;
+    _chatService.onSentMessageCallback = _handleSentMessage;
   }
-  // void _setupSignalRListeners() {
-  //   _chatService.onNewGroupChat((chat) {
-  //     _handleNewGroupChat(chat);
-  //   });
-
-  //   _chatService.onNewPrivateChat((chat) {
-  //     _handleNewPrivateChat(chat);
-  //   });
-
-  //     _chatService.onReceiveMessage((message) async {
-  //     _handleNewMessage(message);
-  //   });
-
-  //   _chatService.onUserTyping((chatId, userId) async {
-  //     _typingUserIds[chatId] = userId;
-  //     notifyListeners();
-  //   });
-
-  //   _chatService.onUserStopTyping((chatId, userId) async {
-  //     _typingUserIds.remove(chatId);
-  //     notifyListeners();
-  //   });
-  // }
 
   void _handleNewGroupChat(Chat chat) {
     _chats.insert(0, chat);
@@ -180,19 +158,22 @@ class ChatProvider extends ChangeNotifier {
       _chats[chatIndex].messages!.insert(0, new_message);
 
       // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được
-      _chats.sort((a, b) {
-        final lastMessageA = a.messages!.isNotEmpty
-            ? a.messages!.first.createdDate
-            : a.createdDate;
-        final lastMessageB = b.messages!.isNotEmpty
-            ? b.messages!.first.createdDate
-            : b.createdDate;
-        return lastMessageB!.compareTo(lastMessageA!);
-      });
+      sortChats();
     }
 
     print("Tin nhắn nhận được từ server: ${message.content}");
     notifyListeners();
+  }
+
+// Hàm xử lý tin nhắn đã được gửi thành công
+  void _handleSentMessage(String tempId, Message sentMessage) {
+    final chatId = sentMessage.chatId;
+    final index = _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
+    print("Tin nhắn đã được gửi thành công: $tempId");
+    if (index != null && index != -1) {
+      _messagesByChatId[chatId]![index] = sentMessage;
+      notifyListeners();
+    }
   }
 
   void _handleUserTyping(String chatId, String userId) {
@@ -254,7 +235,12 @@ class ChatProvider extends ChangeNotifier {
     );
 
     // Thêm tin nhắn tạm thời vào danh sách
-    _messagesByChatId[chatId]?.insert(0, tempMessage);
+    _messagesByChatId[chatId]?.add(tempMessage);
+    // Set tin nhắn cuối cùng của chat
+    final chat = _chats.firstWhere((c) => c.id == chatId);
+    chat.messages?.clear(); // Xóa tất cả tin nhắn của chat
+    chat.messages?.insert(0, tempMessage); // Thêm tin nhắn tạm thời vào đầu danh sách
+    sortChats(); // Sắp xếp lại danh sách chat
     notifyListeners();
 
     try {
@@ -272,6 +258,7 @@ class ChatProvider extends ChangeNotifier {
               fileSize: e.fileSize))
           .toList();
       MessageSendDto messageDto = MessageSendDto(
+        tempId: tempId,
         chatId: chatId,
         content: message,
         attachments: attachments,
@@ -279,15 +266,6 @@ class ChatProvider extends ChangeNotifier {
 
       // Gửi tin nhắn lên server
       await _chatService.sendMessage(messageDto);
-      // Cập nhật trạng thái tin nhắn thành công
-      final index =
-          _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
-      if (index != null && index != -1) {
-        _messagesByChatId[chatId]![index] =
-            _messagesByChatId[chatId]![index].copyWith(
-          status: MessageStatus.sent,
-        );
-      }
     } catch (error) {
       // Cập nhật trạng thái tin nhắn thất bại
       final index =
@@ -301,20 +279,6 @@ class ChatProvider extends ChangeNotifier {
       print('Error sending message: $error');
     }
     notifyListeners(); // Thông báo cho các widget nghe thay đổi dữ liệu
-  }
-
-  // Hàm cập nhật trạng thái tin nhắn
-  void updateMessageStatus(
-      String chatId, String messageId, MessageStatus status) {
-    final index =
-        _messagesByChatId[chatId]?.indexWhere((m) => m.id == messageId);
-    if (index != null && index != -1) {
-      _messagesByChatId[chatId]![index] =
-          _messagesByChatId[chatId]![index].copyWith(
-        status: status,
-      );
-      notifyListeners();
-    }
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
@@ -441,5 +405,19 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = false;
     _hasMoreChats = true;
     notifyListeners();
+  }
+
+  // Hàm sort danh sách chat
+  void sortChats() {
+    // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được
+    _chats.sort((a, b) {
+      final lastMessageA = a.messages!.isNotEmpty
+          ? a.messages!.first.createdDate
+          : a.createdDate;
+      final lastMessageB = b.messages!.isNotEmpty
+          ? b.messages!.first.createdDate
+          : b.createdDate;
+      return lastMessageB!.compareTo(lastMessageA!);
+    });
   }
 }

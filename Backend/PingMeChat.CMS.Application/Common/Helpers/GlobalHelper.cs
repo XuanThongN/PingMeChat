@@ -84,13 +84,18 @@ namespace PingMeChat.CMS.Application.Common.Config
                     .AddSingleton<IRedisConnectionManager, RedisConnectionManager>()
                     .AddSingleton<ICacheService, RedisCacheService>() // Đăng ký cache redis
 
-                                .AddSingleton<IUriService>(o =>
-                                {
-                                    var accessor = o.GetRequiredService<IHttpContextAccessor>();
-                                    var request = accessor.HttpContext.Request;
-                                    var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
-                                    return new UriService(uri);
-                                })
+                                .AddSingleton<IUriService>(sp =>
+{
+    var accessor = sp.GetRequiredService<IHttpContextAccessor>();
+    var request = accessor.HttpContext?.Request;
+    if (request != null)
+    {
+        var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
+        return new UriService(uri);
+    }
+    // Trả về một giá trị mặc định hoặc throw một exception tùy thuộc vào yêu cầu của bạn
+    return new UriService("http://localhost"); // Ví dụ về giá trị mặc định
+})
 
                                 .AddScoped<IJwtLib, JwtLib>()
                                 .AddScoped<IUnitOfWork, UnitOfWork>()

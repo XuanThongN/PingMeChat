@@ -158,7 +158,11 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 CreatedDate = DateTime.UtcNow,
                 Attachments = attachments
             };
-            await _chatHubService.SendMessageAsync(result);
+
+            // Gửi tin nhắn (xác nhận tin nhắn đã được gửi) về cho caller (người gửi)
+            await Clients.Caller.SendAsync("SentMessage", new { TempId = messageCreateDto.TempId, Message = result });
+            // Gửi tin nhắn đến các người dùng khác trong nhóm chat
+            await _chatHubService.SendMessageAsync(result, Context.ConnectionId);
 
             // Đưa thông báo vào hàng đợi RabbitMQ
             var notification = new NotificationDto

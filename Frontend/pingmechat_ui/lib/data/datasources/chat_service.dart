@@ -24,6 +24,7 @@ class ChatService {
   Function(Chat)? onNewGroupChatCallback;
   Function(Chat)? onNewPrivateChatCallback;
   Function(Message)? onReceiveMessageCallback;
+  Function(String, Message)? onSentMessageCallback;
   Function(String, String)? onUserTypingCallback;
   Function(String, String)? onUserStopTypingCallback;
 
@@ -123,6 +124,16 @@ class ChatService {
       if (arguments != null && arguments.isNotEmpty) {
         final message = Message.fromJson(arguments[0]);
         onReceiveMessageCallback?.call(message);
+      }
+    });
+
+    // Lắng nghe sự kiện tin nhắn đã được gửi thành công
+    hubConnection?.on('SentMessage', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final data = arguments[0] as Map<String, dynamic>;
+        final tempId = data['tempId'] as String;
+        final message = Message.fromJson(data['message']);
+        onSentMessageCallback?.call(tempId, message);
       }
     });
 
@@ -253,21 +264,6 @@ class ChatService {
 
   Future<void> sendMessage(MessageSendDto input) async {
     await hubConnection!.invoke('SendMessage', args: [input]);
-  }
-
-  void onMessageStatusUpdate(
-      void Function(String messageId, MessageStatus status) handler) {
-    hubConnection!.on('MessageStatusUpdate', (arguments) {
-      if (arguments != null && arguments.length >= 2) {
-        final messageId = arguments[0] as String;
-        final statusString = arguments[1] as String;
-        final status = MessageStatus.values.firstWhere(
-          (e) => e.toString().split('.').last == statusString,
-          orElse: () => MessageStatus.sent,
-        );
-        handler(messageId, status);
-      }
-    });
   }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
