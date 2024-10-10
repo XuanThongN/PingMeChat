@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/domain/models/attachment.dart';
 import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/datasources/chat_service.dart';
 import '../data/datasources/file_upload_service.dart';
@@ -161,14 +162,14 @@ class ChatProvider extends ChangeNotifier {
               .user ??
           Account(id: message.senderId, email: '', fullName: '');
 
-        final new_message = Message(
-          chatId: message.chatId,
-          senderId: message.senderId,
-          content: message.content,
-          createdDate: message.createdDate,
-          attachments: message.attachments,
-          sender: sender,
-        );
+      final new_message = Message(
+        chatId: message.chatId,
+        senderId: message.senderId,
+        content: message.content,
+        createdDate: message.createdDate,
+        attachments: message.attachments,
+        sender: sender,
+      );
       // Add the message to the existing chat
       _messagesByChatId[message.chatId]?.add(new_message);
 
@@ -178,7 +179,7 @@ class ChatProvider extends ChangeNotifier {
       }
       _chats[chatIndex].messages!.insert(0, new_message);
 
-      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được 
+      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được
       _chats.sort((a, b) {
         final lastMessageA = a.messages!.isNotEmpty
             ? a.messages!.first.createdDate
@@ -239,26 +240,22 @@ class ChatProvider extends ChangeNotifier {
       {required String chatId,
       required String message,
       List<File> files = const []}) async {
-    // Thêm tin nhắn vào danh sách local
-    // _messages.add(Message(
-    //   chatId: chatId,
-    //   senderId: '1',
-    //   content: message,
-    //   sentAt: DateTime.now(),
-    //   chat: Chat(
-    //     name: 'Chat 1',
-    //     isGroup: false,
-    //     userChats: [],
-    //     messages: [],
-    //   ),
-    //   sender: Account(
-    //     fullName: 'User 1',
-    //     phoneNumber: 'user1',
-    //     email: 'acb@gmail.com',
-    //   ),
-    // ));
+    final tempId = Uuid().v4();
+    final currentUserId = _chatService.getCurrentUserId();
 
-    // notifyListeners(); // Thông báo cho UI để cập nhật giao diện
+    // Tạo tin nhắn tạm thời
+    final tempMessage = Message(
+      id: tempId,
+      chatId: chatId,
+      senderId: currentUserId,
+      content: message,
+      createdDate: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+
+    // Thêm tin nhắn tạm thời vào danh sách
+    _messagesByChatId[chatId]?.insert(0, tempMessage);
+    notifyListeners();
 
     try {
       List<UploadResult> uploadedAttachments = [];
@@ -279,17 +276,44 @@ class ChatProvider extends ChangeNotifier {
         content: message,
         attachments: attachments,
       );
-      await _chatService.sendMessage(messageDto);
 
-      // Cập nhật lại danh sách tin nhắn nếu cần
-      notifyListeners();
+      // Gửi tin nhắn lên server
+      await _chatService.sendMessage(messageDto);
+      // Cập nhật trạng thái tin nhắn thành công
+      final index =
+          _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
+      if (index != null && index != -1) {
+        _messagesByChatId[chatId]![index] =
+            _messagesByChatId[chatId]![index].copyWith(
+          status: MessageStatus.sent,
+        );
+      }
     } catch (error) {
-      // Xử lý lỗi khi gửi tin nhắn
+      // Cập nhật trạng thái tin nhắn thất bại
+      final index =
+          _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
+      if (index != null && index != -1) {
+        _messagesByChatId[chatId]![index] =
+            _messagesByChatId[chatId]![index].copyWith(
+          status: MessageStatus.failed,
+        );
+      }
       print('Error sending message: $error');
-      // Có thể xóa tin nhắn khỏi danh sách local nếu gửi thất bại
-      // _messages.remove(message);
+    }
+    notifyListeners(); // Thông báo cho các widget nghe thay đổi dữ liệu
+  }
+
+  // Hàm cập nhật trạng thái tin nhắn
+  void updateMessageStatus(
+      String chatId, String messageId, MessageStatus status) {
+    final index =
+        _messagesByChatId[chatId]?.indexWhere((m) => m.id == messageId);
+    if (index != null && index != -1) {
+      _messagesByChatId[chatId]![index] =
+          _messagesByChatId[chatId]![index].copyWith(
+        status: status,
+      );
       notifyListeners();
-      // Hiển thị thông báo lỗi cho người dùng
     }
   }
 

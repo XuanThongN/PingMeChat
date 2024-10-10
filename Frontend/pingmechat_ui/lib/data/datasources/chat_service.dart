@@ -255,6 +255,21 @@ class ChatService {
     await hubConnection!.invoke('SendMessage', args: [input]);
   }
 
+  void onMessageStatusUpdate(
+      void Function(String messageId, MessageStatus status) handler) {
+    hubConnection!.on('MessageStatusUpdate', (arguments) {
+      if (arguments != null && arguments.length >= 2) {
+        final messageId = arguments[0] as String;
+        final statusString = arguments[1] as String;
+        final status = MessageStatus.values.firstWhere(
+          (e) => e.toString().split('.').last == statusString,
+          orElse: () => MessageStatus.sent,
+        );
+        handler(messageId, status);
+      }
+    });
+  }
+
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
     await hubConnection!.invoke('StartNewChatAsync', args: [chatCreateDto]);
   }

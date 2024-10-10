@@ -41,7 +41,7 @@ class ChatMessageWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment:
                 isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isCurrentUser && shouldShowAvatar)
                 CustomCircleAvatar(
@@ -99,32 +99,61 @@ class ChatMessageWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (showTimestamp)
-                      Text(
-                        DateFormat('HH:mm').format(message.createdDate),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showTimestamp)
+                          Text(
+                            DateFormat('HH:mm').format(message.createdDate),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        const SizedBox(width: 4),
+                        _buildStatusIcon(message.status ?? MessageStatus.sent),
+                      ],
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              // if (isCurrentUser && shouldShowAvatar)
-              //   CustomCircleAvatar(
-              //     backgroundImage: authProvider.currentUser?.avatarUrl != null
-              //         ? NetworkImage(authProvider.currentUser!.avatarUrl!)
-              //         : null,
-              //     radius: 16,
-              //   )
-              // else
-              //   const SizedBox(width: 32),
             ],
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildStatusIcon(MessageStatus status) {
+    IconData iconData;
+    Color color;
+
+    switch (status) {
+      case MessageStatus.sending:
+        iconData = Icons.access_time;
+        color = Colors.grey;
+        break;
+      case MessageStatus.sent:
+        iconData = Icons.check;
+        color = Colors.grey;
+        break;
+      case MessageStatus.delivered:
+        iconData = Icons.done_all;
+        color = Colors.grey;
+        break;
+      case MessageStatus.read:
+        iconData = Icons.done_all;
+        color = Colors.blue;
+        break;
+      case MessageStatus.failed:
+        iconData = Icons.error_outline;
+        color = Colors.red;
+        break;
+    }
+
+    return Icon(iconData, size: 16, color: color);
   }
 
   Widget _buildDateDivider() {
