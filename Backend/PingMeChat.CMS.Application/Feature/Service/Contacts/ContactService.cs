@@ -18,6 +18,7 @@ using Octokit;
 using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
 using PingMeChat.Shared.Enum;
 using Microsoft.AspNetCore.Http;
+using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Contacts
 {
@@ -34,30 +35,38 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
     {
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IContactRepository _contactRepository;
+        private readonly ICacheService _cacheService;
+        private const string UserContactsCacheKey = "UserContacts_{0}"; // userId
         public ContactService(IContactRepository repository,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IUriService uriService,
-             ILogErrorRepository logErrorRepository) : base(repository, unitOfWork, mapper, uriService)
+             ILogErrorRepository logErrorRepository,
+             ICacheService cacheService
+             ) : base(repository, unitOfWork, mapper, uriService)
         {
             _contactRepository = repository;
             _logErrorRepository = logErrorRepository;
+            _cacheService = cacheService;
         }
         public async Task<IEnumerable<ContactDto>> GetUserContacts(string currentUserId)
         {
-            var contacts = await _contactRepository.GetContactsByUserIdAsync(currentUserId);
-
-            return contacts.Select(c => new ContactDto
+            return await _cacheService.GetOrCreateAsync(string.Format(UserContactsCacheKey, currentUserId), async () =>
             {
-                Id = c.Id,
-                // Xác định xem userId hiện tại là người gửi hay người nhận liên hệ
-                UserId = c.UserId,
-                ContactUserId = c.ContactUserId,
-                ContactUser = _mapper.Map<AccountDto>(c.ContactUser),
-                User = _mapper.Map<AccountDto>(c.User),
-                Status = GetContactStatus(c, currentUserId),
-                CreatedDate = c.CreatedDate ?? DateTime.MinValue,
-            }).ToList();
+                var contacts = await _contactRepository.GetContactsByUserIdAsync(currentUserId);
+
+                return contacts.Select(c => new ContactDto
+                {
+                    Id = c.Id,
+                    // Xác định xem userId hiện tại là người gửi hay người nhận liên hệ
+                    UserId = c.UserId,
+                    ContactUserId = c.ContactUserId,
+                    ContactUser = _mapper.Map<AccountDto>(c.ContactUser),
+                    User = _mapper.Map<AccountDto>(c.User),
+                    Status = GetContactStatus(c, currentUserId),
+                    CreatedDate = c.CreatedDate ?? DateTime.MinValue,
+                }).ToList();
+            }, TimeSpan.FromMinutes(10));
         }
 
         public async Task<Dictionary<String, ContactStatus>> GetAllContactIds(string userId)
@@ -77,7 +86,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
         // Hàm Gửi yêu cầu kết bạn
         public async Task<ContactDto> SendFriendRequest(string userId, string contactId)
         {
-            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId)
                                                                 || c.ContactUserId == userId && c.UserId == contactId
                                                                 && c.Status == ContactStatus.Pending);
             if (contact != null)
@@ -92,13 +101,18 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             };
             contact = await _contactRepository.Add(contact);
             await _unitOfWork.SaveChangeAsync();
+
+            // Invalidate contacts cache for both users
+            await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, userId));
+            await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, contactId));
+
             return _mapper.Map<ContactDto>(contact);
         }
 
         public async Task<ContactDto> AcceptFriendRequest(string userId, string contactId)
         {
-            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
-                                                                || c.ContactUserId == userId && c.UserId == contactId 
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId)
+                                                                || c.ContactUserId == userId && c.UserId == contactId
                                                                 && c.Status == ContactStatus.Pending);
 
             if (contact == null)
@@ -119,8 +133,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
 
         public async Task<bool> CancelFriendRequest(string userId, string contactId)
         {
-            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId) 
-                                                                || c.ContactUserId == userId && c.UserId == contactId 
+            var contact = await _contactRepository.Find(c => (c.UserId == userId && c.ContactUserId == contactId)
+                                                                || c.ContactUserId == userId && c.UserId == contactId
                                                                 && c.Status == ContactStatus.Pending);
 
             if (contact == null)
@@ -136,6 +150,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             await _contactRepository.SoftDelete(contact);
             await _unitOfWork.SaveChangeAsync();
 
+            // Invalidate contacts cache for both users
+            await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, userId));
+            await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, contactId));
             return true;
         }
 

@@ -2,6 +2,7 @@ using System.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PingMeChat.CMS.Application.App.IRepositories;
@@ -27,6 +28,7 @@ using PingMeChat.CMS.Application.Feature.Service.UserChats;
 using PingMeChat.CMS.Application.Feature.Service.Users;
 using PingMeChat.CMS.Application.Feature.Services;
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
+using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
 using PingMeChat.CMS.Application.Lib;
 using PingMeChat.CMS.Application.Service.IRepositories;
 using PingMeChat.CMS.EntityFrameworkCore.EntityFrameworkCore;
@@ -80,6 +82,8 @@ namespace PingMeChat.CMS.Application.Common.Config
                         return ConnectionMultiplexer.Connect(configuration.GetValue<string>("Redis:ConnectionString"));
                     })
                     .AddSingleton<IRedisConnectionManager, RedisConnectionManager>()
+                    .AddSingleton<ICacheService, RedisCacheService>() // Đăng ký cache redis
+
                                 .AddSingleton<IUriService>(o =>
                                 {
                                     var accessor = o.GetRequiredService<IHttpContextAccessor>();
