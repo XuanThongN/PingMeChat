@@ -27,8 +27,7 @@ namespace PingMeChat.CMS.Application.Feature.Services.RedisCacheServices
         {
             _cache = cache;
             _logger = logger;
-            _jsonOptions = jsonOptions.Value.JsonSerializerOptions;
-            // Thêm UriConverter vào JsonSerializerOptions
+            _jsonOptions = new JsonSerializerOptions(jsonOptions.Value.JsonSerializerOptions);
             _jsonOptions.Converters.Add(new UriConverter());
 
         }
