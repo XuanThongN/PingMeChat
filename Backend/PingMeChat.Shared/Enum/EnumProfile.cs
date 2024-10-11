@@ -32,13 +32,13 @@ namespace PingMeChat.Shared.Enum
     }
     public enum FileType
     {
-        [Display(Name = "Ảnh")]
+        [Display(Name = "Image")]
         Image = 1,
-        [Display(Name = "Văn bản")]
+        [Display(Name = "Document")]
         Document = 2,
         [Display(Name = "Video")]
         Video = 3,
-        [Display(Name = "Âm thanh")]
+        [Display(Name = "Audio")]
         Audio = 4,
 
     }

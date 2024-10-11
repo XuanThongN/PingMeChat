@@ -630,16 +630,21 @@ class _ChatPageState extends State<ChatPage> {
     final text = _textController.text;
     if (text.isNotEmpty || _selectedAttachments!.isNotEmpty) {
       try {
-        _textController.clear();
+        final attachments = _selectedAttachments;
+
+        // Xóa attachments và reset trạng thái composing
         setState(() {
           _isComposing = false;
           _selectedAttachments = [];
           _needsScrollDown = true; // Đánh dấu cần scroll xuống cuối
         });
+        _textController.clear();
+
+        // Gửi tin nhắn
         await _chatProvider.sendMessage(
           chatId: widget.chatId,
           message: text.isNotEmpty ? text : '',
-          files: _selectedAttachments!,
+          files: attachments!,
         );
       } catch (e) {
         // Handle error (e.g., show an error message)

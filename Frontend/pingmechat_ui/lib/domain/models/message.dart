@@ -8,7 +8,7 @@ class Message {
   final String senderId;
   final String? content;
   final DateTime createdDate;
-  final List<Attachment>? attachments;
+  List<Attachment>? attachments;
   final List<MessageReader>? messageReaders;
   final Chat? chat;
   Account? sender;
