@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.SignalR;
 using PingMeChat.CMS.Application.Common.Attributes;
 using PingMeChat.CMS.Application.Common.Exceptions;
@@ -120,6 +121,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         public async Task SendMessage(MessageCreateDto messageCreateDto)
         {
             await ThrottleAsync();
+            ValidationMessageCreateDto(messageCreateDto);
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -171,6 +173,20 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 Metadata = new Dictionary<string, object> { { "message", result } }
             };
             _rabbitMQService.PublishNotification("notification_queue", notification);
+        }
+
+        private void ValidationMessageCreateDto(MessageCreateDto messageCreateDto)
+        {
+            var context = new ValidationContext(messageCreateDto, serviceProvider: null, items: null);
+            var validationResults = new List<ValidationResult>();
+
+            bool isValid = Validator.TryValidateObject(messageCreateDto, context, validationResults, validateAllProperties: true);
+
+            if (!isValid)
+            {
+                var errors = string.Join(", ", validationResults.Select(vr => vr.ErrorMessage));
+                throw new AppException($"Validation failed: {errors}");
+            }
         }
 
         public async Task JoinChat(string chatId)

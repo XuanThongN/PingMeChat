@@ -15,6 +15,7 @@ import '../domain/models/userchat.dart';
 
 class ChatProvider extends ChangeNotifier {
   ChatService _chatService;
+  ChunkedUploader _fileUploadService;
   final List<Chat> _chats = [];
 
   final int _itemsPerPage = 20;
@@ -36,7 +37,7 @@ class ChatProvider extends ChangeNotifier {
   Map<String, String> _typingUserIds = {};
 
   // Constructor
-  ChatProvider(this._chatService) {
+  ChatProvider(this._chatService, this._fileUploadService) {
     _initialize();
   }
 
@@ -256,9 +257,11 @@ class ChatProvider extends ChangeNotifier {
       // Upload file lên server
       List<UploadResult> uploadedAttachments = [];
       if (files.isNotEmpty) {
-        uploadedAttachments = await _chatService.uploadFiles(files);
-        // _updateAttachments(
-        //     chatId, tempId, uploadedAttachments); // Cập nhật lại attachments
+        uploadedAttachments = await _fileUploadService.uploadFiles(files);
+      }
+
+      if (uploadedAttachments.isEmpty && message.isEmpty) {
+        throw Exception('Message and attachments cannot be empty');
       }
 
       // Gửi tin nhắn lên server

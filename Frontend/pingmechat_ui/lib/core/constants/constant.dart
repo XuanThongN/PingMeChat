@@ -59,6 +59,8 @@ class ApiConstants {
   // File upload
   static const String uploadFileEndpoint =
       '$baseApiUrl/attachments/upload-multiple-files';
+  static const String uploadChunkEndpoint = '$baseApiUrl/attachments/upload-chunk';
+  static const String completeUploadEndpoint = '$baseApiUrl/attachments/complete-upload';
 
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';

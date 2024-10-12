@@ -16,6 +16,7 @@ import 'package:pingmechat_ui/data/datasources/chat_service.dart';
 
 import 'config/theme.dart';
 
+import 'data/datasources/file_upload_service.dart';
 import 'data/datasources/notification_service.dart';
 import 'presentation/pages/forgot_password_page.dart';
 import 'presentation/pages/login_page.dart';
@@ -69,6 +70,7 @@ void main() async {
   final authProvider = AuthProvider();
 
   final chatService = ChatService(authProvider: authProvider);
+  final fileUploadService = ChunkedUploader(authProvider: authProvider); // Khởi tạo file upload service
 
   runApp(
     MultiProvider(
@@ -76,10 +78,11 @@ void main() async {
         ChangeNotifierProvider(create: (context) => BadgeProvider()),
         ChangeNotifierProvider(create: (_) => authProvider),
         Provider<ChatService>.value(value: chatService),
+        Provider<ChunkedUploader>.value(value: fileUploadService), 
         ChangeNotifierProxyProvider<ChatService, ChatProvider>(
-          create: (_) => ChatProvider(chatService),
+          create: (_) => ChatProvider(chatService, fileUploadService), // Dùng để tạo một instance mới của ChatProvider với chatService và fileUploadService
           update: (_, chatService, previous) =>
-              previous ?? ChatProvider(chatService),
+              previous ?? ChatProvider(chatService, fileUploadService), // Dùng để cập nhật lại ChatProvider nếu đã tồn tại
         ),
         ChangeNotifierProxyProvider2<AuthProvider, BadgeProvider,
             ContactProvider>(
