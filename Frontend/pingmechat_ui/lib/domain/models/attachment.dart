@@ -4,6 +4,8 @@ class Attachment {
   final String fileType;
   final int fileSize;
   final String? messageId;
+  bool isUploading;
+  String? thumbnailUrl;
 
   Attachment({
     this.fileName,
@@ -11,6 +13,8 @@ class Attachment {
     required this.fileType,
     required this.fileSize,
     this.messageId,
+    this.isUploading = false,
+    this.thumbnailUrl,
   });
 
   factory Attachment.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class Attachment {
       fileType: json['fileType'],
       fileSize: json['fileSize'],
       messageId: json['messageId'],
+      isUploading: json['isUploading'] ?? false,
+      thumbnailUrl: json['thumbnailUrl'],
     );
   }
 
@@ -30,6 +36,8 @@ class Attachment {
       'fileType': fileType,
       'fileSize': fileSize,
       'messageId': messageId,
+      'isUploading': isUploading,
+      'thumbnailUrl': thumbnailUrl,
     };
   }
 }

@@ -74,7 +74,7 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.Notificat
                         {
                             await notificationService.SendNotificationAsync(
                                     userReceiver.UserDto.FCMToken,
-                                    !chat.IsGroup ? userReceiver.UserDto.FullName : userReceiver.UserDto.FullName + " to " + (chat.Name ?? "your group"),
+                                    !chat.IsGroup ? sender.FullName : sender.FullName + " to " + (chat.Name ?? "your group"),
                                     notificationDto.Content ?? $"Sent a new message",
                                     new Dictionary<string, string>
                             {

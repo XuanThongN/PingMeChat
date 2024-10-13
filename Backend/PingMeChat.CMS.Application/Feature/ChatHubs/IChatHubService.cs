@@ -6,7 +6,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs;
 
 public interface IChatHubService
 {
-    Task SendMessageAsync(MessageDto chatDto);
+    Task SendMessageAsync(MessageDto chatDto, string callerConnectionId);
     Task JoinGroupAsync(string connectionId, string groupName);
 
 }

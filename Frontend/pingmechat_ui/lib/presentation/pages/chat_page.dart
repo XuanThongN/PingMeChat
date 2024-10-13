@@ -52,6 +52,9 @@ class _ChatPageState extends State<ChatPage> {
   // Biến để đếm thời gian gõ tin nhắn
   Timer? _typingTimer;
   static const _typingDuration = Duration(milliseconds: 3000);
+
+  late FocusNode _focusNode;
+  bool _isKeyboardVisible = false;
   @override
   void initState() {
     super.initState();
@@ -60,14 +63,31 @@ class _ChatPageState extends State<ChatPage> {
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _chatProvider.loadMessages(widget.chatId, refresh: true);
-      _needsScrollDown = true; // Set this flag to scroll after initial load
+      _chatProvider.loadMessages(widget.chatId, refresh: true).then((_) {
+        setState(() {
+          _needsScrollDown = true;
+        });
+      });
     });
 
     _scrollController.addListener(_onScroll);
 
     // Xử lý khi người dùng bắt đầu gõ tin nhắn
     _textController.addListener(_handleTyping);
+
+    // Set up focus node
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  // Xử lý khi focus thay đổi
+  void _onFocusChange() {
+    setState(() {
+      _isKeyboardVisible = _focusNode.hasFocus;
+      if (_isKeyboardVisible) {
+        _needsScrollDown = true;
+      }
+    });
   }
 
   void _handleTyping() {
@@ -88,24 +108,40 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> _loadMessagesAndScroll() async {
-    await _chatProvider.loadMessages(widget.chatId, refresh: true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
-  }
+  // Future<void> _loadMessagesAndScroll() async {
+  //   await _chatProvider.loadMessages(widget.chatId, refresh: true);
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     _scrollToBottom();
+  //   });
+  // }
 
+  // void _scrollToBottom() {
+  //   if (_scrollController.hasClients) {
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 200),
+  //       curve: Curves.easeOut,
+  //     );
+  //     setState(() {
+  //       _showScrollToBottomButton = false;
+  //     });
+  //   }
+  // }
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-      setState(() {
-        _showScrollToBottomButton = false;
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        Future.delayed(Duration(milliseconds: 100), () {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        });
+        setState(() {
+          _showScrollToBottomButton = false;
+        });
+      }
+    });
   }
 
   void _onScroll() {
@@ -125,11 +161,13 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    super.dispose();
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     _scrollController.dispose();
     _textController.dispose();
     _typingTimer?.cancel();
     _textController.removeListener(_handleTyping);
+    super.dispose();
   }
 
   @override
@@ -137,8 +175,8 @@ class _ChatPageState extends State<ChatPage> {
     if (_needsScrollDown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
+        _needsScrollDown = false;
       });
-      _needsScrollDown = false;
     }
     return Consumer2<ChatProvider, AuthProvider>(
         builder: (context, chatProvider, authProvider, child) {
@@ -339,6 +377,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               Expanded(
                 child: TextField(
+                  focusNode: _focusNode,
                   controller: _textController,
                   onChanged: (text) {
                     setState(() {
@@ -591,18 +630,22 @@ class _ChatPageState extends State<ChatPage> {
     final text = _textController.text;
     if (text.isNotEmpty || _selectedAttachments!.isNotEmpty) {
       try {
-        await _chatProvider.sendMessage(
-          chatId: widget.chatId,
-          message: text.isNotEmpty ? text : '',
-          files: _selectedAttachments!,
-        );
-        _textController.clear();
+        final attachments = _selectedAttachments;
+
+        // Xóa attachments và reset trạng thái composing
         setState(() {
           _isComposing = false;
           _selectedAttachments = [];
           _needsScrollDown = true; // Đánh dấu cần scroll xuống cuối
         });
-        _scrollToBottom();
+        _textController.clear();
+
+        // Gửi tin nhắn
+        await _chatProvider.sendMessage(
+          chatId: widget.chatId,
+          message: text.isNotEmpty ? text : '',
+          files: attachments!,
+        );
       } catch (e) {
         // Handle error (e.g., show an error message)
         print('Error sending message: $e');

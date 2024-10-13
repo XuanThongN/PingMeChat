@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.SignalR;
 using PingMeChat.CMS.Application.Common.Attributes;
 using PingMeChat.CMS.Application.Common.Exceptions;
@@ -45,35 +46,28 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
         public override async Task OnConnectedAsync()
         {
-            try
+            var userId = Context.User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
             {
-                var httpContext = Context.GetHttpContext();
-                var userId = httpContext?.User?.FindFirstValue("UserId");
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    await _redisConnectionManager.AddConnectionAsync(userId, Context.ConnectionId);
-                    await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-                    await JoinUserChatsAsync(userId, Context.ConnectionId); // Thêm user vào các group 1 cách bất đồng bộ
-                }
-
-                await base.OnConnectedAsync();
+                throw new HubException("User not authenticated");
             }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine("Error on connected" + ex.Message);
-                throw;
-            }
+
+            await _redisConnectionManager.AddConnectionAsync(userId, Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+            await JoinUserChatsAsync(userId, Context.ConnectionId);
+
+            Console.WriteLine($"User {userId} connected with connection {Context.ConnectionId}");
+
+            await base.OnConnectedAsync();
         }
-        public override async Task OnDisconnectedAsync(Exception? exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var httpContext = Context.GetHttpContext();
-            var userId = httpContext?.User?.FindFirstValue("UserId");
-
+            var userId = Context.User.FindFirstValue("UserId");
             if (!string.IsNullOrEmpty(userId))
             {
                 await _redisConnectionManager.RemoveConnectionAsync(userId, Context.ConnectionId);
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
+                Console.WriteLine($"User {userId} disconnected from {Context.ConnectionId}");
             }
 
             await base.OnDisconnectedAsync(exception);
@@ -96,21 +90,26 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             }
 
             var currentUserId = Context.User.FindFirstValue("UserId");
-            // Tạo cuộc trò chuyện mới trong db
             var newChat = await _chatService.CreateChatAsync(chatCreateDto, currentUserId);
-            // Thêm các người dùng vào nhóm SignalR với chatId mới
-            foreach (var user in newChat.UserChats)
-            {
-                (await _redisConnectionManager.GetConnectionsAsync(user.UserId))?.ToList()
-                     .ForEach(async connectionId =>
-                         {
-                             await Groups.AddToGroupAsync(connectionId, newChat.Id);
-                         });
-            }
+
+            var userIds = newChat.UserChats.Select(uc => uc.UserId).ToList();
+            var connectionIdDictionaries = await _redisConnectionManager.GetBulkConnectionsAsync(userIds);
+
+            var addToGroupTasks = connectionIdDictionaries
+                .SelectMany(dict => dict.Value.Select(
+                    connectionId =>
+                    {
+                        System.Console.WriteLine($"Adding {connectionId} to group {newChat.Id}");
+                        return Groups.AddToGroupAsync(connectionId, newChat.Id);
+                    }))
+                .ToList();
+
+            await Task.WhenAll(addToGroupTasks);
 
             // Kiểm tra chỉ tạo mới cuộc trò chuyện nhóm thì mới thông báo tới những người thành viên
             if (chatCreateDto.IsGroup)
             {
+                Console.WriteLine($"New group chat created: {newChat.Id}");
                 await Clients.Groups(newChat.Id).SendAsync("NewGroupChat", newChat);
             }
             else
@@ -122,6 +121,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         public async Task SendMessage(MessageCreateDto messageCreateDto)
         {
             await ThrottleAsync();
+            ValidationMessageCreateDto(messageCreateDto);
             var userId = Context.User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userId))
             {
@@ -158,7 +158,11 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 CreatedDate = DateTime.UtcNow,
                 Attachments = attachments
             };
-            await _chatHubService.SendMessageAsync(result);
+
+            // Gửi tin nhắn (xác nhận tin nhắn đã được gửi) về cho caller (người gửi)
+            await Clients.Caller.SendAsync("SentMessage", new { TempId = messageCreateDto.TempId, Message = result });
+            // Gửi tin nhắn đến các người dùng khác trong nhóm chat
+            await _chatHubService.SendMessageAsync(result, Context.ConnectionId);
 
             // Đưa thông báo vào hàng đợi RabbitMQ
             var notification = new NotificationDto
@@ -169,6 +173,20 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
                 Metadata = new Dictionary<string, object> { { "message", result } }
             };
             _rabbitMQService.PublishNotification("notification_queue", notification);
+        }
+
+        private void ValidationMessageCreateDto(MessageCreateDto messageCreateDto)
+        {
+            var context = new ValidationContext(messageCreateDto, serviceProvider: null, items: null);
+            var validationResults = new List<ValidationResult>();
+
+            bool isValid = Validator.TryValidateObject(messageCreateDto, context, validationResults, validateAllProperties: true);
+
+            if (!isValid)
+            {
+                var errors = string.Join(", ", validationResults.Select(vr => vr.ErrorMessage));
+                throw new AppException($"Validation failed: {errors}");
+            }
         }
 
         public async Task JoinChat(string chatId)
@@ -217,30 +235,10 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
 
         private async Task JoinUserChatsAsync(string userId, string connectionId)
         {
-            try
-            {
-                var userChats = await _chatService.GetChatListAsync(userId);
-                if (userChats != null && userChats.Any())
-                {
-                    Console.WriteLine($"User {userId} is joining {userChats.Count()} chats.");
-                    var joinTasks = userChats.Select(chat =>
-                    {
-                        Console.WriteLine($"User {userId} is joining chat {chat.Id} with connection {connectionId}");
-                        return Groups.AddToGroupAsync(connectionId, chat.Id);
-                    });
-
-                    await Task.WhenAll(joinTasks);  // Chạy song song việc thêm vào các nhóm
-                    Console.WriteLine($"User {userId} has successfully joined all chats.");
-                }
-                else
-                {
-                    Console.WriteLine($"User {userId} has no chats to join.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error joining user {userId} to chats: {ex.Message}");
-            }
+            var chatIds = await _chatService.GetChatIdListAsync(userId);
+            var joinTasks = chatIds.Select(chatId => Groups.AddToGroupAsync(connectionId, chatId));
+            await Task.WhenAll(joinTasks);
+            Console.WriteLine($"User {userId} joined {chatIds.Count} chats");
         }
 
 

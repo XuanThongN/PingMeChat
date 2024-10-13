@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/domain/models/attachment.dart';
-import 'package:pingmechat_ui/presentation/pages/chat_page.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/datasources/chat_service.dart';
 import '../data/datasources/file_upload_service.dart';
@@ -15,6 +15,7 @@ import '../domain/models/userchat.dart';
 
 class ChatProvider extends ChangeNotifier {
   ChatService _chatService;
+  ChunkedUploader _fileUploadService;
   final List<Chat> _chats = [];
 
   final int _itemsPerPage = 20;
@@ -36,7 +37,7 @@ class ChatProvider extends ChangeNotifier {
   Map<String, String> _typingUserIds = {};
 
   // Constructor
-  ChatProvider(this._chatService) {
+  ChatProvider(this._chatService, this._fileUploadService) {
     _initialize();
   }
 
@@ -75,30 +76,8 @@ class ChatProvider extends ChangeNotifier {
     _chatService.onReceiveMessageCallback = _handleNewMessage;
     _chatService.onUserTypingCallback = _handleUserTyping;
     _chatService.onUserStopTypingCallback = _handleUserStopTyping;
+    _chatService.onSentMessageCallback = _handleSentMessage;
   }
-  // void _setupSignalRListeners() {
-  //   _chatService.onNewGroupChat((chat) {
-  //     _handleNewGroupChat(chat);
-  //   });
-
-  //   _chatService.onNewPrivateChat((chat) {
-  //     _handleNewPrivateChat(chat);
-  //   });
-
-  //     _chatService.onReceiveMessage((message) async {
-  //     _handleNewMessage(message);
-  //   });
-
-  //   _chatService.onUserTyping((chatId, userId) async {
-  //     _typingUserIds[chatId] = userId;
-  //     notifyListeners();
-  //   });
-
-  //   _chatService.onUserStopTyping((chatId, userId) async {
-  //     _typingUserIds.remove(chatId);
-  //     notifyListeners();
-  //   });
-  // }
 
   void _handleNewGroupChat(Chat chat) {
     _chats.insert(0, chat);
@@ -161,14 +140,14 @@ class ChatProvider extends ChangeNotifier {
               .user ??
           Account(id: message.senderId, email: '', fullName: '');
 
-        final new_message = Message(
-          chatId: message.chatId,
-          senderId: message.senderId,
-          content: message.content,
-          createdDate: message.createdDate,
-          attachments: message.attachments,
-          sender: sender,
-        );
+      final new_message = Message(
+        chatId: message.chatId,
+        senderId: message.senderId,
+        content: message.content,
+        createdDate: message.createdDate,
+        attachments: message.attachments,
+        sender: sender,
+      );
       // Add the message to the existing chat
       _messagesByChatId[message.chatId]?.add(new_message);
 
@@ -178,20 +157,23 @@ class ChatProvider extends ChangeNotifier {
       }
       _chats[chatIndex].messages!.insert(0, new_message);
 
-      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được 
-      _chats.sort((a, b) {
-        final lastMessageA = a.messages!.isNotEmpty
-            ? a.messages!.first.createdDate
-            : a.createdDate;
-        final lastMessageB = b.messages!.isNotEmpty
-            ? b.messages!.first.createdDate
-            : b.createdDate;
-        return lastMessageB!.compareTo(lastMessageA!);
-      });
+      // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được
+      sortChats();
     }
 
     print("Tin nhắn nhận được từ server: ${message.content}");
     notifyListeners();
+  }
+
+// Hàm xử lý tin nhắn đã được gửi thành công
+  void _handleSentMessage(String tempId, Message sentMessage) {
+    final chatId = sentMessage.chatId;
+    final index = _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
+    print("Tin nhắn đã được gửi thành công: $tempId");
+    if (index != null && index != -1) {
+      _messagesByChatId[chatId]![index] = sentMessage;
+      notifyListeners();
+    }
   }
 
   void _handleUserTyping(String chatId, String userId) {
@@ -235,63 +217,209 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage(
-      {required String chatId,
-      required String message,
-      List<File> files = const []}) async {
-    // Thêm tin nhắn vào danh sách local
-    // _messages.add(Message(
-    //   chatId: chatId,
-    //   senderId: '1',
-    //   content: message,
-    //   sentAt: DateTime.now(),
-    //   chat: Chat(
-    //     name: 'Chat 1',
-    //     isGroup: false,
-    //     userChats: [],
-    //     messages: [],
-    //   ),
-    //   sender: Account(
-    //     fullName: 'User 1',
-    //     phoneNumber: 'user1',
-    //     email: 'acb@gmail.com',
-    //   ),
-    // ));
+  Future<void> sendMessage({
+    required String chatId,
+    required String message,
+    List<File> files = const [],
+  }) async {
+    final tempId = Uuid().v4();
+    final currentUserId = _chatService.getCurrentUserId();
 
-    // notifyListeners(); // Thông báo cho UI để cập nhật giao diện
+    List<Attachment> tempAttachments = [];
+    if (files.isNotEmpty) {
+      tempAttachments = files
+          .map((file) => Attachment(
+                fileName: file.path.split('/').last,
+                fileUrl:
+                    'file://${file.path}', // Tạo đường dẫn file cho file local
+                fileType: _getFileType(file),
+                fileSize: file.lengthSync(),
+                isUploading: true, // Đánh dấu là đang upload
+              ))
+          .toList();
+    }
+
+    // Tạo tin nhắn tạm thời
+    final tempMessage = Message(
+      id: tempId,
+      chatId: chatId,
+      senderId: currentUserId,
+      content: message,
+      createdDate: DateTime.now(),
+      status: MessageStatus.sending,
+      attachments: tempAttachments,
+    );
+
+    // Thêm tin nhắn tạm thời vào danh sách tin nhắn của chat
+    _addTempMessageToChat(chatId, tempMessage);
 
     try {
+      // Upload file lên server
       List<UploadResult> uploadedAttachments = [];
-      List<Attachment> attachments = [];
       if (files.isNotEmpty) {
-        uploadedAttachments = await _chatService.uploadFiles(files);
+        uploadedAttachments = await _fileUploadService.uploadFiles(files);
       }
-      print("uploadedAttachments: $uploadedAttachments");
-      attachments = uploadedAttachments
-          .map((e) => Attachment(
-              fileName: e.publicId,
-              fileUrl: e.url,
-              fileType: e.fileType,
-              fileSize: e.fileSize))
-          .toList();
+
+      if (uploadedAttachments.isEmpty && message.isEmpty) {
+        throw Exception('Message and attachments cannot be empty');
+      }
+
+      // Gửi tin nhắn lên server
       MessageSendDto messageDto = MessageSendDto(
+        tempId: tempId,
         chatId: chatId,
         content: message,
-        attachments: attachments,
+        attachments: uploadedAttachments
+            .map((e) => Attachment(
+                  fileName: e.publicId,
+                  fileUrl: e.url,
+                  fileType: e.fileType,
+                  fileSize: e.fileSize,
+                ))
+            .toList(),
       );
-      await _chatService.sendMessage(messageDto);
 
-      // Cập nhật lại danh sách tin nhắn nếu cần
-      notifyListeners();
+      await _chatService.sendMessage(messageDto);
     } catch (error) {
-      // Xử lý lỗi khi gửi tin nhắn
       print('Error sending message: $error');
-      // Có thể xóa tin nhắn khỏi danh sách local nếu gửi thất bại
-      // _messages.remove(message);
-      notifyListeners();
-      // Hiển thị thông báo lỗi cho người dùng
+      _updateMessageStatus(chatId, tempId, MessageStatus.failed);
     }
   }
+
+  void _addTempMessageToChat(String chatId, Message tempMessage) {
+    _messagesByChatId[chatId]?.add(tempMessage);
+    final chat = _chats.firstWhere((c) => c.id == chatId);
+    chat.messages?.clear();
+    chat.messages?.insert(0, tempMessage);
+    sortChats();
+    notifyListeners();
+  }
+
+  void _updateMessageStatus(
+      String chatId, String messageId, MessageStatus status) {
+    final index =
+        _messagesByChatId[chatId]?.indexWhere((m) => m.id == messageId);
+    if (index != null && index != -1) {
+      _messagesByChatId[chatId]![index] =
+          _messagesByChatId[chatId]![index].copyWith(
+        status: status,
+      );
+      notifyListeners();
+    }
+  }
+
+  String _getFileType(File file) {
+    final extension = file.path.split('.').last.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif'].contains(extension)) {
+      return 'Image';
+    } else if (['mp4', 'mov', 'avi'].contains(extension)) {
+      return 'Video';
+    } else if (['mp3', 'wav', 'ogg'].contains(extension)) {
+      return 'Audio';
+    } else {
+      return 'File';
+    }
+  }
+
+  // Hàm get file type từ string
+  String _getFileTypeFromStr(String fileType) {
+    if (fileType.contains('image')) {
+      return 'Image';
+    } else if (fileType.contains('video')) {
+      return 'Video';
+    } else if (fileType.contains('audio')) {
+      return 'Audio';
+    } else {
+      return 'Document';
+    }
+  }
+
+  void _updateAttachments(
+      String chatId, String messageId, List<UploadResult> uploadedAttachments) {
+    final index =
+        _messagesByChatId[chatId]?.indexWhere((m) => m.id == messageId);
+    if (index != null && index != -1) {
+      final updatedAttachments = uploadedAttachments
+          .map((e) => Attachment(
+                fileName: e.publicId,
+                fileUrl: e.url,
+                fileType: _getFileTypeFromStr(e.fileType),
+                fileSize: e.fileSize,
+                isUploading: false,
+              ))
+          .toList();
+      _messagesByChatId[chatId]![index] =
+          _messagesByChatId[chatId]![index].copyWith(
+        attachments: updatedAttachments,
+      );
+      notifyListeners();
+    }
+  }
+
+  // Future<void> sendMessage(
+  //     {required String chatId,
+  //     required String message,
+  //     List<File> files = const []}) async {
+  //   final tempId = Uuid().v4();
+  //   final currentUserId = _chatService.getCurrentUserId();
+
+  //   // Tạo tin nhắn tạm thời
+  //   final tempMessage = Message(
+  //     id: tempId,
+  //     chatId: chatId,
+  //     senderId: currentUserId,
+  //     content: message,
+  //     createdDate: DateTime.now(),
+  //     status: MessageStatus.sending,
+  //   );
+
+  //   // Thêm tin nhắn tạm thời vào danh sách
+  //   _messagesByChatId[chatId]?.add(tempMessage);
+  //   // Set tin nhắn cuối cùng của chat
+  //   final chat = _chats.firstWhere((c) => c.id == chatId);
+  //   chat.messages?.clear(); // Xóa tất cả tin nhắn của chat
+  //   chat.messages
+  //       ?.insert(0, tempMessage); // Thêm tin nhắn tạm thời vào đầu danh sách
+  //   sortChats(); // Sắp xếp lại danh sách chat
+  //   notifyListeners();
+
+  //   try {
+  //     List<UploadResult> uploadedAttachments = [];
+  //     List<Attachment> attachments = [];
+  //     if (files.isNotEmpty) {
+  //       uploadedAttachments = await _chatService.uploadFiles(files);
+  //       print("uploadedAttachments: $uploadedAttachments");
+  //       attachments = uploadedAttachments
+  //           .map((e) => Attachment(
+  //               fileName: e.publicId,
+  //               fileUrl: e.url,
+  //               fileType: e.fileType,
+  //               fileSize: e.fileSize))
+  //           .toList();
+  //     }
+  //     MessageSendDto messageDto = MessageSendDto(
+  //       tempId: tempId,
+  //       chatId: chatId,
+  //       content: message,
+  //       attachments: attachments,
+  //     );
+
+  //     // Gửi tin nhắn lên server
+  //     await _chatService.sendMessage(messageDto);
+  //   } catch (error) {
+  //     // Cập nhật trạng thái tin nhắn thất bại
+  //     final index =
+  //         _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
+  //     if (index != null && index != -1) {
+  //       _messagesByChatId[chatId]![index] =
+  //           _messagesByChatId[chatId]![index].copyWith(
+  //         status: MessageStatus.failed,
+  //       );
+  //     }
+  //     print('Error sending message: $error');
+  //   }
+  //   notifyListeners(); // Thông báo cho các widget nghe thay đổi dữ liệu
+  // }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
     await _chatService.startNewChat(chatCreateDto);
@@ -391,20 +519,6 @@ class ChatProvider extends ChangeNotifier {
     return result;
   }
 
-// Hàm xác định loại file
-  String _getFileType(File file) {
-    final extension = file.path.split('.').last.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif'].contains(extension)) {
-      return 'image';
-    } else if (['mp4', 'mov', 'avi'].contains(extension)) {
-      return 'video';
-    } else if (['mp3', 'wav', 'ogg'].contains(extension)) {
-      return 'audio';
-    } else {
-      return 'file';
-    }
-  }
-
   // Clear all chats and reset state
   void clearData() {
     _chats.clear();
@@ -417,5 +531,19 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = false;
     _hasMoreChats = true;
     notifyListeners();
+  }
+
+  // Hàm sort danh sách chat
+  void sortChats() {
+    // Sắp xếp lại tất cả các đoạn chat theo thời gian tin nhắn cuối cùng nhận được
+    _chats.sort((a, b) {
+      final lastMessageA = a.messages!.isNotEmpty
+          ? a.messages!.first.createdDate
+          : a.createdDate;
+      final lastMessageB = b.messages!.isNotEmpty
+          ? b.messages!.first.createdDate
+          : b.createdDate;
+      return lastMessageB!.compareTo(lastMessageA!);
+    });
   }
 }

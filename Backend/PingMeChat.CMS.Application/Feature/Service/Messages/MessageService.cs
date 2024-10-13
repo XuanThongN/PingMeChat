@@ -17,6 +17,9 @@ using PingMeChat.CMS.Application.Feature.Service.Notifications;
 using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
 using Org.BouncyCastle.Asn1.Cms;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
+using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Messages
 {
@@ -98,36 +101,21 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
         }
         public async Task<MessageDto> SendMessageAsync(MessageCreateDto messageCreateDto)
         {
-            // content = SanitizeContent(content);
-
             var executionStrategy = _unitOfWork.CreateExecutionStrategy();
 
             return await executionStrategy.ExecuteAsync(async () =>
             {
-                // Gói toàn bộ trong một đơn vị thử lại
                 using (var transaction = await _unitOfWork.BeginTransactionAsync())
                 {
                     try
                     {
-                        var userChat = await _userChatRepository.Find(uc => uc.ChatId == messageCreateDto.ChatId
-                                                                                && uc.UserId == messageCreateDto.SenderId, include: uc => uc.Include(c => c.User));
+                        var userChat = await GetUserChatAsync(messageCreateDto.ChatId, messageCreateDto.SenderId);
                         if (userChat == null)
                         {
                             throw new AppException("Người dùng không thuộc đoạn chat này", 403);
                         }
 
-                        var attachments = new List<Attachment>();
-                        if (messageCreateDto.Attachments.Any())
-                            attachments = messageCreateDto.Attachments.Select(a =>
-                            {
-                                return new Attachment
-                                {
-                                    FileUrl = a.FileUrl,
-                                    FileName = a.FileName,
-                                    FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType),
-                                    FileSize = a.FileSize
-                                };
-                            }).ToList();
+                        var attachments = CreateAttachments(messageCreateDto.Attachments);
                         var message = new Message
                         {
                             ChatId = messageCreateDto.ChatId,
@@ -147,45 +135,127 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
 
                         var result = _mapper.Map<MessageDto>(message);
 
-                        // Invalidate chat messages cache
-                        await _cacheService.RemoveAsync(string.Format(ChatMessagesCacheKey, messageCreateDto.ChatId, "*", "*"));
-                        // fetch all participants in the chat
-                        var participants = await _userChatRepository.FindAll(uc => uc.ChatId == messageCreateDto.ChatId);
-                        foreach (var participant in participants)
-                        {
-                            await _cacheService.RemoveAsync(string.Format(ChatListCacheKey, participant.UserId, "*", "*"));
-                        }
+                        // Chuyển việc cập nhật cache ra ngoài transaction
+                        // _ = Task.WhenAll(
+                        await UpdateMessagesInCache(result);
+                        await UpdateChatListInCache(messageCreateDto.ChatId, result);
+                        // ).ContinueWith(t =>
+                        // {
+                        //     if (t.IsFaulted)
+                        //     {
+                        //         // Log lỗi khi cập nhật cache thất bại
+                        //         Console.WriteLine("Error updating cache: " + t.Exception.Message);
+                        //     }
+                        // });
+
+
+
                         return result;
                     }
                     catch (Exception ex)
                     {
-                        await transaction.RollbackAsync();
-                        await _logErrorRepository.Add(new ErrorLog
+                        // Chỉ rollback nếu transaction chưa commit
+                        if (transaction.GetDbTransaction()?.Connection != null)
                         {
-                            ControllerName = "MessageService",
-                            ActionName = "SendMessageAsync",
-                            IsError = true,
-                            ErrorMessage = ex.Message,
-                            Exception = ex.StackTrace
-                        });
-                        await _unitOfWork.SaveChangeAsync();
+                            await transaction.RollbackAsync();
+                        }
+                        await LogErrorAsync(ex);
                         throw;
                     }
                 }
             });
         }
 
-
-        // Hàm để loại bỏ các thẻ HTML và mã hóa các ký tự đặc biệt
-        private string SanitizeContent(string content)
+        private async Task<UserChat> GetUserChatAsync(string chatId, string userId)
         {
-            // Remove any potentially dangerous HTML tags
-            content = Regex.Replace(content, @"<.*?>", string.Empty);
-
-            // Encode special characters
-            content = System.Web.HttpUtility.HtmlEncode(content);
-
-            return content;
+            return await _userChatRepository.Find(uc => uc.ChatId == chatId && uc.UserId == userId, include: uc => uc.Include(c => c.User));
         }
+
+        private List<Attachment> CreateAttachments(IEnumerable<AttachmentCreateDto> attachmentDtos)
+        {
+            return attachmentDtos.Select(a => new Attachment
+            {
+                FileUrl = a.FileUrl,
+                FileName = a.FileName,
+                FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType),
+                FileSize = a.FileSize
+            }).ToList();
+        }
+
+        private async Task LogErrorAsync(Exception ex)
+        {
+            await _logErrorRepository.Add(new ErrorLog
+            {
+                ControllerName = "MessageService",
+                ActionName = "SendMessageAsync",
+                IsError = true,
+                ErrorMessage = ex.Message,
+                Exception = ex.StackTrace
+            });
+            await _unitOfWork.SaveChangeAsync();
+        }
+
+        //Thay vì xóa toàn bộ cache, bạn có thể thêm tin nhắn mới vào đầu danh sách cache hiện có
+        private async Task UpdateMessagesInCache(MessageDto messageCreateDto)
+        {
+            string cacheKey = string.Format(ChatMessagesCacheKey, messageCreateDto.ChatId, 1, 20); // Mặc định thì lấy 20 tin nhắn đầu tiên
+            var cachedMessages = await _cacheService.GetAsync<PagedResponse<List<MessageDto>>>(cacheKey);
+            if (cachedMessages != null)
+            {
+                cachedMessages.Data.Insert(0, messageCreateDto); // Thêm tin nhắn mới vào đầu danh sách
+                await _cacheService.SetAsync(cacheKey, cachedMessages, TimeSpan.FromMinutes(5));
+            }
+        }
+
+        // Hàm cập nhật thôgn tin chat cuối cùng trong danh sách chat của mỗi người tham gia đoạn chat
+        // Lặp qua tất cả các page của danh sách chat của mỗi người tham gia đoạn chat
+        private async Task UpdateChatListInCache(string chatId, MessageDto messageCreateDto)
+        {
+            var userChats = await _userChatRepository.FindAll(uc => uc.ChatId == chatId);
+            var participantIds = userChats.Select(uc => uc.UserId).ToList();
+            foreach (var participantId in participantIds)
+            {
+                bool chatUpdated = false;
+                int page = 1;
+                int pageSize = 20;
+                PagedResponse<List<ChatDto>> cachedChatList = null;
+                List<ChatDto> cachedChatListDat = null;
+                int maxPagesToCheck = 5;
+
+                while (!chatUpdated && page <= maxPagesToCheck)
+                {
+                    string chatListCacheKey = string.Format(ChatListCacheKey, participantId, page, pageSize);
+                    cachedChatList = await _cacheService.GetAsync<PagedResponse<List<ChatDto>>>(chatListCacheKey);
+                    if (cachedChatList == null || !cachedChatList.Data.Any())
+                    {
+                        break;
+                    }
+
+                    cachedChatListDat = cachedChatList.Data;
+                    var chatToUpdate = cachedChatListDat.FirstOrDefault(c => c.Id == messageCreateDto.ChatId);
+                    if (chatToUpdate != null)
+                    {
+                        // Xóa chat cũ khỏi danh sách
+                        cachedChatListDat.Remove(chatToUpdate);
+                        await _cacheService.SetAsync(chatListCacheKey, cachedChatList, TimeSpan.FromMinutes(2));
+
+                        // Cập nhật lại cache cho trang 1
+                        string firstPageCacheKey = string.Format(ChatListCacheKey, participantId, 1, pageSize);
+                        var firstPageChatList = await _cacheService.GetAsync<PagedResponse<List<ChatDto>>>(firstPageCacheKey);
+                        if (firstPageChatList != null && firstPageChatList.Data.Any())
+                        {
+                            var firstPageChatListDat = firstPageChatList.Data;
+                            chatToUpdate.Messages = new List<MessageDto> { messageCreateDto };
+                            firstPageChatListDat.Insert(0, chatToUpdate);
+                            await _cacheService.SetAsync(firstPageCacheKey, firstPageChatList, TimeSpan.FromMinutes(2));
+                        }
+
+                        chatUpdated = true;
+                    }
+                    page++;
+                }
+            }
+        }
+
     }
 }

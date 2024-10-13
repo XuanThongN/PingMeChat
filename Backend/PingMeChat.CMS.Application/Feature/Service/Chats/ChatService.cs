@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using PingMeChat.CMS.Application.App.IRepositories;
 using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Common.Pagination;
+using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Application.Feature.Service.UserChats.Dto;
@@ -21,7 +22,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
     {
         Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId);
         Task<ChatDto> GetChatDetailAsync(string chatId, string userId);
-        Task<IEnumerable<ChatDto>> GetChatListAsync(string userId);
+        Task<List<string>> GetChatIdListAsync(string userId);
         Task<PagedResponse<List<ChatDto>>> GetChatListAsync(string chatId, int pageNumber, int pageSize, string route = null);
         Task<List<UserChatDto>> AddUsersToChatAsync(string chatId, List<string> userIds, string currentUserId);
         Task<bool> RemoveUserFromChatAsync(string chatId, string userId, string currentUser);
@@ -31,12 +32,14 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
     public class ChatService : ServiceBase<Chat, ChatCreateDto, ChatUpdateDto, ChatDto, IChatRepository>, IChatService
     {
         private readonly IUserChatRepository _userChatRepository;
+        private readonly IAccountRepository _userRepository;
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IMessageRepository _messageRepository;
         private readonly IMemoryCache _cache; // Bộ nhớ cache để lưu trữ số lượng lệnh trong khoảng thời gian
         private readonly ICacheService _cacheService; // cache redis
         private const string ChatListCacheKey = "ChatList_{0}_{1}_{2}"; // userId_page_pageSize
         private const string ChatDetailCacheKey = "ChatDetail_{0}"; // chatId
+        private const string ChatIdList = "ChatIdList_{0}"; // Danh sách Id chat của user
 
         public ChatService(
             IChatRepository repository,
@@ -47,7 +50,8 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             ILogErrorRepository logErrorRepository,
             IMessageRepository messageRepository,
             IMemoryCache cache,
-            ICacheService cacheService
+            ICacheService cacheService,
+            IAccountRepository userRepository
             ) : base(repository, unitOfWork, mapper, uriService)
         {
             _userChatRepository = userChatRepository;
@@ -55,25 +59,20 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
             _messageRepository = messageRepository;
             _cache = cache;
             _cacheService = cacheService;
+            _userRepository = userRepository;
         }
 
         public async Task<ChatDto> CreateChatAsync(ChatCreateDto chatCreateDto, string userId)
         {
             try
             {
-                // Check if private chat already exists
+                // Kiểm tra nếu chat riêng tư đã tồn tại
                 if (!chatCreateDto.IsGroup)
                 {
-                    var existingChat = await _repository.Find(c =>
-                        !c.IsGroup &&
-                        c.UserChats.Any(uc => uc.UserId == userId) &&
-                        c.UserChats.Any(uc => uc.UserId == chatCreateDto.UserIds.First()),
-                        include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
-                    );
-
+                    var existingChat = await CheckIfPrivateChatExists(chatCreateDto, userId);
                     if (existingChat != null)
                     {
-                        return _mapper.Map<ChatDto>(existingChat);
+                        return existingChat;
                     }
                 }
 
@@ -84,50 +83,67 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
                 await _repository.Add(chat);
                 await _unitOfWork.SaveChangeAsync();
 
-                // Add chat creator to the member list
+                // Thêm người dùng vào đoạn chat
                 var allUserIds = chatCreateDto.UserIds.Append(userId);
+                await AddUsersToChat(allUserIds, chat.Id, userId, chatCreateDto.IsGroup);
 
-                foreach (var memberId in allUserIds)
-                {
-                    var userChat = new UserChat
-                    {
-                        UserId = memberId,
-                        ChatId = chat.Id,
-                        CreatedBy = userId,
-                        UpdatedBy = userId,
-                        IsAdmin = chatCreateDto.IsGroup ? memberId == userId : false, // Set người tạo chat là admin nếu chat là group, còn chat private thì không có admin
-                        JoinAt = DateTime.UtcNow,
-                    };
-                    await _userChatRepository.Add(userChat);
-                }
-                await _unitOfWork.SaveChangeAsync();
-
-                // Load the chat with UserChats and Users included
+                // Load đoạn chat với UserChats và Users
                 var createdChat = await _repository.Find(c => c.Id == chat.Id,
                     include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
                 );
+                var result = _mapper.Map<ChatDto>(createdChat);
+                await AddChatToCache(result);
 
-                // Remove chat list cache for all participants
-                foreach (var participantId in chatCreateDto.UserIds.Concat(new[] { userId }))
-                {
-                    await _cacheService.RemoveAsync(string.Format(ChatListCacheKey, participantId, "*", "*"));
-                }
-
-                return _mapper.Map<ChatDto>(createdChat);
+                return result;
             }
             catch (Exception ex)
             {
-                await _logErrorRepository.Add(new ErrorLog
-                {
-                    ControllerName = "ChatService",
-                    ActionName = "CreateChatAsync",
-                    IsError = true,
-                    ErrorMessage = ex.Message,
-                    Exception = ex.StackTrace
-                });
-                await _unitOfWork.SaveChangeAsync();
+                await LogErrorAsync(ex, "CreateChatAsync");
                 throw new AppException("Error occurred while creating chat.", 500);
             }
+        }
+
+        private async Task<ChatDto> CheckIfPrivateChatExists(ChatCreateDto chatCreateDto, string userId)
+        {
+            var existingChat = await _repository.Find(c =>
+                !c.IsGroup &&
+                c.UserChats.Any(uc => uc.UserId == userId) &&
+                c.UserChats.Any(uc => uc.UserId == chatCreateDto.UserIds.First()),
+                include: o => o.Include(e => e.UserChats).ThenInclude(uc => uc.User)
+            );
+
+            return existingChat != null ? _mapper.Map<ChatDto>(existingChat) : null;
+        }
+
+        private async Task AddUsersToChat(IEnumerable<string> userIds, string chatId, string createdBy, bool isGroup)
+        {
+            foreach (var userId in userIds)
+            {
+                var userChat = new UserChat
+                {
+                    UserId = userId,
+                    ChatId = chatId,
+                    CreatedBy = createdBy,
+                    UpdatedBy = createdBy,
+                    IsAdmin = isGroup ? userId == createdBy : false,
+                    JoinAt = DateTime.UtcNow,
+                };
+                await _userChatRepository.Add(userChat);
+            }
+            await _unitOfWork.SaveChangeAsync();
+        }
+
+        private async Task LogErrorAsync(Exception ex, string actionName)
+        {
+            await _logErrorRepository.Add(new ErrorLog
+            {
+                ControllerName = "ChatService",
+                ActionName = actionName,
+                IsError = true,
+                ErrorMessage = ex.Message,
+                Exception = ex.StackTrace
+            });
+            await _unitOfWork.SaveChangeAsync();
         }
 
         public async Task<ChatDto> GetChatDetailAsync(string chatId, string userId)
@@ -179,25 +195,25 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
         }
 
 
-        public async Task<IEnumerable<ChatDto>> GetChatListAsync(string userId)
+        public async Task<List<string>> GetChatIdListAsync(string userId)
         {
             try
             {
-                var chats = await _repository.FindAll(c => c.UserChats.Any(x => x.UserId == userId));
-                return _mapper.Map<IEnumerable<ChatDto>>(chats);
+                string cacheKey = string.Format(ChatIdList, userId);
+                return await _cacheService.GetOrCreateAsync(cacheKey, async () =>
+                {
+                    var chat = await _repository.FindAll(
+                       c => c.UserChats.Any(x => x.UserId == userId)
+                    ) ?? throw new AppException("Chat not found", 404);
+                    var chatIds = chat.Select(c => c.Id).ToList();
+                    return chatIds;
+                },
+                    TimeSpan.FromHours(1) // Cache for 5 minutes 
+                );
             }
             catch (Exception ex)
             {
-                await _logErrorRepository.Add(new ErrorLog
-                {
-                    ControllerName = "ChatService",
-                    ActionName = "GetChatListAsync",
-                    IsError = true,
-                    ErrorMessage = ex.Message,
-                    Exception = ex.StackTrace
-                });
-                await _unitOfWork.SaveChangeAsync();
-                throw new AppException("Error occurred while retrieving chat list.", 500);
+                throw new AppException("Error occurred while getting chat list", 500);
             }
         }
         public async Task<PagedResponse<List<ChatDto>>> GetChatListAsync(
@@ -395,6 +411,60 @@ namespace PingMeChat.CMS.Application.Feature.Service.Chats
 
             return canAccess;
         }
-    }
 
+        // Hàm thêm đoạn chat vừa tạo vào cache
+        private async Task AddChatToCache(ChatDto chatDto)
+        {
+            int page = 1;
+            int pageSize = 20;
+            PagedResponse<List<ChatDto>> cachedChatList = null;
+            List<ChatDto> cachedChatListDat = null;
+
+            // Tạo tin nhắn thông báo chat mới (hard code)
+            var creator = await _userRepository.FindById(chatDto.CreatedBy);
+            var messageContent = $"{creator.FullName} added you to a new chat";
+            chatDto.Messages = new List<MessageDto> {
+                new MessageDto {
+                    ChatId = chatDto.Id,
+                    Content = messageContent,
+                    Sender = _mapper.Map<AccountDto>(creator),
+                    SenderId = creator.Id,
+                    CreatedDate = DateTime.UtcNow
+                }
+            };
+            // Tìm list user tham gia chat
+            var userChats = chatDto.UserChats;
+            var userIds = userChats.Select(uc => uc.UserId).ToList();
+            foreach (var userId in userIds)
+            {
+                // Thêm chat vào cache của từng user
+                var cacheKey = string.Format(ChatListCacheKey, userId, page, pageSize);
+                cachedChatList = await _cacheService.GetAsync<PagedResponse<List<ChatDto>>>(cacheKey);
+                if (cachedChatList != null)
+                {
+                    cachedChatListDat = cachedChatList.Data;
+                    // Thêm chat mới vào đầu danh sách, trước khi lưu vào cache thì thêm tin nhắn mới nhất vào chat
+                    chatDto.Messages = new List<MessageDto>
+                    {
+                        // Tạo tin nhắn thông báo chat mới
+                        new MessageDto
+                        {
+                            ChatId = chatDto.Id,
+                            Content = "Created a new chat",
+                            Sender = chatDto.Messages.FirstOrDefault()?.Sender,
+                            SenderId = chatDto.Messages.FirstOrDefault()?.SenderId,
+                            CreatedDate = DateTime.UtcNow
+                        }
+                    };
+                    cachedChatListDat.Insert(0, chatDto);
+                    // Lưu danh sách chat mới vào cache
+                    await _cacheService.SetAsync(cacheKey, cachedChatListDat, TimeSpan.FromMinutes(5));
+                }
+
+            }
+
+        }
+    }
 }
+
+

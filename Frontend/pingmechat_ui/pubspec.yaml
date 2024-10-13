@@ -61,6 +61,7 @@ dependencies:
   firebase_analytics: ^10.0.0
   flutter_local_notifications: ^17.0.0
   flutter_launcher_icons: ^0.13.1 #Hỗ trợ tạo icon cho app
+  uuid: ^4.5.1 #Hỗ trợ tạo uuid
 
 
 #  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc

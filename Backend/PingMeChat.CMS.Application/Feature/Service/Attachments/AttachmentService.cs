@@ -41,10 +41,10 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments
 
             if (file.Length > 0)
             {
-                // Kiểm tra kích thước file có vượt quá 20MB không
-                if (file.Length > 20 * 1024 * 1024)
+                // Kiểm tra kích thước file có vượt quá 25MB không
+                if (file.Length > 25 * 1024 * 1024)
                 {
-                    throw new AppException($"File {file.FileName} vượt quá kích thước tối đa 20MB.");
+                    throw new AppException($"File {file.FileName} vượt quá kích thước tối đa 25MB.");
                 }
 
                 using (var stream = file.OpenReadStream())

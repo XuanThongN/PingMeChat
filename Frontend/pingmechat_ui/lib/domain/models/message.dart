@@ -3,16 +3,19 @@ import 'package:pingmechat_ui/domain/models/chat.dart';
 import 'package:pingmechat_ui/domain/models/attachment.dart';
 
 class Message {
+  String? id;
   final String chatId;
   final String senderId;
   final String? content;
   final DateTime createdDate;
-  final List<Attachment>? attachments;
+  List<Attachment>? attachments;
   final List<MessageReader>? messageReaders;
   final Chat? chat;
   Account? sender;
+  MessageStatus? status;
 
   Message({
+    this.id,
     required this.chatId,
     required this.senderId,
     this.content,
@@ -21,10 +24,12 @@ class Message {
     this.messageReaders,
     this.chat,
     this.sender,
+    this.status,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
+      id: json['id'],
       chatId: json['chatId'],
       senderId: json['senderId'],
       content: json['content'],
@@ -37,6 +42,7 @@ class Message {
           .toList(),
       // Map json['sender'] to Account object
       sender: json['sender'] != null ? Account.fromJson(json['sender']) : null,
+      status: json['status'] != null ? MessageStatus.values.byName(json['status']) : MessageStatus.sent,
     );
   }
 
@@ -50,6 +56,33 @@ class Message {
       'messageReaders': messageReaders?.map((i) => i.toJson()).toList(),
       'sender': sender!.toJson(),
     };
+  }
+
+  // copyWith method
+  Message copyWith({
+    String? id,
+    String? chatId,
+    String? senderId,
+    String? content,
+    DateTime? createdDate,
+    List<Attachment>? attachments,
+    List<MessageReader>? messageReaders,
+    Chat? chat,
+    Account? sender,
+    MessageStatus? status,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      chatId: chatId ?? this.chatId,
+      senderId: senderId ?? this.senderId,
+      content: content ?? this.content,
+      createdDate: createdDate ?? this.createdDate,
+      attachments: attachments ?? this.attachments,
+      messageReaders: messageReaders ?? this.messageReaders,
+      chat: chat ?? this.chat,
+      sender: sender ?? this.sender,
+      status: status ?? this.status,
+    );
   }
 }
 
@@ -83,11 +116,13 @@ class MessageReader {
 
 // Tạo class Message cho send message
 class MessageSendDto {
+  final String tempId;
   final String chatId;
   final String? content;
   final List<Attachment>? attachments;
 
   MessageSendDto({
+    required this.tempId,
     this.content,
     required this.chatId,
     this.attachments,
@@ -95,9 +130,35 @@ class MessageSendDto {
 
   Map<String, dynamic> toJson() {
     return {
+      'tempId': tempId,
       'chatId': chatId,
       'content': content,
       'attachments': attachments?.map((i) => i.toJson()).toList(),
     };
+  }
+}
+
+enum MessageStatus {
+  sending,
+  sent,
+  delivered,
+  read,
+  failed,
+}
+
+extension MessageStatusExtension on MessageStatus {
+  String get description {
+    switch (this) {
+      case MessageStatus.sending:
+        return 'Sending...';
+      case MessageStatus.sent:
+        return 'Sent';
+      case MessageStatus.delivered:
+        return 'Delivered';
+      case MessageStatus.read:
+        return 'Read';
+      case MessageStatus.failed:
+        return 'Failed to send';
+    }
   }
 }

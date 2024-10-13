@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pingmechat_ui/presentation/widgets/upload_progress_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
@@ -41,7 +45,7 @@ class ChatMessageWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment:
                 isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isCurrentUser && shouldShowAvatar)
                 CustomCircleAvatar(
@@ -81,7 +85,9 @@ class ChatMessageWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: isCurrentUser
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
                         children: [
                           if (message.attachments != null &&
                               message.attachments!.isNotEmpty)
@@ -99,32 +105,64 @@ class ChatMessageWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (showTimestamp)
-                      Text(
-                        DateFormat('HH:mm').format(message.createdDate),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showTimestamp)
+                          Text(
+                            DateFormat('HH:mm').format(message.createdDate),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        const SizedBox(width: 4),
+                        if (isCurrentUser &&
+                            message.status != MessageStatus.sent)
+                          _buildStatusIcon(
+                              message.status ?? MessageStatus.sending),
+                      ],
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              // if (isCurrentUser && shouldShowAvatar)
-              //   CustomCircleAvatar(
-              //     backgroundImage: authProvider.currentUser?.avatarUrl != null
-              //         ? NetworkImage(authProvider.currentUser!.avatarUrl!)
-              //         : null,
-              //     radius: 16,
-              //   )
-              // else
-              //   const SizedBox(width: 32),
             ],
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildStatusIcon(MessageStatus status) {
+    IconData iconData;
+    Color color;
+
+    switch (status) {
+      case MessageStatus.sending:
+        iconData = Icons.access_time;
+        color = Colors.grey;
+        break;
+      case MessageStatus.sent:
+        iconData = Icons.check;
+        color = Colors.grey;
+        break;
+      case MessageStatus.delivered:
+        iconData = Icons.done_all;
+        color = Colors.grey;
+        break;
+      case MessageStatus.read:
+        iconData = Icons.done_all;
+        color = Colors.blue;
+        break;
+      case MessageStatus.failed:
+        iconData = Icons.error_outline;
+        color = Colors.red;
+        break;
+    }
+
+    return Icon(iconData, size: 16, color: color);
   }
 
   Widget _buildDateDivider() {
@@ -151,48 +189,112 @@ class ChatMessageWidget extends StatelessWidget {
   }
 
   Widget _buildAttachmentPreview(BuildContext context, Attachment attachment) {
+    switch (attachment.fileType) {
+      case 'Image':
+        return _buildImagePreview(context, attachment);
+      case 'Video':
+        return _buildVideoPreview(context, attachment);
+      default:
+        return _buildFilePreview(context, attachment);
+    }
+  }
+
+  Widget _buildImagePreview(BuildContext context, Attachment attachment) {
     return GestureDetector(
-      onTap: () {
-        _viewAttachmentDetail(context, attachment);
-      },
-      child: Container(
-        width: 200,
-        height: 150,
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: _getAttachmentPreview(attachment),
+      onTap: () => _viewAttachmentDetail(context, attachment),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: attachment.fileUrl.startsWith('file://')
+                ? Image.file(
+                    File(attachment.fileUrl.replaceFirst('file://', '')),
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  )
+                : CachedNetworkImage(
+                    imageUrl: attachment.fileUrl,
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+          ),
+          UploadProgressIndicator(isUploading: attachment.isUploading),
+        ],
       ),
     );
   }
 
-  Widget _getAttachmentPreview(Attachment attachment) {
-    switch (attachment.fileType) {
-      case 'Image':
-        return Image.network(
-          attachment.fileUrl,
-          fit: BoxFit.cover,
-        );
-      case 'Video':
-        return FutureBuilder(
-          future: _initializeVideoPlayer(attachment.fileUrl),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return VideoPlayer(snapshot.data as VideoPlayerController);
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          },
-        );
-      case 'Audio':
-        return Icon(Icons.audiotrack, size: 48, color: Colors.grey[400]);
-      case 'File':
-        return Icon(Icons.insert_drive_file, size: 48, color: Colors.grey[400]);
-      default:
-        return Icon(Icons.attachment, size: 48, color: Colors.grey[400]);
-    }
+  Widget _buildVideoPreview(BuildContext context, Attachment attachment) {
+    return GestureDetector(
+      onTap: () => _viewAttachmentDetail(context, attachment),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: attachment.fileUrl.startsWith('file://')
+                ? Image.file(
+                    File(attachment.fileUrl.replaceFirst('file://', '')),
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  )
+                : CachedNetworkImage(
+                    imageUrl: attachment.thumbnailUrl ?? '',
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+          ),
+          const Icon(Icons.play_circle_fill, size: 40, color: Colors.white),
+          if (attachment.isUploading)
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilePreview(BuildContext context, Attachment attachment) {
+    return GestureDetector(
+      onTap: () => _viewAttachmentDetail(context, attachment),
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_getAttachmentIcon(attachment.fileType), size: 24),
+            SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                attachment.fileName ?? '',
+                style: TextStyle(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (attachment.isUploading)
+              Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<VideoPlayerController> _initializeVideoPlayer(String url) async {
@@ -268,7 +370,9 @@ class AttachmentDetailPage extends StatelessWidget {
   Widget _getAttachmentDetailView(Attachment attachment) {
     switch (attachment.fileType) {
       case 'Image':
-        return Image.network(attachment.fileUrl);
+        return CachedNetworkImage(
+          imageUrl: attachment.fileUrl,
+        );
       case 'Video':
         return FutureBuilder(
           future: _initializeVideoPlayer(attachment.fileUrl),

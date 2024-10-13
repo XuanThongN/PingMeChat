@@ -24,6 +24,7 @@ class ChatService {
   Function(Chat)? onNewGroupChatCallback;
   Function(Chat)? onNewPrivateChatCallback;
   Function(Message)? onReceiveMessageCallback;
+  Function(String, Message)? onSentMessageCallback;
   Function(String, String)? onUserTypingCallback;
   Function(String, String)? onUserStopTypingCallback;
 
@@ -123,6 +124,16 @@ class ChatService {
       if (arguments != null && arguments.isNotEmpty) {
         final message = Message.fromJson(arguments[0]);
         onReceiveMessageCallback?.call(message);
+      }
+    });
+
+    // Lắng nghe sự kiện tin nhắn đã được gửi thành công
+    hubConnection?.on('SentMessage', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final data = arguments[0] as Map<String, dynamic>;
+        final tempId = data['tempId'] as String;
+        final message = Message.fromJson(data['message']);
+        onSentMessageCallback?.call(tempId, message);
       }
     });
 
