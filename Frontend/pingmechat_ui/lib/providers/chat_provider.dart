@@ -77,6 +77,7 @@ class ChatProvider extends ChangeNotifier {
     _chatService.onUserTypingCallback = _handleUserTyping;
     _chatService.onUserStopTypingCallback = _handleUserStopTyping;
     _chatService.onSentMessageCallback = _handleSentMessage;
+    _chatService.onMarkMessageAsReadCallback = _handleMarkMessageAsRead;
   }
 
   void _handleNewGroupChat(Chat chat) {
@@ -172,6 +173,19 @@ class ChatProvider extends ChangeNotifier {
     print("Tin nhắn đã được gửi thành công: $tempId");
     if (index != null && index != -1) {
       _messagesByChatId[chatId]![index] = sentMessage;
+      notifyListeners();
+    }
+  }
+
+// Hàm xử lý tin nhắn đã được đánh dấu là đã đọc
+  void _handleMarkMessageAsRead(String chatId, MessageReader messageReader) {
+    final chat = _chats.firstWhere((c) => c.id == chatId);
+    if (chat.messages != null) {
+      final message =
+          chat.messages!.firstWhere((m) => m.id == messageReader.messageId);
+      if (message.messageReaders != null) {
+        message.messageReaders!.add(messageReader);
+      }
       notifyListeners();
     }
   }
@@ -286,6 +300,20 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  // Hàm mark message as read
+  Future<void> markMessageAsRead(String chatId, String messageId) async {
+    // Kiểm tra xem người dùng hiện tại có phải là người đọc tin nhắn không
+    // final currentUserId = _chatService.getCurrentUserId();
+    // final messages = _messagesByChatId[chatId];
+    // final message = messages?.firstWhere((m) => m.id == messageId);
+    // if (message != null &&
+    //     message.messageReaders!.any((r) => r.readerId == currentUserId)) {
+    //   return;
+    // }
+    // print('Marking message as read: $messageId');
+    await _chatService.markMessageAsRead(chatId, messageId);
+  }
+
   void _addTempMessageToChat(String chatId, Message tempMessage) {
     _messagesByChatId[chatId]?.add(tempMessage);
     final chat = _chats.firstWhere((c) => c.id == chatId);
@@ -355,71 +383,6 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // Future<void> sendMessage(
-  //     {required String chatId,
-  //     required String message,
-  //     List<File> files = const []}) async {
-  //   final tempId = Uuid().v4();
-  //   final currentUserId = _chatService.getCurrentUserId();
-
-  //   // Tạo tin nhắn tạm thời
-  //   final tempMessage = Message(
-  //     id: tempId,
-  //     chatId: chatId,
-  //     senderId: currentUserId,
-  //     content: message,
-  //     createdDate: DateTime.now(),
-  //     status: MessageStatus.sending,
-  //   );
-
-  //   // Thêm tin nhắn tạm thời vào danh sách
-  //   _messagesByChatId[chatId]?.add(tempMessage);
-  //   // Set tin nhắn cuối cùng của chat
-  //   final chat = _chats.firstWhere((c) => c.id == chatId);
-  //   chat.messages?.clear(); // Xóa tất cả tin nhắn của chat
-  //   chat.messages
-  //       ?.insert(0, tempMessage); // Thêm tin nhắn tạm thời vào đầu danh sách
-  //   sortChats(); // Sắp xếp lại danh sách chat
-  //   notifyListeners();
-
-  //   try {
-  //     List<UploadResult> uploadedAttachments = [];
-  //     List<Attachment> attachments = [];
-  //     if (files.isNotEmpty) {
-  //       uploadedAttachments = await _chatService.uploadFiles(files);
-  //       print("uploadedAttachments: $uploadedAttachments");
-  //       attachments = uploadedAttachments
-  //           .map((e) => Attachment(
-  //               fileName: e.publicId,
-  //               fileUrl: e.url,
-  //               fileType: e.fileType,
-  //               fileSize: e.fileSize))
-  //           .toList();
-  //     }
-  //     MessageSendDto messageDto = MessageSendDto(
-  //       tempId: tempId,
-  //       chatId: chatId,
-  //       content: message,
-  //       attachments: attachments,
-  //     );
-
-  //     // Gửi tin nhắn lên server
-  //     await _chatService.sendMessage(messageDto);
-  //   } catch (error) {
-  //     // Cập nhật trạng thái tin nhắn thất bại
-  //     final index =
-  //         _messagesByChatId[chatId]?.indexWhere((m) => m.id == tempId);
-  //     if (index != null && index != -1) {
-  //       _messagesByChatId[chatId]![index] =
-  //           _messagesByChatId[chatId]![index].copyWith(
-  //         status: MessageStatus.failed,
-  //       );
-  //     }
-  //     print('Error sending message: $error');
-  //   }
-  //   notifyListeners(); // Thông báo cho các widget nghe thay đổi dữ liệu
-  // }
 
   Future<void> startNewChat(ChatCreateDto chatCreateDto) async {
     await _chatService.startNewChat(chatCreateDto);

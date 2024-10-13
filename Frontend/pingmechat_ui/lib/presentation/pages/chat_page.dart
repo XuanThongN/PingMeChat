@@ -20,6 +20,7 @@ import 'package:provider/provider.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
 import '../widgets/custom_circle_avatar.dart';
+import '../widgets/message_reader_widget.dart';
 import '../widgets/message_widget.dart';
 import '../widgets/typing_indicator.dart';
 
@@ -281,11 +282,12 @@ class _ChatPageState extends State<ChatPage> {
             // Điều chỉnh index để lấy tin nhắn đúng
             final messageIndex = index - 1;
             final message = messages.elementAt(messageIndex);
+            final chat = chatProvider.chats.firstWhere((chat) => chat.id == widget.chatId);
             final showAvatar =
                 ChatPageHelper.shouldShowAvatar(messages, messageIndex);
             final showTimestamp =
                 ChatPageHelper.shouldShowTimestamp(messages, messageIndex);
-
+            final isLastMessage = messageIndex == 0;
             // Hiển thị thanh ngang để chia tin nhắn theo ngày
             final previousMessage =
                 messageIndex > 0 ? messages[messageIndex - 1] : null;
@@ -293,14 +295,30 @@ class _ChatPageState extends State<ChatPage> {
                 !ChatPageHelper.isSameDay(
                     message.createdDate, previousMessage.createdDate);
 
-            return ChatMessageWidget(
-              message: message,
-              isLastMessageFromSameSender: showAvatar,
-              shouldShowAvatar: showAvatar,
-              shouldShowDateDivider: showDateDivider,
-              previousMessageDate: previousMessage?.createdDate,
-              isGroupMessage: isGroupChat,
-              showTimestamp: showTimestamp,
+            // return ChatMessageWidget(
+            //   message: message,
+            //   isLastMessageFromSameSender: showAvatar,
+            //   shouldShowAvatar: showAvatar,
+            //   shouldShowDateDivider: showDateDivider,
+            //   previousMessageDate: previousMessage?.createdDate,
+            //   isGroupMessage: isGroupChat,
+            //   showTimestamp: showTimestamp,
+            // );
+
+            return Column(
+              children: [
+                ChatMessageWidget(
+                  message: message,
+                  isLastMessageFromSameSender: showAvatar,
+                  shouldShowAvatar: showAvatar,
+                  shouldShowDateDivider: showDateDivider,
+                  previousMessageDate: previousMessage?.createdDate,
+                  isGroupMessage: isGroupChat,
+                  showTimestamp: showTimestamp,
+                ),
+                if (isLastMessage)
+                  buildMessageReadersWidget(message, chat, currentUserId),
+              ],
             );
           },
         );
@@ -652,54 +670,6 @@ class _ChatPageState extends State<ChatPage> {
       }
     }
   }
-
-// Hàm thực hiện chức năng gọi
-  // void _initiateCall(Chat? chat, bool isVideo) async {
-  //   if (chat == null) return;
-  //   final callProvider = Provider.of<CallProvider>(context, listen: false);
-  //   await callProvider.initiateCall(chat.id, isVideo);
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => CallPage(
-  //         chatId: chat.id,
-  //         isVideo: isVideo,
-  //         onEndCall: () {
-  //           callProvider.endCall();
-  //           Navigator.pop(context);
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Hàm chọn ảnh từ thư viện
-  // Future<void> _pickImage() async {
-  //   // Xin quyền truy cập vào bộ nhớ
-  //   var status = await Permission.storage.request();
-
-  //   if (status.isGranted) {
-  //     // Nếu quyền được cấp, mở image picker
-  //     final ImagePicker picker = ImagePicker();
-  //     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-  //     setState(() {
-  //       if (image != null) {
-  //         _selectedAttachments!.add(File(image.path));
-  //       }
-  //     });
-  //   } else if (status.isDenied) {
-  //     // Nếu quyền bị từ chối, hiển thị thông báo
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //           content: Text(
-  //               'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.')),
-  //     );
-  //   } else if (status.isPermanentlyDenied) {
-  //     // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
-  //     openAppSettings();
-  //   }
-  // }
 
   Future<void> _pickImage() async {
     // Xin quyền truy cập vào bộ nhớ
