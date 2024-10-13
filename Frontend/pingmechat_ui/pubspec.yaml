@@ -69,10 +69,10 @@ dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/img.png"
-  adaptive_icon_background: "#ffffff" # Tùy chọn: màu nền cho adaptive icon
-  adaptive_icon_foreground: "assets/images/img.png" # Tùy chọn: foreground cho adaptive icon
-  
+  image_path: "assets/images/PingMeChat.png"
+  adaptive_icon_background: "#4A0E4E" # Deep purple background
+  adaptive_icon_foreground: "assets/images/PingMeChat.png"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
