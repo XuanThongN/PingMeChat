@@ -21,7 +21,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages.Dto
         public string? AttachmentUrl { get; set; }
         public AccountDto? Sender { get; set; }
         public ChatDto? Chat { get; set; }
-        public List<MessageReader>? Readers { get; set; } // danh sách trạng thái đọc tin nhắn
+        public List<MessageReader>? MessageReaders { get; set; } // danh sách nguoi doc tin nhan
         public List<AttachmentDto>? Attachments { get; set; } 
     }
     

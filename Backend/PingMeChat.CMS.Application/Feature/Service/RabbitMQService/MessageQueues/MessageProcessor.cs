@@ -16,5 +16,9 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQu
         {
             await _messageService.SendMessageAsync(messageDto);
         }
+        public async Task ProcessMessageReadAsync(MessageReadEvent messageReadEvent)
+        {
+            await _messageService.MarkMessageAsReadAsync(messageReadEvent.MessageId, messageReadEvent.ReaderId);
+        }
     }
 }

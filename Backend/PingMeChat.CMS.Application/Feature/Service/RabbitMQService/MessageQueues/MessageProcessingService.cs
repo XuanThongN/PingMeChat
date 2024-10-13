@@ -32,7 +32,7 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQu
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             _serviceScopeFactory = serviceScopeFactory;
-            _channel.QueueDeclare(queue: "chat_messages", durable: true, exclusive: false, autoDelete: false, arguments: null);
+            // _channel.QueueDeclare(queue: "chat_messages", durable: true, exclusive: false, autoDelete: false, arguments: null);
 
             Console.WriteLine("MessageProcessingService started");
 
@@ -42,36 +42,55 @@ namespace PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQu
         {
             Console.WriteLine("ExecuteAsync started");
 
-            var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += async (model, ea) =>
-            {
-                Console.WriteLine("Message received");
-
-                var body = ea.Body.ToArray();
-                var json = Encoding.UTF8.GetString(body);
-                Console.WriteLine($"Message body: {json}");
-
-                var messageDto = JsonSerializer.Deserialize<MessageCreateDto>(json);
-                Console.WriteLine($"Deserialized message: {messageDto}");
-
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    var messageProcessor = scope.ServiceProvider.GetRequiredService<MessageProcessor>();
-                    await messageProcessor.ProcessMessageAsync(messageDto);
-                    Console.WriteLine("Message processed");
-                }
-
-                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                Console.WriteLine("Message acknowledged");
-            };
-
-            _channel.BasicConsume(queue: "chat_messages", autoAck: false, consumer: consumer);
-
-            Console.WriteLine("Consumer is running and listening to the queue");
+            ConsumeMessages("chat_messages", ProcessChatMessage);
+            ConsumeMessages("message_read", ProcessMessageRead);
 
             return Task.CompletedTask;
         }
+        private void ConsumeMessages(string queueName, Func<string, Task> processMessage)
+        {
+            _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
 
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var json = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    await processMessage(json);
+                    _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing message: {ex.Message}");
+                    _channel.BasicNack(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                }
+            };
+
+            _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+        }
+
+        private async Task ProcessChatMessage(string json)
+        {
+            var messageDto = JsonSerializer.Deserialize<MessageCreateDto>(json);
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var messageProcessor = scope.ServiceProvider.GetRequiredService<MessageProcessor>();
+                await messageProcessor.ProcessMessageAsync(messageDto);
+            }
+        }
+
+        private async Task ProcessMessageRead(string json)
+        {
+            var messageReadEvent = JsonSerializer.Deserialize<MessageReadEvent>(json);
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var messageProcessor = scope.ServiceProvider.GetRequiredService<MessageProcessor>();
+                await messageProcessor.ProcessMessageReadAsync(messageReadEvent);
+            }
+        }
         public override void Dispose()
         {
             _channel?.Close();
