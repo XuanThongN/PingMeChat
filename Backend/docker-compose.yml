@@ -1,34 +1,35 @@
 ﻿version: '3.8'
 
 services:
-  webapp:
+  pingmechat-cms-api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8089:80"
-    depends_on:
-      - db
+      - "8080:80"
+      - "8443:443"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=db;Database=bidaapp;User=sa;Password=!2345Abcd;TrustServerCertificate=True;
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ./logs:/app/logs
-    restart: always
+    depends_on:
+      - redis
+      - rabbitmq
 
-  db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=!2345Abcd
-      - MSSQL_PID=Express
+  redis:
+    image: redis:latest
     ports:
-      - "1433:1433"
-    volumes:
-      - sqldata:/var/opt/mssql
-    restart: always
+      - "6379:6379"
 
-volumes:
-  sqldata:
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+networks:
+  default:
+    name: pingmechat-cms-network
