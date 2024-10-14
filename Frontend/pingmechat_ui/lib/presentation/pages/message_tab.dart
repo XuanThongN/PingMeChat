@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
+import 'package:pingmechat_ui/domain/models/contact.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
@@ -56,7 +57,11 @@ class _MessageTabState extends State<MessageTab> {
       _chatProvider.loadChats(); // Load danh sách chat
 
       Provider.of<ContactProvider>(context, listen: false)
-          .fetchContacts(); // Load danh sách contact
+          .fetchContacts()
+          .then((_) {
+        Provider.of<ContactProvider>(context, listen: false)
+            .fetchFriendStatus(); // Lấy trạng thái bạn bè
+      }); // Load danh sách contact
     });
   }
 
@@ -132,7 +137,7 @@ class _MessageTabState extends State<MessageTab> {
               final contact = contactUsers[index];
               return GestureDetector(
                 onTap: () => _handleContactStatusTap(contact.id),
-                child: _buildContactStatusItem(contact!),
+                child: _buildContactStatusItem(contact),
               );
             },
           ),
@@ -191,19 +196,22 @@ class _MessageTabState extends State<MessageTab> {
                   radius: 26,
                 ),
               ),
-              // if (isMe)
-              //   Positioned(
-              //     right: 0,
-              //     bottom: 0,
-              //     child: Container(
-              //       padding: const EdgeInsets.all(4),
-              //       decoration: const BoxDecoration(
-              //         color: Colors.blue,
-              //         shape: BoxShape.circle,
-              //       ),
-              //       child: const Icon(Icons.add, color: Colors.white, size: 14),
-              //     ),
-              //   ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: contactUser.isOnline ? Colors.green : Colors.grey,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.surface,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),
@@ -343,6 +351,11 @@ class _MessageTabState extends State<MessageTab> {
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user
             ?.avatarUrl;
+    final isOnline = item.isGroup
+        ? false
+        : item.userChats
+            .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
+            .isOnline;
     // Kiểm tra xem tin nhắn cuối cùng đã được đánh dấu là đã đọc chưa
     final messages = item.messages;
     final readers = [];
@@ -381,8 +394,7 @@ class _MessageTabState extends State<MessageTab> {
             isGroupChat: item.isGroup,
           ),
           // if (item.isActive) // Người dùng hoạt động
-          if (!item
-              .isGroup) // Tạm thời sử dụng trường isGroup để hiển thị người dùng hoạt động
+          if (!item.isGroup)
             Positioned(
               bottom: 0,
               right: 0,
@@ -390,7 +402,7 @@ class _MessageTabState extends State<MessageTab> {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: isOnline! ? Colors.green : Colors.grey,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: AppColors.surface,

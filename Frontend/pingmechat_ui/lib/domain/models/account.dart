@@ -5,6 +5,7 @@ class Account {
   final String email;
   final String? phoneNumber;
   final String? avatarUrl;
+  bool isOnline;
 
   Account({
     required this.id,
@@ -13,6 +14,7 @@ class Account {
     required this.email,
     this.phoneNumber,
     this.avatarUrl,
+    this.isOnline = false,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Account {
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       avatarUrl: json['avatarUrl'],
+      isOnline: json['isOnline'] ?? false,
       // phoneNumber: json['phoneNumber'],
     );
   }

@@ -104,6 +104,8 @@ namespace PingMeChat.CMS.API.Routes
                 public const string CancelFriendRequestRoute = "api/contacts/cancel-friend-request/{contactId}";
                 public const string SendFriendRequestRoute = "api/contacts/send-friend-request";
                 public const string RecommendFriendsRoute = "api/contacts/recommend-friends";
+                public const string GetAllFriendsStatusRoute = "api/contacts/get-all-friends-status";
+
 
             }
 

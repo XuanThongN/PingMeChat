@@ -10,7 +10,7 @@ class Contact {
   String? avatarUrl; // Thêm avatarUrl vào Contact
   String? phoneNumber; // Thêm phoneNumber vào Contact
   String? email; // Thêm email vào Contact
-  final bool isOnline; // Thêm isOnline vào Contact
+  bool isOnline; // Thêm isOnline vào Contact
   final Account? user; // Thêm account vào Contact
   final Account? contactUser; // Thêm contactAccount vào Contact
   String status; // Thêm status vào Contact
@@ -22,7 +22,7 @@ class Contact {
     this.nickname,
     this.settings,
     this.avatarUrl,
-    this.isOnline = true,
+    this.isOnline = false,
     this.phoneNumber,
     this.email,
     this.user,
@@ -37,7 +37,7 @@ class Contact {
       nickname: json['nickname'] ?? '',
       settings: json['settings'] ?? '',
       avatarUrl: json['avatarUrl'] ?? '',
-      isOnline: json['isOnline'] ?? true,
+      isOnline: json['isOnline'] ?? false,
       phoneNumber: json['phoneNumber'] ?? '',
       email: json['email'] ?? '',
       user: json['user'] != null ? Account.fromJson(json['user']) : null,
@@ -76,5 +76,23 @@ class AddContactRequest {
       'contactUserId': contactId,
       'nickname': nickname,
     };
+  }
+}
+
+// Tạo class trạng thái của bạn bè
+class FriendStatus {
+  final String userId;
+  final bool status;
+
+  FriendStatus({
+    required this.userId,
+    required this.status,
+  });
+
+  factory FriendStatus.fromJson(Map<String, bool> json) {
+    return FriendStatus(
+      userId: json.keys.first,
+      status: json.values.first,
+    );
   }
 }

@@ -377,6 +377,10 @@ class ChatService {
     await hubConnection!.invoke('UserStopTyping', args: [chatId]);
   }
 
+  Future<void> markMessageAsRead(String chatId, String messageId) async {
+    await hubConnection!.invoke('MarkMessageAsRead', args: [chatId, messageId]);
+  }
+
   Future<List<UserChat>> addMembersToChat(
       String chatId, List<String> selectedMembers) async {
     try {
@@ -430,9 +434,5 @@ class ChatService {
     } catch (e) {
       throw Exception('Failed to remove member from chat: $e');
     }
-  }
-
-  Future<void> markMessageAsRead(String chatId, String messageId) async {
-    await hubConnection!.invoke('MarkMessageAsRead', args: [chatId, messageId]);
   }
 }
