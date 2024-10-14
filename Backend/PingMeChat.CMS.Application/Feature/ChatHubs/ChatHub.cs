@@ -6,6 +6,7 @@ using PingMeChat.CMS.Application.Common.Exceptions;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Chats;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
+using PingMeChat.CMS.Application.Feature.Service.Contacts;
 using PingMeChat.CMS.Application.Feature.Service.Messages;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Notifications.Dto;
@@ -16,6 +17,7 @@ using PingMeChat.Shared.Enum;
 using PingMeChat.Shared.Utils;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace PingMeChat.CMS.Application.Feature.ChatHubs
@@ -27,6 +29,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
         private readonly IChatHubService _chatHubService;
         private readonly IChatService _chatService;
         private readonly IMessageService _messageService;
+        private readonly IContactService _contactService;
         private readonly IRedisConnectionManager _redisConnectionManager; // Service quản lý connect ws của user
         private static readonly SemaphoreSlim _throttler = new SemaphoreSlim(100, 100);
         private static readonly TimeSpan _throttlePeriod = TimeSpan.FromSeconds(1);
@@ -35,12 +38,14 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             IChatHubService chatHubService,
             IChatService chatService,
             IMessageService messageService,
+            IContactService contactService,
             IRedisConnectionManager redisConnectionManager)
         {
             _rabbitMQService = rabbitMQService;
             _chatHubService = chatHubService;
             _chatService = chatService;
             _messageService = messageService;
+            _contactService = contactService;
             _redisConnectionManager = redisConnectionManager;
         }
 
@@ -265,6 +270,34 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             var joinTasks = chatIds.Select(chatId => Groups.AddToGroupAsync(connectionId, chatId));
             await Task.WhenAll(joinTasks);
             Console.WriteLine($"User {userId} joined {chatIds.Count} chats");
+        }
+
+        private async Task SendIsActiveAsync(string userId)
+        {
+            // Lấy danh sách bạn bè hoặc những người bạn bè
+            var frienContactIds = await _contactService.GetAllFriendContactIds(userId);
+
+            // Cập nhật trạng thái hoạt động chỉ tới những người bạn bè
+            foreach (var frienContactId in frienContactIds)
+            {
+                await Clients.User(frienContactId).SendAsync("UserStatusChanged", userId, true);
+            }
+        }
+
+        private async Task SendIsNotActiveAsync(string userId)
+        {
+            // Kiểm tra nếu không còn connectionId nào thì cập nhật trạng thái hoạt động
+            List<string> connectionIdList = await _redisConnectionManager.GetConnectionsAsync(userId);
+            var isActive = connectionIdList.Any();
+
+            // Lấy danh sách bạn bè hoặc những người bạn bè
+            var frienContactIds = await _contactService.GetAllFriendContactIds(userId);
+
+            // Cập nhật trạng thái hoạt động chỉ tới những người dùng liên quan
+            foreach (var frienContactId in frienContactIds)
+            {
+                await Clients.User(frienContactId).SendAsync("UserStatusChanged", userId, isActive);
+            }
         }
 
 

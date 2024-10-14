@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pingmechat_ui/domain/models/chat.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/badge_provider.dart';
 import 'dart:convert';
@@ -8,11 +9,14 @@ import 'dart:convert';
 import '../core/constants/constant.dart';
 import '../domain/models/account.dart';
 import '../domain/models/contact.dart';
+import '../domain/models/userchat.dart';
+import 'chat_provider.dart';
 
 class ContactProvider extends ChangeNotifier {
   final AuthProvider _authProvider;
   final BadgeProvider _badgeProvider;
-  ContactProvider(this._authProvider, this._badgeProvider);
+  final ChatProvider _chatProvider;
+  ContactProvider(this._authProvider, this._badgeProvider, this._chatProvider);
 
   List<Contact> _contacts = [];
   List<Account> _contactUsers = [];
@@ -293,5 +297,102 @@ class ContactProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Lấy danh sách bạn bè kèm theo trạng thái online/offline từ api
+  Future<void> fetchFriendStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConstants.getFriendStatusEndpoint),
+        headers: await _authProvider.getCustomHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        // Lấy phần 'result' và truy cập vào 'data' trong đó
+        final Map<String, dynamic> data = jsonResponse['result'];
+        List<FriendStatus> _friendsStatus = [];
+        if (data.isNotEmpty) {
+          _friendsStatus = data
+              .map((key, value) =>
+                  MapEntry(key, FriendStatus(userId: key, status: value)))
+              .values
+              .toList();
+
+          // Cập nhật trạng thái của bạn bè
+          updateFriendStatus(_friendsStatus);
+        }
+      } else {
+        throw Exception('Failed to load friends statuses');
+      }
+    } catch (error) {
+      print('Error fetching friends statuses: $error');
+    }
+  }
+
+  // Cập nhật lại trạng thái của bạn bè trong _friends dựa vào trạng thái online/offline từ api
+  void updateFriendStatus(List<FriendStatus> friendStatuses) {
+    final currentUserId = _authProvider.currentUser!.id;
+    for (var friendStatus in friendStatuses) {
+      final index = _friends.indexWhere((friend) =>
+          friendStatus.userId ==
+          (friend.user!.id == currentUserId
+              ? friend.contactUser!.id
+              : friend.user!.id));
+      if (index != -1) {
+        _friends[index].isOnline = friendStatus.status;
+      }
+    }
+
+    // Cập nhật lại trạng thái của contactUsers
+    for (var friendStatus in friendStatuses) {
+      final index = _contactUsers
+          .indexWhere((friend) => friend.id == friendStatus.userId);
+      if (index != -1) {
+        _contactUsers[index].isOnline = friendStatus.status;
+      }
+    }
+
+    // Cập nhật lại trạng thái của các userchat của tất cả các chat
+    final chats = _chatProvider.chats;
+    for (var friendStatus in friendStatuses) {
+      for (var chat in chats) {
+        final userChat = chat.userChats.firstWhere(
+            (user) => user.id == friendStatus.userId,
+            orElse: () =>
+                UserChat(id: '', chatId: '', userId: '', isAdmin: false));
+        if (userChat.id.isNotEmpty) {
+          userChat.isOnline = friendStatus.status;
+        }
+      }
+    }
+
+    sortFriendsByOnlineStatus(); // Sắp xếp danh sách bạn bè theo trạng thái online/offline
+    notifyListeners();
+  }
+
+// Sắp xếp danh sách bạn bè theo trạng thái online/offline
+  void sortFriendsByOnlineStatus() {
+    _friends.sort((a, b) {
+      if (a.isOnline == b.isOnline) {
+        return 0;
+      } else if (a.isOnline) {
+        return -1;
+      } else {
+        return 1;
+      }
+    });
+
+    contactUsers.sort((a, b) {
+      if (a.isOnline == b.isOnline) {
+        return 0;
+      } else if (a.isOnline) {
+        return -1;
+      } else {
+        return 1;
+      }
+    });
+    notifyListeners();
   }
 }

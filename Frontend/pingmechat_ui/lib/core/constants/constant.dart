@@ -1,7 +1,8 @@
 // Đây là file chứa các hằng số dùng chung trong ứng dụng
 // Các hằng số này bao gồm các URL API, thông tin authen, thông tin chatHub
 // Để sử dụng các hằng số này, ta chỉ cần import file này vào nơi cần sử dụng
-const String baseUrl = 'https://jxhq42vd-7043.asse.devtunnels.ms';
+const String baseUrl = 'https://jxhq42vd-8080.asse.devtunnels.ms';
+
 class ApiConstants {
   // Base URL
   static const String baseApiUrl = '$baseUrl/api';
@@ -22,8 +23,10 @@ class ApiConstants {
 
   // Profile
   static const String userProfileEndpoint = '$baseApiUrl/users/profile';
-  static const String updateUserInfoEndpoint = '$baseApiUrl/users/update-profile';
-  static const String updateUserAvatarEndpoint = '$baseApiUrl/users/update-avatar';
+  static const String updateUserInfoEndpoint =
+      '$baseApiUrl/users/update-profile';
+  static const String updateUserAvatarEndpoint =
+      '$baseApiUrl/users/update-avatar';
 
   // Chat
   static const String getChatListEndpoint = '$baseApiUrl/chats/get-chat-list';
@@ -52,19 +55,21 @@ class ApiConstants {
       '$baseApiUrl/contacts/cancel-friend-request'; // Hủy lời mời kết bạn
   static const String sendFriendRequestEndpoint =
       '$baseApiUrl/contacts/send-friend-request'; // Gửi lời mời kết bạn
-  static const String getRecommendedFriendsEndpoint = 
+  static const String getRecommendedFriendsEndpoint =
       '$baseApiUrl/contacts/recommend-friends'; // Lấy danh sách bạn bè gợi ý
-
+  static const String getFriendStatusEndpoint =
+      '$baseApiUrl/contacts/get-all-friends-status'; // Lấy trạng thái bạn bè
 
   // File upload
   static const String uploadFileEndpoint =
       '$baseApiUrl/attachments/upload-multiple-files';
-  static const String uploadChunkEndpoint = '$baseApiUrl/attachments/upload-chunk';
-  static const String completeUploadEndpoint = '$baseApiUrl/attachments/complete-upload';
+  static const String uploadChunkEndpoint =
+      '$baseApiUrl/attachments/upload-chunk';
+  static const String completeUploadEndpoint =
+      '$baseApiUrl/attachments/complete-upload';
 
   // Search
   static const String searchEndpoint = '$baseApiUrl/search';
-
 
   // Member chat
   static String getAddMembersToChatEndpoint(String chatId) {

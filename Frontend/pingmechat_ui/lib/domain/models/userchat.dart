@@ -6,6 +6,7 @@ class UserChat {
   bool isAdmin;
   String id;
   Account? user;
+  bool isOnline;
 
   UserChat({
     required this.userId,
@@ -13,6 +14,7 @@ class UserChat {
     required this.isAdmin,
     required this.id,
     this.user,
+    this.isOnline = false,
   });
 
   factory UserChat.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class UserChat {
       chatId: json['chatId'],
       isAdmin: json['isAdmin'],
       id: json['id'],
+      isOnline: json['isOnline'] ?? false,
       user: Account.fromJson(json['userDto']),
     );
   }

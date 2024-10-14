@@ -160,5 +160,16 @@ namespace PingMeChat.CMS.Api.Controllers
 
             return Ok(new ApiResponse("Friend recommendations retrieved successfully", sortedRecommendedAccounts, StatusCodes.Status200OK));
         }
+
+        // Lấy danh sách id bạn bè kèm trạng thái hoạt động
+        [HttpGet]
+        [Route(ApiRoutes.Feature.Contact.GetAllFriendsStatusRoute)]
+        [ProducesResponseType(typeof(Dictionary<string, bool>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetFriendIds()
+        {
+            var currentUserId = GetUserId();
+            var contactIdsDictionary = await _contactService.GetAllFriendContactStatuses(currentUserId);
+            return Ok(new ApiResponse("Friend statuses retrieved successfully", contactIdsDictionary, StatusCodes.Status200OK));
+        }
     }
 }

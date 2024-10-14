@@ -19,6 +19,7 @@ using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
 using PingMeChat.Shared.Enum;
 using Microsoft.AspNetCore.Http;
 using PingMeChat.CMS.Application.Feature.Services.RedisCacheServices;
+using PingMeChat.CMS.Application.Feature.ChatHubs;
 
 namespace PingMeChat.CMS.Application.Feature.Service.Contacts
 {
@@ -30,24 +31,31 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
         Task<ContactDto> SendFriendRequest(string userId, string contactId);
         Task<ContactDto> AcceptFriendRequest(string userId, string contactId);
         Task<bool> CancelFriendRequest(string userId, string contactId);
+        Task<List<string>> GetAllFriendContactIds(string userId);
+        // Get tất cả id liên hệ của user kèm theo status online/offline
+        Task<Dictionary<string, bool>> GetAllFriendContactStatuses(string userId);
     }
     public class ContactService : ServiceBase<Contact, ContactCreateDto, ContactUpdateDto, ContactDto, IContactRepository>, IContactService
     {
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly IContactRepository _contactRepository;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheService _cacheService; // Sử dụng cache để lưu trữ thông tin liên hệ
+        private readonly IRedisConnectionManager _redisConnectionManager; // Sử dụng Redis để lưu trữ các connection tới SignalR
         private const string UserContactsCacheKey = "UserContacts_{0}"; // userId
+        private const string GetAllFriendContactIdsCacheKey = "GetAllFriendContactIds_{0}"; // userId
         public ContactService(IContactRepository repository,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IUriService uriService,
              ILogErrorRepository logErrorRepository,
-             ICacheService cacheService
+             ICacheService cacheService,
+                IRedisConnectionManager redisConnectionManager
              ) : base(repository, unitOfWork, mapper, uriService)
         {
             _contactRepository = repository;
             _logErrorRepository = logErrorRepository;
             _cacheService = cacheService;
+            _redisConnectionManager = redisConnectionManager;
         }
         public async Task<IEnumerable<ContactDto>> GetUserContacts(string currentUserId)
         {
@@ -154,6 +162,28 @@ namespace PingMeChat.CMS.Application.Feature.Service.Contacts
             await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, userId));
             await _cacheService.RemoveAsync(string.Format(UserContactsCacheKey, contactId));
             return true;
+        }
+
+        public async Task<List<string>> GetAllFriendContactIds(string userId)
+        {
+            var cacheKey = string.Format(GetAllFriendContactIdsCacheKey, userId);
+            return await _cacheService.GetOrCreateAsync(cacheKey, async () =>
+            {
+                var contacts = await _contactRepository.FindAll(c => (c.UserId == userId || c.ContactUserId == userId) && c.Status == ContactStatus.Accepted);
+                return contacts.Select(c => c.UserId == userId ? c.ContactUserId : c.UserId).ToList();
+            }, TimeSpan.FromHours(10));
+        }
+
+        public async Task<Dictionary<string, bool>> GetAllFriendContactStatuses(string userId)
+        {
+            var friendIds = await GetAllFriendContactIds(userId);
+            var result = new Dictionary<string, bool>();
+            foreach (var friendId in friendIds)
+            {
+                var friendConnectionIds = await _redisConnectionManager.GetConnectionsAsync(friendId);
+                result.Add(friendId, friendConnectionIds.Any());
+            }
+            return result;
         }
 
         //Hàm để lấy Status chính xác của contact

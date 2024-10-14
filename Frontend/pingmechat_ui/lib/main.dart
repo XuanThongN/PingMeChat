@@ -70,7 +70,8 @@ void main() async {
   final authProvider = AuthProvider();
 
   final chatService = ChatService(authProvider: authProvider);
-  final fileUploadService = ChunkedUploader(authProvider: authProvider); // Khởi tạo file upload service
+  final fileUploadService = ChunkedUploader(
+      authProvider: authProvider); // Khởi tạo file upload service
 
   runApp(
     MultiProvider(
@@ -78,18 +79,23 @@ void main() async {
         ChangeNotifierProvider(create: (context) => BadgeProvider()),
         ChangeNotifierProvider(create: (_) => authProvider),
         Provider<ChatService>.value(value: chatService),
-        Provider<ChunkedUploader>.value(value: fileUploadService), 
+        Provider<ChunkedUploader>.value(value: fileUploadService),
         ChangeNotifierProxyProvider<ChatService, ChatProvider>(
-          create: (_) => ChatProvider(chatService, fileUploadService), // Dùng để tạo một instance mới của ChatProvider với chatService và fileUploadService
+          create: (_) => ChatProvider(chatService,
+              fileUploadService), // Dùng để tạo một instance mới của ChatProvider với chatService và fileUploadService
           update: (_, chatService, previous) =>
-              previous ?? ChatProvider(chatService, fileUploadService), // Dùng để cập nhật lại ChatProvider nếu đã tồn tại
+              previous ??
+              ChatProvider(chatService,
+                  fileUploadService), // Dùng để cập nhật lại ChatProvider nếu đã tồn tại
         ),
-        ChangeNotifierProxyProvider2<AuthProvider, BadgeProvider,
+        ChangeNotifierProxyProvider3<AuthProvider, BadgeProvider, ChatProvider,
             ContactProvider>(
-          create: (context) =>
-              ContactProvider(authProvider, context.read<BadgeProvider>()),
-          update: (context, authProvider, badgeProvider, previous) =>
-              previous ?? ContactProvider(authProvider, badgeProvider),
+          create: (context) => ContactProvider(authProvider,
+              context.read<BadgeProvider>(), context.read<ChatProvider>()),
+          update:
+              (context, authProvider, badgeProvider, chatProvider, previous) =>
+                  previous ??
+                  ContactProvider(authProvider, badgeProvider, chatProvider),
         ),
         ChangeNotifierProxyProvider<AuthProvider, SearchProvider>(
           create: (context) =>

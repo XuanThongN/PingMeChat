@@ -267,7 +267,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.of(context).pushReplacementNamed(HomePage.routeName);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login failed')),
+            const SnackBar(content: Text('Login failed. Please try again.')),
           );
         }
       } catch (e) {

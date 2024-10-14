@@ -31,7 +31,10 @@ class _ContactTabState extends State<ContactTab> {
 
     // Đợi quá trình build hoàn thành trước khi gọi fetchContacts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _contactProvider.fetchContacts();
+      _contactProvider.fetchContacts().then((_) {
+        // Lấy danh sách liên hệ
+        _contactProvider.fetchFriendStatus(); // Lấy trạng thái bạn bè
+      });
       _contactProvider.fetchRecommendedFriends();
     });
   }
