@@ -7,6 +7,7 @@ import 'package:pingmechat_ui/domain/models/chat.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../config/theme.dart';
 import '../../data/models/chat_model.dart';
@@ -342,10 +343,18 @@ class _MessageTabState extends State<MessageTab> {
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user
             ?.avatarUrl;
-    final isRead = item.messages!.isNotEmpty
-        ? (item.messages!.last.senderId == _authProvider.currentUser!.id ||
-            (item.messages!.last.messageReaders?.any((reader) => reader.readerId == _authProvider.currentUser!.id) ?? false))
-        : true;
+    // Kiểm tra xem tin nhắn cuối cùng đã được đánh dấu là đã đọc chưa
+    final messages = item.messages;
+    final readers = [];
+    var isRead = false;
+    if (messages != null) {
+      isRead = true;
+    } else {
+      isRead = readers != null
+          ? readers
+              .any((reader) => reader.readerId == _authProvider.currentUser!.id)
+          : true;
+    }
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
@@ -353,7 +362,13 @@ class _MessageTabState extends State<MessageTab> {
             MaterialPageRoute(builder: (context) => ChatPage(chatId: item.id)));
         // Mark message as read
         if (!isRead) {
-          _chatProvider.markMessageAsRead(item.id, item.messages!.last.id!);
+          final message = item.messages!.last;
+          _chatProvider.markMessageAsRead(
+              item.id,
+              message.id ??
+                  Uuid()
+                      .v4()); // Gửi id của tin nhắn cuối cùng để đánh dấu đã đọc
+          // Giả sử tin nhắn cuối cùng chưa có id thì sử dụng id ngẫu nhiên (giả lập)
         }
       },
       child: ListTile(
@@ -415,7 +430,8 @@ class _MessageTabState extends State<MessageTab> {
                         return Text(
                           '$senderName: ${_createMessageContent(lastMessage)}',
                           style: AppTypography.chatMessage.copyWith(
-                            fontWeight: isRead ? FontWeight.w300 : FontWeight.bold,
+                            fontWeight:
+                                isRead ? FontWeight.w300 : FontWeight.bold,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

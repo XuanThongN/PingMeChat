@@ -189,7 +189,7 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             }
 
             // Publish message read event to RabbitMQ
-            _rabbitMQService.PublishMessage("message_read", new { MessageId = messageId, ReaderId = userId });
+            _rabbitMQService.PublishMessage("message_read", new { MessageId = messageId, ReaderId = userId, ChatId = chatId });
             // Gửi tin nhắn đến tất cả người dùng trong nhóm chat realtime 
             var messageReader = new MessageReader { MessageId = messageId, ReaderId = userId, ReadAt = DateTime.UtcNow };
             await _chatHubService.MarkMessageAsReadAsync(chatId, messageReader);

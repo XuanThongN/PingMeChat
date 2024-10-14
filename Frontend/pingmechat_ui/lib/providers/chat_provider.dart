@@ -181,13 +181,23 @@ class ChatProvider extends ChangeNotifier {
   void _handleMarkMessageAsRead(String chatId, MessageReader messageReader) {
     final chat = _chats.firstWhere((c) => c.id == chatId);
     if (chat.messages != null) {
-      final message =
-          chat.messages!.firstWhere((m) => m.id == messageReader.messageId);
+      // Lấy tin nhắn cần đánh dấu là đã đọc với thời gian gần nhất
+      final readAt = messageReader.readAt.toLocal();
+      final message = chat.messages!.firstWhere(
+        (m) => m.createdDate.isBefore(readAt),
+        orElse: () => chat.messages!.last,
+      );
       if (message.messageReaders != null) {
         message.messageReaders!.add(messageReader);
       }
-      notifyListeners();
     }
+    // Lấy tin nhắn cuối cùng thông qua messagesChatId với phần tử đầu tiên
+    final message = _messagesByChatId[chatId]?.first;
+    if (message != null && message.messageReaders != null && message.messageReaders!.where((r) => r.readerId == messageReader.readerId).isEmpty) {
+      message.messageReaders!.add(messageReader);
+    }
+
+    notifyListeners();
   }
 
   void _handleUserTyping(String chatId, String userId) {

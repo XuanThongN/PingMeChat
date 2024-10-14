@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
@@ -6,21 +6,24 @@ import '../../domain/models/userchat.dart';
 import 'custom_circle_avatar.dart';
 
 Widget buildMessageReadersWidget(Message message, Chat? chat, String? currentUserId) {
-    if (chat == null || message.messageReaders == null || message.messageReaders!.isEmpty) {
-      return SizedBox.shrink();
-    }
+  if (chat == null || message.messageReaders == null || message.messageReaders!.isEmpty) {
+    return SizedBox.shrink();
+  }
 
-    final otherReaders = message.messageReaders!
-        .where((reader) => reader.readerId != currentUserId)
-        .toList();
+  final otherReaders = message.messageReaders!
+      .where((reader) => reader.readerId != currentUserId)
+      .toList();
 
-    if (otherReaders.isEmpty) {
-      return SizedBox.shrink();
-    }
+  if (otherReaders.isEmpty) {
+    return SizedBox.shrink();
+  }
 
-    return Padding(
+  return Align(
+    alignment: Alignment.centerRight,
+    child: Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Seen by ',
@@ -47,7 +50,7 @@ Widget buildMessageReadersWidget(Message message, Chat? chat, String? currentUse
                       backgroundImage: userChat.user?.avatarUrl != null
                           ? NetworkImage(userChat.user!.avatarUrl!)
                           : null,
-                      radius: 12,
+                      radius: 8,
                     ),
                   );
                 },
@@ -56,5 +59,6 @@ Widget buildMessageReadersWidget(Message message, Chat? chat, String? currentUse
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}

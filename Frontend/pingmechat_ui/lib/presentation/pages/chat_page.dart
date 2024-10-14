@@ -287,7 +287,7 @@ class _ChatPageState extends State<ChatPage> {
                 ChatPageHelper.shouldShowAvatar(messages, messageIndex);
             final showTimestamp =
                 ChatPageHelper.shouldShowTimestamp(messages, messageIndex);
-            final isLastMessage = messageIndex == 0;
+            final isLastMessage = messageIndex == messages.length - 1;
             // Hiển thị thanh ngang để chia tin nhắn theo ngày
             final previousMessage =
                 messageIndex > 0 ? messages[messageIndex - 1] : null;
