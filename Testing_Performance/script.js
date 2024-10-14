@@ -2,11 +2,12 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 import { Rate } from 'k6/metrics';
+import ws from 'k6/ws';  // Import thư viện WebSocket của K6
 
 // Định nghĩa các metrics tùy chỉnh
 const errorRate = new Rate('errors');
 
-// Tải dữ liệu người dùng và chat từ file JSON (giả sử bạn đã xuất dữ liệu này từ PostgreSQL)
+// Tải dữ liệu người dùng và chat từ file JSON
 const users = new SharedArray('users', function () {
     return JSON.parse(open('./users.json')).users;
 });
@@ -38,7 +39,7 @@ export default function () {
     const user = users[Math.floor(Math.random() * users.length)];
     const chat = chats[Math.floor(Math.random() * chats.length)];
 
-    // Đăng nhập
+    // Đăng nhập và lấy token
     const loginRes = http.post(`${__ENV.API_URL}/api/auth/login`, {
         email: user.email,
         password: user.password,
@@ -50,46 +51,58 @@ export default function () {
 
     const token = loginRes.json('token');
 
-    // Gửi tin nhắn
-    for (let i = 0; i < 10; i++) {
-        const hasAttachment = Math.random() < 0.2; // 20% tin nhắn có đính kèm file
-        const messagePayload = {
-            chatId: chat.id,
-            content: `Test message ${i}`,
-            attachments: hasAttachment ? [{ fileName: 'test.jpg', fileType: 'image/jpeg', fileSize: 1024 }] : [],
-        };
-
-        const sendMessageRes = http.post(`${__ENV.API_URL}/api/chat/send-message`, JSON.stringify(messagePayload), {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        check(sendMessageRes, {
-            'message sent successfully': (resp) => resp.status === 200,
-        }) || errorRate.add(1);
-
-        sleep(6); // Đợi 6 giây trước khi gửi tin nhắn tiếp theo (10 tin nhắn/phút)
-    }
-
-    // Kiểm tra kết nối SignalR
-    const wsRes = http.get(`${__ENV.API_URL}/chat-hub/negotiate`, {
+    // Kiểm tra kết nối SignalR: Thương lượng
+    const negotiateRes = http.get(`${__ENV.API_URL}/chat-hub/negotiate`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
     });
 
-    check(wsRes, {
+    check(negotiateRes, {
         'SignalR negotiation successful': (resp) => resp.status === 200,
     }) || errorRate.add(1);
 
-    // Đo độ trễ khi gửi/nhận tin nhắn qua SignalR
-    // Lưu ý: K6 không hỗ trợ trực tiếp WebSocket, nên chúng ta chỉ mô phỏng việc này
-    const signalRLatency = Math.random() * 100; // Giả lập độ trễ từ 0-100ms
-    check(signalRLatency, {
-        'SignalR latency is acceptable': (latency) => latency < 50,
+    const connectionInfo = negotiateRes.json();
+    const wsUrl = `${connectionInfo.url}?id=${connectionInfo.connectionId}`;
+
+    // Kết nối tới WebSocket (SignalR sử dụng)
+    const res = ws.connect(wsUrl, null, function (socket) {
+        socket.on('open', function () {
+            console.log('Connected to SignalR hub');
+
+            // Gửi tin nhắn qua SignalR
+            for (let i = 0; i < 10; i++) {
+                const messagePayload = {
+                    type: 1, // loại message của SignalR (Invocation)
+                    target: 'SendMessage',
+                    arguments: [chat.id, `Test message ${i}`],
+                };
+
+                socket.send(JSON.stringify(messagePayload));
+
+                // Nhận phản hồi từ SignalR (giả lập nhận phản hồi)
+                socket.on('message', function (msg) {
+                    console.log('Received message: ', msg);
+                    check(msg, {
+                        'message received successfully': (m) => m !== '',
+                    }) || errorRate.add(1);
+                });
+
+                sleep(6); // Đợi 6 giây trước khi gửi tin nhắn tiếp theo
+            }
+        });
+
+        socket.on('close', function () {
+            console.log('Disconnected from SignalR hub');
+        });
+
+        socket.on('error', function (e) {
+            console.log('Error: ', e);
+            errorRate.add(1);
+        });
     });
 
-    sleep(1);
+    check(res, { 'SignalR connection established': (r) => r && r.status === 101 });
+
+    sleep(1); // Đợi 1 giây trước khi kết thúc phiên
 }
