@@ -5,21 +5,22 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["BIA.CMS.AdminPage/BIA.CMS.AdminPage.csproj", "BIA.CMS.AdminPage/"]
-COPY ["BIA.CMS.Application/BIA.CMS.Application.csproj", "BIA.CMS.Application/"]
-COPY ["BIA.CMS.Entities/BIA.CMS.Entities.csproj", "BIA.CMS.Entities/"]
-COPY ["BIA.CMS.EntityFrameworkCore/BIA.CMS.EntityFrameworkCore.csproj", "BIA.CMS.EntityFrameworkCore/"]
-COPY ["BIA.Shared/BIA.Shared.csproj", "BIA.Shared/"]
-RUN dotnet restore "BIA.CMS.AdminPage/BIA.CMS.AdminPage.csproj"
+COPY ["PingMeChat.CMS.AdminPage/PingMeChat.CMS.AdminPage.csproj", "PingMeChat.CMS.AdminPage/"]
+COPY ["PingMeChat.CMS.Application/PingMeChat.CMS.Application.csproj", "PingMeChat.CMS.Application/"]
+COPY ["PingMeChat.CMS.Entities/PingMeChat.CMS.Entities.csproj", "PingMeChat.CMS.Entities/"]
+COPY ["PingMeChat.CMS.EntityFrameworkCore/PingMeChat.CMS.EntityFrameworkCore.csproj", "PingMeChat.CMS.EntityFrameworkCore/"]
+COPY ["PingMeChat.Shared/PingMeChat.Shared.csproj", "PingMeChat.Shared/"]
+COPY ["PingMeChat.CMS.Api/PingMeChat.CMS.Api.csproj", "PingMeChat.CMS.Api/"]
+RUN dotnet restore "PingMeChat.CMS.Api/PingMeChat.CMS.Api.csproj"
 COPY . .
-WORKDIR "/src/BIA.CMS.AdminPage"
-RUN dotnet build "BIA.CMS.AdminPage.csproj" -c Release -o /app/build
+WORKDIR "/src/PingMeChat.CMS.Api"
+RUN dotnet build "PingMeChat.CMS.Api.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "BIA.CMS.AdminPage.csproj" -c Release -o /app/publish
+RUN dotnet publish "PingMeChat.CMS.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 RUN mkdir -p /app/logs
-ENTRYPOINT ["dotnet", "BIA.CMS.AdminPage.dll"]
+ENTRYPOINT ["dotnet", "PingMeChat.CMS.Api.dll"]

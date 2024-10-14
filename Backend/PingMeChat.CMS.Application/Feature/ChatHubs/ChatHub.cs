@@ -175,6 +175,32 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             _rabbitMQService.PublishNotification("notification_queue", notification);
         }
 
+        public async Task MarkMessageAsRead(String chatId, string messageId)
+        {
+            var userId = Context.User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new HubException("User not authenticated");
+            }
+            // Kiểm tra xem người dùng có quyền truy cập tin nhắn hay không
+            if (!await HasChatAccess(chatId))
+            {
+                throw new AppException("Access denied");
+            }
+
+            // Publish message read event to RabbitMQ
+            _rabbitMQService.PublishMessage("message_read", new { MessageId = messageId, ReaderId = userId, ChatId = chatId });
+            // Gửi tin nhắn đến tất cả người dùng trong nhóm chat realtime 
+            var messageReader = new MessageReader { MessageId = messageId, ReaderId = userId, ReadAt = DateTime.UtcNow };
+            await _chatHubService.MarkMessageAsReadAsync(chatId, messageReader);
+        }
+
+        // Kiểm tra xem người dùng có quyền truy cập tin nhắn hay không
+        private async Task<bool> HasMessageAccess(string messageId, string userId)
+        {
+            return await _messageService.HasMessageAccess(messageId, userId);
+        }
+
         private void ValidationMessageCreateDto(MessageCreateDto messageCreateDto)
         {
             var context = new ValidationContext(messageCreateDto, serviceProvider: null, items: null);

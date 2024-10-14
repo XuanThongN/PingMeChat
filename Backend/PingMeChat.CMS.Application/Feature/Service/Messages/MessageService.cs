@@ -27,6 +27,9 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
     {
         Task<MessageDto> SendMessageAsync(MessageCreateDto messageCreateDto);
         Task<PagedResponse<List<MessageDto>>> GetChatMessagesAsync(string chatId, int pageNumber, int pageSize, string route = null);
+        // Mark message as read
+        Task<bool> MarkMessageAsReadAsync(string messageId, string userId, string chatId);
+        Task<bool> HasMessageAccess(string messageId, string userId);
     }
 
     public class MessageService : ServiceBase<Message, MessageCreateDto, MessageUpdateDto, MessageDto, IMessageRepository>, IMessageService
@@ -164,6 +167,44 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
                     }
                 }
             });
+        }
+
+        public async Task<bool> MarkMessageAsReadAsync(string messageId, string userId, string chatId)
+        {
+            var message = await _repository.Find(m => m.Id == messageId);
+            // Nếu không tìm thấy tin nhắn thì lấy tin nhắn gần trước nhất
+
+            if (message == null)
+            {
+                message = await _repository.Find(m => m.ChatId == chatId && m.SentAt < DateTime.UtcNow, orderBy: q => q.OrderByDescending(m => m.SentAt));
+            }
+            if (message.MessageReaders == null)
+            {
+                message.MessageReaders = new List<MessageReader>();
+            }
+
+            if (!message.MessageReaders.Any(mr => mr.ReaderId == userId))
+            {
+                message.MessageReaders.Add(new MessageReader
+                {
+                    MessageId = messageId,
+                    ReaderId = userId,
+                    ReadAt = DateTime.UtcNow
+                });
+
+                await _repository.Update(message);
+                await _unitOfWork.SaveChangeAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> HasMessageAccess(string messageId, string userId)
+        {
+            var message = await _repository.Find(m => m.Id == messageId, include: m => m.Include(c => c.Chat).ThenInclude(c => c.UserChats));
+            return message != null && message.Chat.UserChats.Any(uc => uc.UserId == userId);
         }
 
         private async Task<UserChat> GetUserChatAsync(string chatId, string userId)

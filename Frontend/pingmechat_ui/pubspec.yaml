@@ -66,13 +66,13 @@ dependencies:
 
 #  audioplayers: ^6.1.0 #Hỗ trợ chơi nhạc
 #  audio_waveforms: ^1.0.5 #Hỗ trợ hiển thị sóng nhạc
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/img.png"
-  adaptive_icon_background: "#ffffff" # Tùy chọn: màu nền cho adaptive icon
-  adaptive_icon_foreground: "assets/images/img.png" # Tùy chọn: foreground cho adaptive icon
-  
+  image_path: "assets/images/PingMeChat.png"
+  adaptive_icon_background: "#fffff" # Deep purple background
+  adaptive_icon_foreground: "assets/images/PingMeChat.png"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

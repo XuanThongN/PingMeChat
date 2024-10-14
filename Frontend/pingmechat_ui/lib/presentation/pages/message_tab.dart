@@ -7,6 +7,7 @@ import 'package:pingmechat_ui/domain/models/chat.dart';
 import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../config/theme.dart';
 import '../../data/models/chat_model.dart';
@@ -327,7 +328,11 @@ class _MessageTabState extends State<MessageTab> {
     // lấy tên của người dùng hoặc tên nhóm
     final chatName = item.isGroup
         // Nếu là nhóm thì hiển thị tên nhóm hoặc nếu tên nhóm không có thì hiển thị tên đầu tiên của các thành viên nối lại bằng dấu phẩy
-        ? item.name != '' ? item.name : item.userChats.map((uc) => uc.user!.fullName.split(' ').first).join(', ')
+        ? item.name != ''
+            ? item.name
+            : item.userChats
+                .map((uc) => uc.user!.fullName.split(' ').first)
+                .join(', ')
         : item.userChats
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user
@@ -338,11 +343,33 @@ class _MessageTabState extends State<MessageTab> {
             .firstWhere((uc) => uc.userId != _authProvider.currentUser!.id)
             .user
             ?.avatarUrl;
+    // Kiểm tra xem tin nhắn cuối cùng đã được đánh dấu là đã đọc chưa
+    final messages = item.messages;
+    final readers = [];
+    var isRead = false;
+    if (messages != null) {
+      isRead = true;
+    } else {
+      isRead = readers != null
+          ? readers
+              .any((reader) => reader.readerId == _authProvider.currentUser!.id)
+          : true;
+    }
     return GestureDetector(
       onTap: () {
         // Handle chat item tap
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => ChatPage(chatId: item.id)));
+        // Mark message as read
+        if (!isRead) {
+          final message = item.messages!.last;
+          _chatProvider.markMessageAsRead(
+              item.id,
+              message.id ??
+                  Uuid()
+                      .v4()); // Gửi id của tin nhắn cuối cùng để đánh dấu đã đọc
+          // Giả sử tin nhắn cuối cùng chưa có id thì sử dụng id ngẫu nhiên (giả lập)
+        }
       },
       child: ListTile(
         leading: Stack(children: [
@@ -402,7 +429,10 @@ class _MessageTabState extends State<MessageTab> {
                                 'Unknown');
                         return Text(
                           '$senderName: ${_createMessageContent(lastMessage)}',
-                          style: AppTypography.chatMessage,
+                          style: AppTypography.chatMessage.copyWith(
+                            fontWeight:
+                                isRead ? FontWeight.w300 : FontWeight.bold,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         );
@@ -433,14 +463,15 @@ class _MessageTabState extends State<MessageTab> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
+            if (!isRead) // Hiển thị chấm tròn màu xanh nước biển nếu có tin nhắn chưa đọc
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ), // Hiển thị chấm tròn màu xanh nước biển nếu có tin nhắn chưa đọc
             // Text(
             //   item.messages!.length >= 1
             //       ? _showTimeOfChat(item.messages!.last.createdDate)

@@ -27,6 +27,7 @@ class ChatService {
   Function(String, Message)? onSentMessageCallback;
   Function(String, String)? onUserTypingCallback;
   Function(String, String)? onUserStopTypingCallback;
+  Function(String, MessageReader)? onMarkMessageAsReadCallback;
 
   ChatService({required this.authProvider}) {
     authProvider.addListener(_handleAuthChange);
@@ -134,6 +135,16 @@ class ChatService {
         final tempId = data['tempId'] as String;
         final message = Message.fromJson(data['message']);
         onSentMessageCallback?.call(tempId, message);
+      }
+    });
+
+    // Lắng nghe sự kiện tin nhắn đã được đánh dấu là đã đọc
+    hubConnection?.on('MessageMarkedAsRead', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final data = arguments[0] as Map<String, dynamic>;
+        final chatId = data['chatId'] as String;
+        final messageReader = MessageReader.fromJson(data['messageReader']);
+        onMarkMessageAsReadCallback?.call(chatId, messageReader);
       }
     });
 
@@ -419,5 +430,9 @@ class ChatService {
     } catch (e) {
       throw Exception('Failed to remove member from chat: $e');
     }
+  }
+
+  Future<void> markMessageAsRead(String chatId, String messageId) async {
+    await hubConnection!.invoke('MarkMessageAsRead', args: [chatId, messageId]);
   }
 }
