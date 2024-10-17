@@ -164,7 +164,7 @@ namespace PingMeChat.CMS.Api.Controllers
         [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.User.UpdateAvatarRoute)]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateAvatar([FromForm] IFormFile avatar)
+        public async Task<IActionResult> UpdateAvatar([FromForm] UpdateAvatarDto input)
         {
             var userId = GetUserId();
             var user = await _userService.FindById(userId);
@@ -173,12 +173,12 @@ namespace PingMeChat.CMS.Api.Controllers
                 return NotFound("User not found");
             }
 
-            if (avatar == null || avatar.Length == 0)
+            if (input.avatar == null || input.avatar.Length == 0)
             {
                 return BadRequest("No file uploaded");
             }
 
-            var uploadResult = await _attachmentService.UploadFileAsync(avatar);
+            var uploadResult = await _attachmentService.UploadFileAsync(input.avatar);
 
             var updateUserDto = new UserUpdateDto
             {
