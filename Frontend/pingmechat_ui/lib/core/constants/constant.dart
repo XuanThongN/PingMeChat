@@ -1,7 +1,7 @@
 // Đây là file chứa các hằng số dùng chung trong ứng dụng
 // Các hằng số này bao gồm các URL API, thông tin authen, thông tin chatHub
 // Để sử dụng các hằng số này, ta chỉ cần import file này vào nơi cần sử dụng
-const String baseUrl = 'https://jxhq42vd-8080.asse.devtunnels.ms';
+const String baseUrl = 'http://api.pingmechat.xuanthongn.me';
 
 class ApiConstants {
   // Base URL

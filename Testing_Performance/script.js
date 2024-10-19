@@ -25,42 +25,81 @@ usersData.forEach(user => {
 const userIds = Object.keys(userChatMap);
 
 // Cấu hình các kịch bản kiểm thử
+// Cấu hình các kịch bản kiểm thử
 export const options = {
     scenarios: {
-        '10_users': {
-            executor: 'per-vu-iterations',
-            vus: 10,
-            iterations: 1,
-            maxDuration: '1m',
-        },
-        '100_users': {
-            executor: 'constant-vus',
-            vus: 100,
-            duration: '1m',
+        ramp_up: {
+            executor: 'ramping-vus',
+            startVUs: 0,
+            stages: [
+                { duration: '2m', target: 500 },  // Tăng dần lên 500 user trong 2 phút
+                { duration: '5m', target: 500 },  // Giữ ở 500 user trong 5 phút
+                { duration: '2m', target: 1000 }, // Tăng lên 1000 user trong 2 phút tiếp theo
+                { duration: '5m', target: 1000 }, // Giữ ở 1000 user trong 5 phút
+                { duration: '2m', target: 1500 }, // Tăng lên 1500 user trong 2 phút tiếp theo
+                { duration: '5m', target: 1500 }, // Giữ ở 1500 user trong 5 phút
+                { duration: '2m', target: 2000 }, // Tăng lên 2000 user trong 2 phút tiếp theo
+                { duration: '5m', target: 2000 }, // Giữ ở 2000 user trong 5 phút
+                { duration: '2m', target: 0 },    // Giảm xuống 0 user trong 2 phút cuối
+            ],
+            gracefulRampDown: '30s',
         },
     },
 };
+
 // Mảng các câu mẫu để tạo nội dung tin nhắn tự nhiên hơn
 const messages = [
-    "Hello, how are you?",
-    "What's up?",
-    "Did you see the game last night?",
-    "I'm working on a new project.",
-    "Let's catch up soon!",
-    "Have you read any good books lately?",
-    "I'm planning a trip next month.",
-    "What's your favorite movie?",
-    "Do you have any hobbies?",
-    "How's the weather today?"
+    "Ê, dạo này sao rồi?",
+    "Có gì hay ho không?",
+    "Hôm qua xem bóng đá có vui không?",
+    "Mình đang lấn sân sang một dự án mới nè.",
+    "Đi uống cà phê sớm đi nhé!",
+    "Đọc sách gì hay không? Chia sẻ đi!",
+    "Tháng sau mình đi chơi đây, có ai đi chung không?",
+    "Phim nào đang hot hả bạn?",
+    "Bạn có sở thích gì quái quái không?",
+    "Hôm nay thời tiết khá ổn!",
+    "Ăn gì chưa? Đói quá!",
+    "Cuối tuần này có kế hoạch gì vui không?",
+    "Có tin gì vui không, hóng quá!",
+    "Chỉ mình chỗ ăn ngon đi!",
+    "Xem phim gì gần đây chưa? Có hay không?",
+    "Năm tới có dự định gì đặc biệt không?",
+    "Ê, làm ván PUBG không?",
+    "Chán quá, chat chơi tí!",
+    "Mày ơi, tao vừa thấy clip hài vcl",
+    "Đi nhậu không? Tao đãi",
+    "Ê, có biết tin gì hot không?",
+    "Mua đồ online rồi bị lừa, tức quá!",
+    "Hôm nay tao đẹp trai vcl, khen đi!",
+    "Mày có thấy crush tao xinh không?",
+    "Ê, tao vừa trúng số nè!",
+    "Đi phượt cuối tuần không?",
+    "Tao vừa bị sếp chửi, buồn vl",
+    "Mày ơi, tao vừa thất tình",
+    "Có gì vui không? Chán quá!",
+    "Ê, mày biết bài hát nào hay không?",
+    "Tao vừa mua điện thoại mới nè",
+    "Đi uống bia không? Tao đãi",
+    "Mày ơi, tao vừa bị đuổi việc",
+    "Ê, có muốn làm ăn với tao không?",
+    "Tao vừa thấy người yêu cũ, awkward vl",
+    "Mày có tin vào tình yêu online không?",
+    "Ê, tao vừa học được món mới, qua ăn không?",
+    "Chơi game gì hay không? Chỉ tao với",
+    "Tao vừa bị lừa tiền, tức quá!",
+    "Mày ơi, tao sắp cưới rồi!"
 ];
+
 // Hàm để tạo nội dung tin nhắn ngẫu nhiên
 function getRandomMessage() {
     const index = Math.floor(Math.random() * messages.length);
     return messages[index];
 }
+
 // Hàm chính để thực hiện kiểm thử
 export default function () {
-    const userId = userIds[__VU - 1 % userIds.length];
+    const userId = userIds[__VU % userIds.length];
     const user = userChatMap[userId];
 
     // Đăng nhập và lấy token
@@ -120,7 +159,6 @@ export default function () {
                 // Gửi handshake tới SignalR sau khi mở kết nối WebSocket
                 const handshakePayload = { protocol: 'json', version: 1 };
                 socket.send(JSON.stringify(handshakePayload) + String.fromCharCode(30));
-                console.log('Handshake sent');
 
                 // Gửi tin nhắn qua SignalR
                 for (let i = 0; i < 2; i++) {
