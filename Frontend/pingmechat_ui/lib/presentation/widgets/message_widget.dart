@@ -11,6 +11,7 @@ import '../../config/theme.dart';
 import '../../domain/models/attachment.dart';
 import '../../domain/models/message.dart';
 import '../../providers/auth_provider.dart';
+import '../pages/attachment_detail_page.dart';
 import '../widgets/custom_circle_avatar.dart';
 
 class ChatMessageWidget extends StatelessWidget {
@@ -236,17 +237,68 @@ class ChatMessageWidget extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: attachment.fileUrl.startsWith('file://')
-                ? Image.file(
-                    File(attachment.fileUrl.replaceFirst('file://', '')),
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
+                ? FutureBuilder<VideoPlayerController>(
+                    future: _initializeVideoPlayer(
+                        attachment.fileUrl.replaceFirst('file://', '')),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return AspectRatio(
+                            aspectRatio: snapshot.data!.value.aspectRatio,
+                            child: VideoPlayer(snapshot.data!),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Container(
+                            width: 150,
+                            height: 150,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Icon(Icons.error, color: Colors.red),
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            width: 150,
+                            height: 150,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Icon(Icons.error, color: Colors.red),
+                            ),
+                          );
+                        }
+                      } else {
+                        return Container(
+                          width: 150,
+                          height: 150,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                    },
                   )
                 : CachedNetworkImage(
                     imageUrl: attachment.thumbnailUrl ?? '',
                     width: 150,
                     height: 150,
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 150,
+                      height: 150,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 150,
+                      height: 150,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.error, color: Colors.red),
+                      ),
+                    ),
                   ),
           ),
           const Icon(Icons.play_circle_fill, size: 40, color: Colors.white),
@@ -298,8 +350,15 @@ class ChatMessageWidget extends StatelessWidget {
   }
 
   Future<VideoPlayerController> _initializeVideoPlayer(String url) async {
-    final controller = VideoPlayerController.network(url);
-    await controller.initialize();
+    final controller = url.startsWith('file://')
+        ? VideoPlayerController.file(File(url.replaceFirst('file://', '')))
+        : VideoPlayerController.networkUrl(Uri.parse(url));
+    try {
+      await controller.initialize();
+    } catch (e) {
+      print('Error initializing video player: $e');
+      rethrow;
+    }
     return controller;
   }
 
@@ -307,7 +366,7 @@ class ChatMessageWidget extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AttachmentDetailPage(attachment: attachment),
+        builder: (context) => AttachmentDetailView(attachment: attachment),
       ),
     );
   }
@@ -347,57 +406,6 @@ enum AttachmentType {
   video,
   audio,
   file,
-}
-
-class AttachmentDetailPage extends StatelessWidget {
-  final Attachment attachment;
-
-  const AttachmentDetailPage({Key? key, required this.attachment})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Attachment Detail'),
-      ),
-      body: Center(
-        child: _getAttachmentDetailView(attachment),
-      ),
-    );
-  }
-
-  Widget _getAttachmentDetailView(Attachment attachment) {
-    switch (attachment.fileType) {
-      case 'Image':
-        return CachedNetworkImage(
-          imageUrl: attachment.fileUrl,
-        );
-      case 'Video':
-        return FutureBuilder(
-          future: _initializeVideoPlayer(attachment.fileUrl),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return VideoPlayer(snapshot.data as VideoPlayerController);
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          },
-        );
-      case 'Audio':
-        return AudioPlayerWidget(url: attachment.fileUrl);
-      case 'File':
-        return Text('File preview is not supported.');
-      default:
-        return Text('Attachment preview is not supported.');
-    }
-  }
-
-  Future<VideoPlayerController> _initializeVideoPlayer(String url) async {
-    final controller = VideoPlayerController.network(url);
-    await controller.initialize();
-    return controller;
-  }
 }
 
 class AudioPlayerWidget extends StatefulWidget {
