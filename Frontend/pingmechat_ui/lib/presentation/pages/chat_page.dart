@@ -730,118 +730,166 @@ class _ChatPageState extends State<ChatPage> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null && _validateFile(File(pickedFile.path))) {
-      setState(() {
-        _selectedAttachments!.add(File(pickedFile.path));
-        _isComposing = true;
-      });
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+        if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
     }
   }
 
   // Hàm chọn media từ thư viện
   // Hàm chọn media từ thư viện
-  void _pickMedia() async {
-    await _getPermission();
-    var status = await Permission.storage.status;
+  Future<void> _pickMedia() async {
+  await _getPermission();
+  var status = await Permission.storage.status;
 
-    if (status.isGranted) {
-      final ImagePicker picker = ImagePicker();
-      final List<XFile>? mediaFiles = await picker.pickMultiImage();
+  if (status.isGranted) {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? mediaFiles = await picker.pickMultiImage();
 
-      if (mediaFiles != null && mediaFiles.isNotEmpty && _validateFile(File(mediaFiles[0].path))) {
-        setState(() {
-          _selectedAttachments!
-              .addAll(mediaFiles.map((file) => File(file.path)).toList());
-          _isComposing = true;
-        });
+    if (mediaFiles != null && mediaFiles.isNotEmpty) {
+      for (var file in mediaFiles) {
+        final fileObj = File(file.path);
+        if (await _validateFileAsync(fileObj)) {
+          await _processAndAddFile(fileObj);
+        }
       }
-    } else if (status.isDenied) {
-      // Nếu quyền bị từ chối, hiển thị thông báo
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
-        ),
-      );
-    } else if (status.isPermanentlyDenied) {
-      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
-      openAppSettings();
     }
+  } else if (status.isDenied) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+      ),
+    );
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
   }
+}
 
-  void _pickFile() async {
+Future<void> _processAndAddFile(File file) async {
+  final fileSize = await file.length();
+  if (fileSize > 10 * 1024 * 1024) { // 10MB
+    // Xử lý file lớn
+    await _processLargeFile(file);
+  } else {
+    setState(() {
+      _selectedAttachments!.add(file);
+      _isComposing = true;
+    });
+  }
+}
+
+Future<void> _processLargeFile(File file) async {
+  // Thực hiện xử lý file lớn ở đây, ví dụ: nén file, chia nhỏ, v.v.
+  // Đây chỉ là một ví dụ đơn giản, bạn cần thay thế bằng logic xử lý thực tế
+  await Future.delayed(Duration(seconds: 1)); // Giả lập xử lý
+  setState(() {
+    _selectedAttachments!.add(file);
+    _isComposing = true;
+  });
+}
+
+  Future<void> _pickFile() async {
     await _getPermission();
     var status = await Permission.storage.status;
 
     if (status.isGranted) {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: true,
-      );
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.any,
+          allowMultiple: true,
+        );
 
-      if (result != null && result.files.isNotEmpty && _validateFile(File(result.files[0].path!))) {
-        setState(() {
-          _selectedAttachments!
-              .addAll(result.files.map((file) => File(file.path!)).toList());
-          _isComposing = true;
-        });
+        if (result != null && result.files.isNotEmpty) {
+          for (var file in result.files) {
+            if (file.path != null) {
+              final fileObj = File(file.path!);
+              if (await _validateFileAsync(fileObj)) {
+                setState(() {
+                  _selectedAttachments!.add(fileObj);
+                  _isComposing = true;
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        print('Error picking file: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking file: $e')),
+        );
       }
     } else if (status.isDenied) {
-      // Nếu quyền bị từ chối, hiển thị thông báo
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+          content:
+              Text('Permission denied. Please grant permission in settings.'),
         ),
       );
     } else if (status.isPermanentlyDenied) {
-      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
       openAppSettings();
     }
   }
 
   Future<void> _pickImageOrVideo() async {
-    // Xin quyền truy cập vào bộ nhớ
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50, // Giảm chất lượng ảnh để giảm kích thước file
+      imageQuality: 50,
     );
 
-    if (pickedFile != null && _validateFile(File(pickedFile.path))) {
-      setState(() {
-        _selectedAttachments!.add(File(pickedFile.path));
-        _isComposing = true;
-      });
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
     }
   }
 
   Future<void> _pickVideo() async {
-    // Xin quyền truy cập vào bộ nhớ
     final picker = ImagePicker();
     final pickedFile = await picker.pickVideo(
       source: ImageSource.gallery,
     );
 
-    if (pickedFile != null && _validateFile(File(pickedFile.path))) {
-      setState(() {
-        _selectedAttachments!.add(File(pickedFile.path));
-        _isComposing = true;
-      });
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
     }
   }
 
-  bool _validateFile(File file) {
-    final fileSize = file.lengthSync();
-    if (fileSize > 25 * 1024 * 1024) {
+  Future<bool> _validateFileAsync(File file) async {
+    try {
+      final fileSize = await file.length();
+      if (fileSize > 25 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'File size must be less than 25MB. Please choose a smaller file.'),
+          ),
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      print('Error validating file: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('File size must be less than 25MB. Please choose smaller file.'),
-        ),
+        SnackBar(content: Text('Error validating file: $e')),
       );
       return false;
     }
-    return true;
   }
 
   Future<void> _getPermission() async {
