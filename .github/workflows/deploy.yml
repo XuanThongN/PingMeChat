@@ -10,62 +10,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: List files in Backend directory
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Backend directory contents:"
-          ls -la Backend/
-      
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./Backend
-          file: ./Backend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pingmechat-cms-api:latest
-          no-cache: true
-      
-      - name: Copy docker-compose to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "Backend/docker-compose.yml"
-          target: "/home/${{ secrets.SERVER_USERNAME }}/PingMeChat/Backend"
-          strip_components: 1
-      
-      # Thêm bước verify để debug
-      - name: Verify files and directory
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            echo "Checking directory structure..."
-            ls -la /home/${{ secrets.SERVER_USERNAME }}/PingMeChat/Backend
-            echo "Current containers status:"
-            docker ps
-            echo "Docker compose version:"
-            docker-compose --version
-      
-      # Deploy chỉ service API
       - name: Deploy to Ubuntu server
         uses: appleboy/ssh-action@master
         with:
@@ -73,30 +17,34 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "Starting deployment..."
-            cd /home/${{ secrets.SERVER_USERNAME }}/PingMeChat/Backend
+            echo "Configuring git credentials..."
+            cd /home/${{ secrets.SERVER_USERNAME }}/PingMeChat
+            git config --global credential.helper store
+            echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
             
-            # Check if docker-compose.yml exists
-            if [ ! -f "docker-compose.yml" ]; then
-              echo "docker-compose.yml not found!"
-              exit 1
-            fi
+            echo "Pulling new code..."
+            git fetch origin master
+            git reset --hard origin/master
             
-            echo "Pulling new image..."
-            docker-compose pull pingmechat-cms-api
+            echo "Building and restarting API service..."
+            cd Backend
             
-            echo "Stopping and removing old API container..."
+            # Build và restart chỉ service API
             docker-compose stop pingmechat-cms-api
             docker-compose rm -f pingmechat-cms-api
-            
-            echo "Starting new API container..."
+            docker-compose build pingmechat-cms-api
             docker-compose up -d pingmechat-cms-api
             
-            echo "Cleaning up old images..."
+            # Cleanup
             docker image prune -f
             
-            echo "Deployment completed. Checking containers status..."
+            # Check logs
+            echo "Deployment completed. Checking logs..."
+            docker-compose logs --tail=20 pingmechat-cms-api
+            
+            # Check container status
+            echo "Container status:"
             docker ps
             
-            echo "Checking API logs..."
-            docker-compose logs --tail=20 pingmechat-cms-api
+            # Cleanup git credentials
+            rm ~/.git-credentials
