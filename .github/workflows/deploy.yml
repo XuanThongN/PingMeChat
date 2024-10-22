@@ -38,6 +38,9 @@ jobs:
           file: ./Backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/pingmechat-cms-api:latest
+          no-cache: true  # Skip cache
+          build-args: |
+            BUILDTIME=${{ github.sha }} # Thêm build arg để force rebuild
       
       - name: Copy docker-compose to server
         uses: appleboy/scp-action@master
@@ -59,4 +62,6 @@ jobs:
             cd /home/${{ secrets.SERVER_USERNAME }}/PingMeChat/Backend
             docker-compose pull
             docker-compose down
-            docker-compose up -d
+            docker image prune -f  # Xóa images không sử dụng
+            docker-compose up -d --force-recreate  # Force tạo lại container
+            docker-compose logs -f  # Xem logs
