@@ -2,7 +2,7 @@ name: Deploy Backend to Ubuntu Server
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'Backend/**'
 
