@@ -9,6 +9,7 @@ using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
 using PingMeChat.Shared.Utils;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PingMeAttachment.CMS.Api.Controllers
 {
