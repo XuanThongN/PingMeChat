@@ -29,6 +29,7 @@ namespace PingMeAttachment.CMS.Api.Controllers
         [HttpPost]
         [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.Attachment.UploadChunkRoute)]
+        [SwaggerOperation(Summary = "Upload each chunk of file.", Description = "Then save in temp file until uploading all chunks of file")]
         public async Task<IActionResult> UploadChunk([FromForm] ChunkUploadModel model)
         {
             if (model.Chunk == null || model.Chunk.Length == 0)
