@@ -56,7 +56,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /home/ubuntu/PingMeChat/Backend
-            docker compose pull
-            docker compose down
-            docker compose up -d
+            cd /home/${{ secrets.SERVER_USERNAME }}/PingMeChat/Backend
+            docker-compose pull
+            docker-compose down
+            docker-compose up -d
