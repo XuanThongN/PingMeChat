@@ -16,6 +16,7 @@ class VideoPlayerScreen extends StatefulWidget {
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
+  int _rotation = 0;
 
   @override
   void initState() {
@@ -25,16 +26,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> initializePlayer() async {
     _videoPlayerController = widget.videoUrl.startsWith('file://')
-        ? VideoPlayerController.file(File(widget.videoUrl.replaceFirst('file://', '')))
+        ? VideoPlayerController.file(
+            File(widget.videoUrl.replaceFirst('file://', '')))
         : VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
-    
+
     await _videoPlayerController.initialize();
+
+    // Kiểm tra và xử lý metadata của video
+    final rotation = _videoPlayerController.value.rotationCorrection;
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController,
       autoPlay: true,
       looping: false,
     );
-    setState(() {});
+    setState(() {
+      _rotation = rotation;
+    });
   }
 
   @override

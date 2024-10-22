@@ -8,7 +8,6 @@ import 'package:pingmechat_ui/presentation/widgets/upload_progress_indicator.dar
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import '../../config/theme.dart';
 import '../../domain/models/attachment.dart';
 import '../../domain/models/message.dart';
@@ -300,13 +299,13 @@ class ChatMessageWidget extends StatelessWidget {
 
   Future<Uint8List?> _generateVideoThumbnail(String videoPath) async {
     try {
-      final thumbnail = await VideoThumbnail.thumbnailData(
-        video: videoPath.replaceFirst('file://', ''),
-        imageFormat: ImageFormat.JPEG,
-        maxWidth: 150,
-        quality: 25,
-      );
-      return thumbnail;
+      // final thumbnail = await VideoThumbnail.thumbnailData(
+      //   video: videoPath.replaceFirst('file://', ''),
+      //   imageFormat: ImageFormat.JPEG,
+      //   maxWidth: 150,
+      //   quality: 25,
+      // );
+      // return thumbnail;
     } catch (e) {
       print('Error generating thumbnail: $e');
       return null;

@@ -25,7 +25,7 @@ class Attachment {
       fileSize: json['fileSize'],
       messageId: json['messageId'],
       isUploading: json['isUploading'] ?? false,
-      thumbnailUrl: json['thumbnailUrl'],
+      thumbnailUrl: Attachment._getThumbnailUrl(json['filePath']) ?? '',
     );
   }
 
@@ -39,5 +39,11 @@ class Attachment {
       'isUploading': isUploading,
       'thumbnailUrl': thumbnailUrl,
     };
+  }
+
+// Hàm lấy thumbnail url của file video bằng cách đổi extension .mp4 thành .jpg
+  static String? _getThumbnailUrl(String fileUrl) {
+    final extension = fileUrl.split('.').last;
+    return fileUrl.replaceAll('.$extension', '.jpg') ?? '';
   }
 }
