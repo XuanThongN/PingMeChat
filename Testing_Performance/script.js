@@ -25,7 +25,6 @@ usersData.forEach(user => {
 const userIds = Object.keys(userChatMap);
 
 // Cấu hình các kịch bản kiểm thử
-// Cấu hình các kịch bản kiểm thử
 export const options = {
     scenarios: {
         ramp_up: {
@@ -36,10 +35,6 @@ export const options = {
                 { duration: '5m', target: 500 },  // Giữ ở 500 user trong 5 phút
                 { duration: '2m', target: 1000 }, // Tăng lên 1000 user trong 2 phút tiếp theo
                 { duration: '5m', target: 1000 }, // Giữ ở 1000 user trong 5 phút
-                { duration: '2m', target: 1500 }, // Tăng lên 1500 user trong 2 phút tiếp theo
-                { duration: '5m', target: 1500 }, // Giữ ở 1500 user trong 5 phút
-                { duration: '2m', target: 2000 }, // Tăng lên 2000 user trong 2 phút tiếp theo
-                { duration: '5m', target: 2000 }, // Giữ ở 2000 user trong 5 phút
                 { duration: '2m', target: 0 },    // Giảm xuống 0 user trong 2 phút cuối
             ],
             gracefulRampDown: '30s',
