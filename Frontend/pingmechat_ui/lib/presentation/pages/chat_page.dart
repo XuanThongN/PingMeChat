@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +17,8 @@ import 'package:pingmechat_ui/providers/auth_provider.dart';
 import 'package:pingmechat_ui/providers/chat_provider.dart';
 import 'package:pingmechat_ui/providers/contact_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
+import 'package:mime/mime.dart';
 
 import '../../domain/models/chat.dart';
 import '../../domain/models/message.dart';
@@ -282,7 +285,8 @@ class _ChatPageState extends State<ChatPage> {
             // Điều chỉnh index để lấy tin nhắn đúng
             final messageIndex = index - 1;
             final message = messages.elementAt(messageIndex);
-            final chat = chatProvider.chats.firstWhere((chat) => chat.id == widget.chatId);
+            final chat = chatProvider.chats
+                .firstWhere((chat) => chat.id == widget.chatId);
             final showAvatar =
                 ChatPageHelper.shouldShowAvatar(messages, messageIndex);
             final showTimestamp =
@@ -336,19 +340,18 @@ class _ChatPageState extends State<ChatPage> {
               scrollDirection: Axis.horizontal,
               itemCount: _selectedAttachments!.length,
               itemBuilder: (context, index) {
+                final file = _selectedAttachments![index];
+                final mimeType = lookupMimeType(file.path);
+
                 return Stack(
                   children: [
                     Container(
                       margin: EdgeInsets.all(8),
                       width: 100,
                       height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: FileImage(_selectedAttachments![index]),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      child: mimeType != null && mimeType.startsWith('video/')
+                          ? _buildVideoPreview(file)
+                          : _buildImagePreview(file),
                     ),
                     Positioned(
                       top: 0,
@@ -391,7 +394,23 @@ class _ChatPageState extends State<ChatPage> {
                   svgPath: 'assets/icons/media_in_message.svg',
                   color: AppColors.secondary,
                 ),
-                onPressed: _pickImage,
+                onPressed: _pickImageOrVideo,
+              ),
+              IconButton(
+                icon: CustomSvgIcon(
+                  size: 24,
+                  svgPath: 'assets/icons/Video_in_message.svg',
+                  color: AppColors.secondary,
+                ),
+                onPressed: _pickVideo,
+              ),
+              IconButton(
+                icon: CustomSvgIcon(
+                  size: 24,
+                  svgPath: 'assets/icons/files_in_message.svg',
+                  color: AppColors.secondary,
+                ),
+                onPressed: _pickFile,
               ),
               Expanded(
                 child: TextField(
@@ -455,6 +474,41 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ],
     );
+  }
+
+  Widget _buildImagePreview(File file) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        image: DecorationImage(
+          image: FileImage(file),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoPreview(File file) {
+    return FutureBuilder<VideoPlayerController>(
+      future: _initializeVideoPlayer(file),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return AspectRatio(
+            aspectRatio: snapshot.data!.value.aspectRatio,
+            child: VideoPlayer(snapshot.data!),
+          );
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+
+  Future<VideoPlayerController> _initializeVideoPlayer(File file) async {
+    final controller = VideoPlayerController.file(file);
+    await controller.initialize();
+    return controller;
   }
 
   PreferredSizeWidget _buildAppBar(Chat? chat, Account? currentUser) {
@@ -677,41 +731,164 @@ class _ChatPageState extends State<ChatPage> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      setState(() {
-        _selectedAttachments!.add(File(pickedFile.path));
-        _isComposing = true;
-      });
+      final file = File(pickedFile.path);
+        if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
     }
   }
 
   // Hàm chọn media từ thư viện
   // Hàm chọn media từ thư viện
-  void _pickMedia() async {
+  Future<void> _pickMedia() async {
+  await _getPermission();
+  var status = await Permission.storage.status;
+
+  if (status.isGranted) {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? mediaFiles = await picker.pickMultiImage();
+
+    if (mediaFiles != null && mediaFiles.isNotEmpty) {
+      for (var file in mediaFiles) {
+        final fileObj = File(file.path);
+        if (await _validateFileAsync(fileObj)) {
+          await _processAndAddFile(fileObj);
+        }
+      }
+    }
+  } else if (status.isDenied) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+      ),
+    );
+  } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  }
+}
+
+Future<void> _processAndAddFile(File file) async {
+  final fileSize = await file.length();
+  if (fileSize > 10 * 1024 * 1024) { // 10MB
+    // Xử lý file lớn
+    await _processLargeFile(file);
+  } else {
+    setState(() {
+      _selectedAttachments!.add(file);
+      _isComposing = true;
+    });
+  }
+}
+
+Future<void> _processLargeFile(File file) async {
+  // Thực hiện xử lý file lớn ở đây, ví dụ: nén file, chia nhỏ, v.v.
+  // Đây chỉ là một ví dụ đơn giản, bạn cần thay thế bằng logic xử lý thực tế
+  await Future.delayed(Duration(seconds: 1)); // Giả lập xử lý
+  setState(() {
+    _selectedAttachments!.add(file);
+    _isComposing = true;
+  });
+}
+
+  Future<void> _pickFile() async {
     await _getPermission();
     var status = await Permission.storage.status;
 
     if (status.isGranted) {
-      final ImagePicker picker = ImagePicker();
-      final List<XFile>? mediaFiles = await picker.pickMultiImage();
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.any,
+          allowMultiple: true,
+        );
 
-      if (mediaFiles != null && mediaFiles.isNotEmpty) {
-        setState(() {
-          _selectedAttachments!
-              .addAll(mediaFiles.map((file) => File(file.path)).toList());
-          _isComposing = true;
-        });
+        if (result != null && result.files.isNotEmpty) {
+          for (var file in result.files) {
+            if (file.path != null) {
+              final fileObj = File(file.path!);
+              if (await _validateFileAsync(fileObj)) {
+                setState(() {
+                  _selectedAttachments!.add(fileObj);
+                  _isComposing = true;
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        print('Error picking file: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking file: $e')),
+        );
       }
     } else if (status.isDenied) {
-      // Nếu quyền bị từ chối, hiển thị thông báo
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              'Quyền truy cập bị từ chối. Vui lòng cấp quyền trong cài đặt.'),
+          content:
+              Text('Permission denied. Please grant permission in settings.'),
         ),
       );
     } else if (status.isPermanentlyDenied) {
-      // Nếu quyền bị từ chối vĩnh viễn, mở cài đặt ứng dụng
       openAppSettings();
+    }
+  }
+
+  Future<void> _pickImageOrVideo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickVideo(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      if (await _validateFileAsync(file)) {
+        setState(() {
+          _selectedAttachments!.add(file);
+          _isComposing = true;
+        });
+      }
+    }
+  }
+
+  Future<bool> _validateFileAsync(File file) async {
+    try {
+      final fileSize = await file.length();
+      if (fileSize > 25 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'File size must be less than 25MB. Please choose a smaller file.'),
+          ),
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      print('Error validating file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error validating file: $e')),
+      );
+      return false;
     }
   }
 

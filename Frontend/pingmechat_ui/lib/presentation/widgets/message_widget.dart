@@ -1,8 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import 'package:pingmechat_ui/presentation/widgets/upload_progress_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +12,9 @@ import '../../config/theme.dart';
 import '../../domain/models/attachment.dart';
 import '../../domain/models/message.dart';
 import '../../providers/auth_provider.dart';
+import '../pages/attachment_detail_page.dart';
 import '../widgets/custom_circle_avatar.dart';
+import 'video_player_screen.dart';
 
 class ChatMessageWidget extends StatelessWidget {
   final Message message;
@@ -236,18 +239,8 @@ class ChatMessageWidget extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: attachment.fileUrl.startsWith('file://')
-                ? Image.file(
-                    File(attachment.fileUrl.replaceFirst('file://', '')),
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
-                  )
-                : CachedNetworkImage(
-                    imageUrl: attachment.thumbnailUrl ?? '',
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
-                  ),
+                ? _buildLocalVideoThumbnail(attachment)
+                : _buildNetworkVideoThumbnail(attachment),
           ),
           const Icon(Icons.play_circle_fill, size: 40, color: Colors.white),
           if (attachment.isUploading)
@@ -257,6 +250,66 @@ class ChatMessageWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildLocalVideoThumbnail(Attachment attachment) {
+    return FutureBuilder<Uint8List?>(
+      future: _generateVideoThumbnail(attachment.fileUrl),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.data != null) {
+          return Image.memory(
+            snapshot.data!,
+            width: 150,
+            height: 150,
+            fit: BoxFit.cover,
+          );
+        } else {
+          return Container(
+            width: 150,
+            height: 150,
+            color: Colors.grey[300],
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildNetworkVideoThumbnail(Attachment attachment) {
+    return CachedNetworkImage(
+      imageUrl: attachment.thumbnailUrl ?? '',
+      width: 150,
+      height: 150,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Container(
+        width: 150,
+        height: 150,
+        color: Colors.grey[300],
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      errorWidget: (context, url, error) => Container(
+        width: 150,
+        height: 150,
+        color: Colors.grey[300],
+        child: const Center(child: Icon(Icons.error, color: Colors.red)),
+      ),
+    );
+  }
+
+  Future<Uint8List?> _generateVideoThumbnail(String videoPath) async {
+    try {
+      // final thumbnail = await VideoThumbnail.thumbnailData(
+      //   video: videoPath.replaceFirst('file://', ''),
+      //   imageFormat: ImageFormat.JPEG,
+      //   maxWidth: 150,
+      //   quality: 25,
+      // );
+      // return thumbnail;
+    } catch (e) {
+      print('Error generating thumbnail: $e');
+      return null;
+    }
   }
 
   Widget _buildFilePreview(BuildContext context, Attachment attachment) {
@@ -298,19 +351,35 @@ class ChatMessageWidget extends StatelessWidget {
   }
 
   Future<VideoPlayerController> _initializeVideoPlayer(String url) async {
-    final controller = VideoPlayerController.network(url);
-    await controller.initialize();
+    final controller = url.startsWith('file://')
+        ? VideoPlayerController.file(File(url.replaceFirst('file://', '')))
+        : VideoPlayerController.networkUrl(Uri.parse(url));
+    try {
+      await controller.initialize();
+    } catch (e) {
+      print('Error initializing video player: $e');
+      rethrow;
+    }
     return controller;
   }
 
   void _viewAttachmentDetail(BuildContext context, Attachment attachment) {
+  if (attachment.fileType == 'Video') {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AttachmentDetailPage(attachment: attachment),
+        builder: (context) => VideoPlayerScreen(videoUrl: attachment.fileUrl),
+      ),
+    );
+  } else {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AttachmentDetailView(attachment: attachment),
       ),
     );
   }
+}
 
   IconData _getAttachmentIcon(String type) {
     switch (type) {
@@ -347,57 +416,6 @@ enum AttachmentType {
   video,
   audio,
   file,
-}
-
-class AttachmentDetailPage extends StatelessWidget {
-  final Attachment attachment;
-
-  const AttachmentDetailPage({Key? key, required this.attachment})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Attachment Detail'),
-      ),
-      body: Center(
-        child: _getAttachmentDetailView(attachment),
-      ),
-    );
-  }
-
-  Widget _getAttachmentDetailView(Attachment attachment) {
-    switch (attachment.fileType) {
-      case 'Image':
-        return CachedNetworkImage(
-          imageUrl: attachment.fileUrl,
-        );
-      case 'Video':
-        return FutureBuilder(
-          future: _initializeVideoPlayer(attachment.fileUrl),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return VideoPlayer(snapshot.data as VideoPlayerController);
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          },
-        );
-      case 'Audio':
-        return AudioPlayerWidget(url: attachment.fileUrl);
-      case 'File':
-        return Text('File preview is not supported.');
-      default:
-        return Text('Attachment preview is not supported.');
-    }
-  }
-
-  Future<VideoPlayerController> _initializeVideoPlayer(String url) async {
-    final controller = VideoPlayerController.network(url);
-    await controller.initialize();
-    return controller;
-  }
 }
 
 class AudioPlayerWidget extends StatefulWidget {

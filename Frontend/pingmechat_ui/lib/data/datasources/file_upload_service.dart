@@ -4,29 +4,30 @@ import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
-
 import '../../core/constants/constant.dart';
 import '../../providers/auth_provider.dart';
 
 class ChunkedUploader {
   final AuthProvider authProvider;
-  static const int CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+  static const int CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+  static const int MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB limit
 
   ChunkedUploader({required this.authProvider});
 
   Future<List<UploadResult>> uploadFiles(List<File> files) async {
     final List<UploadResult> results = [];
-
     for (var file in files) {
       try {
+        if (await file.length() > MAX_FILE_SIZE) {
+          throw Exception('File size exceeds the maximum limit of 25MB');
+        }
         final result = await _uploadFileInChunks(file);
         results.add(result);
       } catch (e) {
         print('Error uploading ${file.path}: $e');
-        // You might want to add error handling here
+        rethrow;
       }
     }
-
     return results;
   }
 
@@ -35,7 +36,6 @@ class ChunkedUploader {
     final fileName = file.path.split('/').last;
     final mimeType = lookupMimeType(file.path);
     final totalChunks = (fileSize / CHUNK_SIZE).ceil();
-
     String uploadId = _generateUploadId();
 
     for (int i = 0; i < totalChunks; i++) {
@@ -43,17 +43,15 @@ class ChunkedUploader {
       final end = min((i + 1) * CHUNK_SIZE, fileSize);
       final chunkSize = end - start;
 
-      final chunk = await file.openRead(start, end).toList();
-      final bytes = chunk.expand((element) => element).toList();
-
-      await _uploadChunk(uploadId, i, totalChunks, bytes, fileName, mimeType);
+      final chunk = file.openRead(start, end);
+      await _uploadChunk(uploadId, i, totalChunks, chunk, chunkSize, fileName, mimeType);
     }
 
     return await _completeUpload(uploadId, fileName, mimeType, fileSize);
   }
 
   Future<void> _uploadChunk(String uploadId, int chunkIndex, int totalChunks,
-      List<int> bytes, String fileName, String? mimeType) async {
+      Stream<List<int>> chunk, int chunkSize, String fileName, String? mimeType) async {
     final uri = Uri.parse(ApiConstants.uploadChunkEndpoint);
     final request = http.MultipartRequest('POST', uri);
 
@@ -61,9 +59,10 @@ class ChunkedUploader {
     request.fields['chunkIndex'] = chunkIndex.toString();
     request.fields['totalChunks'] = totalChunks.toString();
 
-    request.files.add(http.MultipartFile.fromBytes(
+    request.files.add(http.MultipartFile(
       'chunk',
-      bytes,
+      chunk,
+      chunkSize,
       filename: fileName,
       contentType: mimeType != null ? MediaType.parse(mimeType) : null,
     ));
@@ -71,7 +70,6 @@ class ChunkedUploader {
     request.headers.addAll(await authProvider.getCustomHeaders());
 
     final response = await request.send();
-
     if (response.statusCode != 200) {
       throw Exception('Failed to upload chunk $chunkIndex');
     }
@@ -113,12 +111,14 @@ class UploadResult {
   String url;
   String fileType;
   int fileSize;
-  UploadResult(
-      {this.publicId,
-      this.fileName,
-      required this.url,
-      required this.fileType,
-      required this.fileSize});
+
+  UploadResult({
+    this.publicId,
+    this.fileName,
+    required this.url,
+    required this.fileType,
+    required this.fileSize,
+  });
 
   factory UploadResult.fromJson(Map<String, dynamic> json) {
     return UploadResult(
