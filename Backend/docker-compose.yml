@@ -2,6 +2,7 @@
 
 services:
   pingmechat-cms-api:
+    image: xuanthongn/pingmechat-cms-api:latest
     build:
       context: .
       dockerfile: Dockerfile

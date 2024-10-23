@@ -9,6 +9,7 @@ using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
 using PingMeChat.Shared.Utils;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PingMeAttachment.CMS.Api.Controllers
 {
@@ -17,92 +18,45 @@ namespace PingMeAttachment.CMS.Api.Controllers
     {
         private readonly IAttachmentService _attachmentService;
         private readonly string _tempDirectory;
+        private readonly ILogger<AttachmentController> _logger;
 
-        public AttachmentController(IAttachmentService attachmentService, IConfiguration configuration)
+        public AttachmentController(IAttachmentService attachmentService, IConfiguration configuration, ILogger<AttachmentController> logger)
         {
             _attachmentService = attachmentService;
             _tempDirectory = configuration["TempUploadDirectory"] ?? Path.GetTempPath();
+            _logger = logger;
         }
-
-        // [HttpPost]
-        // [ValidateUserAndModel]
-        // [Route(ApiRoutes.Feature.Attachment.UploadMultipleFilesRoute)]
-        // [ProducesResponseType(typeof(List<CloudinaryUploadResult>), StatusCodes.Status201Created)]
-        // public async Task<IActionResult> UploadMultipleFiles([FromForm] List<IFormFile> files)
-        // {
-        //     // Kiểm tra nếu không có file nào được chọn
-        //     if (files == null || !files.Any())
-        //     {
-        //         return Ok(new ApiResponse(Message.Error.CreateError, null, StatusCodes.Status400BadRequest));
-        //     }
-
-        //     // Kiểm tra giới hạn file (giả sử chỉ cho phép upload tối đa 5 file cùng lúc)
-        //     if (files.Count > 5)
-        //     {
-        //         return BadRequest("Chỉ có thể upload tối đa 5 file một lần.");
-        //     }
-
-        //     var uploadResults = new List<CloudinaryUploadResult>();
-
-        //     foreach (var file in files)
-        //     {
-        //         // Kiểm tra kích thước của từng file (20MB = 20 * 1024 * 1024 bytes)
-        //         if (file.Length > 20 * 1024 * 1024)
-        //         {
-        //             return BadRequest($"File {file.FileName} vượt quá giới hạn kích thước 20MB.");
-        //         }
-
-        //         try
-        //         {
-        //             var uploadResult = await _attachmentService.UploadFileAsync(file);
-
-        //             // Kiểm tra nếu upload thất bại
-        //             if (uploadResult == null)
-        //             {
-        //                 return StatusCode(StatusCodes.Status500InternalServerError, $"Không thể upload file {file.FileName}.");
-        //             }
-
-        //             uploadResults.Add(uploadResult);
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             // Log lỗi nếu có
-        //             return StatusCode(StatusCodes.Status500InternalServerError, $"Có lỗi xảy ra khi upload file {file.FileName}: {ex.Message}");
-        //         }
-        //     }
-
-        //     // Trả về kết quả của tất cả các file đã được upload
-        //     return Ok(new ApiResponse(Message.Success.CreateCompleted, uploadResults, StatusCodes.Status200OK));
-        // }
 
         [HttpPost]
         [ValidateUserAndModel]
         [Route(ApiRoutes.Feature.Attachment.UploadChunkRoute)]
+        [SwaggerOperation(Summary = "Uploading each chunk of file.", Description = "Then save in temp file until uploading all chunks of file")]
         public async Task<IActionResult> UploadChunk([FromForm] ChunkUploadModel model)
         {
+            if (model.Chunk == null || model.Chunk.Length == 0)
+            {
+                return BadRequest("No file uploaded");
+            }
+
+            if (model.Chunk.Length > 25 * 1024 * 1024) // 25MB limit
+            {
+                return BadRequest("File size exceeds the maximum limit of 25MB");
+            }
+
+            var uploadDir = Path.Combine(_tempDirectory, model.UploadId);
+            Directory.CreateDirectory(uploadDir);
+
+            var chunkPath = Path.Combine(uploadDir, $"chunk_{model.ChunkIndex}");
+
             try
             {
-                if (model.Chunk == null || model.Chunk.Length == 0)
-                {
-                    return BadRequest("No file uploaded");
-                }
-
-                var uploadDir = Path.Combine(_tempDirectory, model.UploadId);
-                Directory.CreateDirectory(uploadDir);
-
-                var chunkPath = Path.Combine(uploadDir, $"chunk_{model.ChunkIndex}");
-
-                using (var stream = new FileStream(chunkPath, FileMode.Create))
-                {
-                    await model.Chunk.CopyToAsync(stream);
-                }
-
+                using var stream = new FileStream(chunkPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+                await model.Chunk.CopyToAsync(stream);
                 return Ok();
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine("Error occurred while uploading chunk: " + ex.Message);
+                _logger.LogError(ex, "Error occurred while uploading chunk");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing your request");
             }
         }
@@ -112,24 +66,28 @@ namespace PingMeAttachment.CMS.Api.Controllers
         [Route(ApiRoutes.Feature.Attachment.CompleteUploadRoute)]
         public async Task<IActionResult> CompleteUpload([FromBody] CompleteUploadModel model)
         {
+            var uploadDir = Path.Combine(_tempDirectory, model.UploadId);
+            if (!Directory.Exists(uploadDir))
+            {
+                return BadRequest("Upload ID not found");
+            }
+
+            var tempFilePath = Path.Combine(_tempDirectory, $"{Guid.NewGuid()}_{model.FileName}");
+
             try
             {
-                var uploadDir = Path.Combine(_tempDirectory, model.UploadId);
-                var chunks = Directory.GetFiles(uploadDir).OrderBy(f => int.Parse(Path.GetFileName(f).Split('_')[1]));
-
-                var tempFilePath = Path.Combine(_tempDirectory, $"{Guid.NewGuid()}_{model.FileName}");
-
-                using (var outputStream = new FileStream(tempFilePath, FileMode.Create))
+                await using (var outputStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
                 {
+                    var chunks = Directory.GetFiles(uploadDir).OrderBy(f => int.Parse(Path.GetFileName(f).Split('_')[1]));
                     foreach (var chunk in chunks)
                     {
-                        using var inputStream = new FileStream(chunk, FileMode.Open);
+                        await using var inputStream = new FileStream(chunk, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
                         await inputStream.CopyToAsync(outputStream);
                     }
                 }
 
                 CloudinaryUploadResult uploadResult;
-                using (var fileStream = new FileStream(tempFilePath, FileMode.Open))
+                await using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
                 {
                     var formFile = new FormFile(fileStream, 0, new FileInfo(tempFilePath).Length, model.FileName, model.FileName)
                     {
@@ -153,27 +111,25 @@ namespace PingMeAttachment.CMS.Api.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine("Error occurred while completing upload: " + ex.Message);
+                _logger.LogError(ex, "Error occurred while completing upload");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing your request");
             }
         }
 
-    }
+        public class ChunkUploadModel
+        {
+            public string? UploadId { get; set; }
+            public int ChunkIndex { get; set; }
+            public int TotalChunks { get; set; }
+            public IFormFile Chunk { get; set; }
+        }
 
-    public class ChunkUploadModel
-    {
-        public string? UploadId { get; set; }
-        public int ChunkIndex { get; set; }
-        public int TotalChunks { get; set; }
-        public IFormFile Chunk { get; set; }
-    }
-
-    public class CompleteUploadModel
-    {
-        public string? UploadId { get; set; }
-        public string? FileName { get; set; }
-        public string? MimeType { get; set; }
-        public long FileSize { get; set; }
+        public class CompleteUploadModel
+        {
+            public string? UploadId { get; set; }
+            public string? FileName { get; set; }
+            public string? MimeType { get; set; }
+            public long FileSize { get; set; }
+        }
     }
 }
