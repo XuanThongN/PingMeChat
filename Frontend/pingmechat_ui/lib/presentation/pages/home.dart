@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pingmechat_ui/config/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:pingmechat_ui/presentation/pages/call_tab.dart';
 import 'package:pingmechat_ui/presentation/pages/contact_tab.dart';
 import 'package:pingmechat_ui/presentation/pages/message_tab.dart';
@@ -89,7 +88,8 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          label: AppLocalizations.of(context)!.message,
+          // label: AppLocalizations.of(context)!.message,
+          label: 'Message',
         ),
         BottomNavigationBarItem(
           icon: Consumer<BadgeProvider>(
@@ -117,13 +117,15 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          label: AppLocalizations.of(context)!.contacts,
+          // label: AppLocalizations.of(context)!.contacts,
+          label: 'Contacts',
         ),
         BottomNavigationBarItem(
           icon: CustomSvgIcon(svgPath: 'assets/icons/settings.svg'),
           activeIcon: CustomSvgIcon(
               svgPath: 'assets/icons/settings.svg', color: AppColors.primary),
-          label: AppLocalizations.of(context)!.settings,
+          // label: AppLocalizations.of(context)!.settings,
+          label: 'Settings',
         ),
       ],
     );

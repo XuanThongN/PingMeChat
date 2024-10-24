@@ -1,4 +1,5 @@
 class Attachment {
+  String? uploadId;
   final String? fileName;
   final String fileUrl;
   final String fileType;
@@ -8,6 +9,7 @@ class Attachment {
   String? thumbnailUrl;
 
   Attachment({
+    this.uploadId,
     this.fileName,
     required this.fileUrl,
     required this.fileType,
@@ -19,6 +21,7 @@ class Attachment {
 
   factory Attachment.fromJson(Map<String, dynamic> json) {
     return Attachment(
+      uploadId: json['uploadId'] ?? '',
       fileName: json['fileName'] ?? '',
       fileUrl: json['filePath'],
       fileType: json['fileType'],
@@ -31,6 +34,7 @@ class Attachment {
 
   Map<String, dynamic> toJson() {
     return {
+      'uploadId': uploadId,
       'fileName': fileName,
       'fileUrl': fileUrl,
       'fileType': fileType,

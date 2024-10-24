@@ -193,7 +193,11 @@ class ChatProvider extends ChangeNotifier {
     }
     // Lấy tin nhắn cuối cùng thông qua messagesChatId với phần tử đầu tiên
     final message = _messagesByChatId[chatId]?.first;
-    if (message != null && message.messageReaders != null && message.messageReaders!.where((r) => r.readerId == messageReader.readerId).isEmpty) {
+    if (message != null &&
+        message.messageReaders != null &&
+        message.messageReaders!
+            .where((r) => r.readerId == messageReader.readerId)
+            .isEmpty) {
       message.messageReaders!.add(messageReader);
     }
 
@@ -281,7 +285,8 @@ class ChatProvider extends ChangeNotifier {
       // Upload file lên server
       List<UploadResult> uploadedAttachments = [];
       if (files.isNotEmpty) {
-        uploadedAttachments = await _fileUploadService.uploadFiles(files);
+        uploadedAttachments =
+            await _fileUploadService.uploadFiles(files, chatId, tempId);
       }
 
       if (uploadedAttachments.isEmpty && message.isEmpty) {
@@ -295,6 +300,7 @@ class ChatProvider extends ChangeNotifier {
         content: message,
         attachments: uploadedAttachments
             .map((e) => Attachment(
+                  uploadId: e.uploadId,
                   fileName: e.publicId,
                   fileUrl: e.url,
                   fileType: e.fileType,

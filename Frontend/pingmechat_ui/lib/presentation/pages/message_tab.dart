@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pingmechat_ui/domain/models/chat.dart';
@@ -243,7 +242,8 @@ class _MessageTabState extends State<MessageTab> {
             },
           ),
           Text(
-            AppLocalizations.of(context)!.home,
+            // AppLocalizations.of(context)!.home,
+            'Home',
             style: const TextStyle(
                 color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
@@ -569,7 +569,8 @@ class _MessageTabState extends State<MessageTab> {
       child: IconButton(
         icon: Icon(icon, color: Colors.white, size: 20),
         onPressed: onPressed,
-        tooltip: AppLocalizations.of(context)!.search,
+        // tooltip: AppLocalizations.of(context)!.search,
+        tooltip: 'Search',
       ),
     );
   }

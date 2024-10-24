@@ -14,7 +14,7 @@ class ChunkedUploader {
 
   ChunkedUploader({required this.authProvider});
 
-  Future<List<UploadResult>> uploadFiles(List<File> files) async {
+  Future<List<UploadResult>> uploadFiles(List<File> files, String chatId, String messageId) async {
     final List<UploadResult> results = [];
     for (var file in files) {
       try {
@@ -106,6 +106,7 @@ class ChunkedUploader {
 }
 
 class UploadResult {
+  String? uploadId;
   String? publicId;
   String? fileName;
   String url;
@@ -113,6 +114,7 @@ class UploadResult {
   int fileSize;
 
   UploadResult({
+    this.uploadId,
     this.publicId,
     this.fileName,
     required this.url,
@@ -122,6 +124,7 @@ class UploadResult {
 
   factory UploadResult.fromJson(Map<String, dynamic> json) {
     return UploadResult(
+      uploadId: json['uploadId'],
       publicId: json['publicId'],
       url: json['url'],
       fileName: json['fileName'],
