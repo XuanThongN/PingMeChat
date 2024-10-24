@@ -396,22 +396,22 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 onPressed: _pickImageOrVideo,
               ),
-              IconButton(
-                icon: CustomSvgIcon(
-                  size: 24,
-                  svgPath: 'assets/icons/Video_in_message.svg',
-                  color: AppColors.secondary,
-                ),
-                onPressed: _pickVideo,
-              ),
-              IconButton(
-                icon: CustomSvgIcon(
-                  size: 24,
-                  svgPath: 'assets/icons/files_in_message.svg',
-                  color: AppColors.secondary,
-                ),
-                onPressed: _pickFile,
-              ),
+              // IconButton(
+              //   icon: CustomSvgIcon(
+              //     size: 24,
+              //     svgPath: 'assets/icons/Video_in_message.svg',
+              //     color: AppColors.secondary,
+              //   ),
+              //   onPressed: _pickVideo,
+              // ),
+              // IconButton(
+              //   icon: CustomSvgIcon(
+              //     size: 24,
+              //     svgPath: 'assets/icons/files_in_message.svg',
+              //     color: AppColors.secondary,
+              //   ),
+              //   onPressed: _pickFile,
+              // ),
               Expanded(
                 child: TextField(
                   focusNode: _focusNode,

@@ -63,7 +63,6 @@ dependencies:
   flutter_launcher_icons: ^0.13.1 #Hỗ trợ tạo icon cho app
   uuid: ^4.5.1 #Hỗ trợ tạo uuid
   file_picker: ^8.0.7 #Hỗ trợ chọn file
-  video_thumbnail: ^0.5.3 #Hỗ trợ lấy thumbnail video
   chewie: ^1.8.5 #Hỗ trợ chơi video
 
 
