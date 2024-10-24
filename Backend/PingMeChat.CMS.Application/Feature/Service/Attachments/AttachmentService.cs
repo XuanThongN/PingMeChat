@@ -15,6 +15,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments
 {
     public interface IAttachmentService : IServiceBase<Attachment, AttachmentCreateDto, AttachmentUpdateDto, AttachmentDto, IAttachmentRepository>
     {
+        Task UpdateFileUrl(string uploadId, string fileName, string url);
         Task<CloudinaryUploadResult> UploadFileAsync(IFormFile file);
     }
     public class AttachmentService : ServiceBase<Attachment, AttachmentCreateDto, AttachmentUpdateDto, AttachmentDto, IAttachmentRepository>, IAttachmentService
@@ -22,17 +23,20 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments
         private readonly IAttachmentRepository _attachmentRepository;
         private readonly ILogErrorRepository _logErrorRepository;
         private readonly Cloudinary _cloudinary;
+        private readonly IMessageRepository _messageRepository;
         public AttachmentService(IAttachmentRepository repository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IUriService uriService,
         IAttachmentRepository attachmentRepository,
          ILogErrorRepository logErrorRepository,
+            IMessageRepository messageRepository,
          Cloudinary cloudinary) : base(repository, unitOfWork, mapper, uriService)
         {
             _attachmentRepository = attachmentRepository;
             _logErrorRepository = logErrorRepository;
             _cloudinary = cloudinary;
+            _messageRepository = messageRepository;
         }
 
         public async Task<CloudinaryUploadResult> UploadFileAsync(IFormFile file)
@@ -99,7 +103,28 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments
             return uploadResult;
         }
 
+        public async Task UpdateFileUrl(string uploadId, string fileName, string url)
+        {
+            // Tim attachment ben trong message
+            var message = await _messageRepository.Find(m => m.Attachments.Any(a => a.Id == uploadId));
+            if (message == null)
+            {
+                throw new AppException("Không tìm thấy file cần cập nhật URL");
+            }
 
+            // Cập nhật URL cho attachment
+            var attachment = message.Attachments.FirstOrDefault(a => a.Id == uploadId && a.FileName == fileName);
+            if (attachment != null)
+            {
+                attachment.FileUrl = url;
+                await _messageRepository.Update(message);
+                await _unitOfWork.SaveChangeAsync();
+            }
+            else
+            {
+                throw new AppException("Không tìm thấy file cần cập nhật URL");
+            }
+        }
 
     }
 

@@ -14,6 +14,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Attachments.Dto
 {
     public class AttachmentCreateDto : CreateDto
     {
+        public string? UploadId { get; set; }
         public string FileName { get; set; }
         public string FileUrl { get; set; }
         public string FileType { get; set; }

@@ -8,6 +8,8 @@ using PingMeChat.CMS.Application.Feature.Indentity.Auth.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Attachments;
 using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.CallParticipants;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.FileUploadQueues;
 using PingMeChat.Shared.Utils;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -19,12 +21,18 @@ namespace PingMeAttachment.CMS.Api.Controllers
         private readonly IAttachmentService _attachmentService;
         private readonly string _tempDirectory;
         private readonly ILogger<AttachmentController> _logger;
+        private readonly IRabbitMQService _rabbitMQService;
 
-        public AttachmentController(IAttachmentService attachmentService, IConfiguration configuration, ILogger<AttachmentController> logger)
+        public AttachmentController(IAttachmentService attachmentService,
+        IConfiguration configuration,
+        ILogger<AttachmentController> logger,
+        IRabbitMQService rabbitMQService
+        )
         {
             _attachmentService = attachmentService;
             _tempDirectory = configuration["TempUploadDirectory"] ?? Path.GetTempPath();
             _logger = logger;
+            _rabbitMQService = rabbitMQService;
         }
 
         [HttpPost]
@@ -48,10 +56,88 @@ namespace PingMeAttachment.CMS.Api.Controllers
 
             var chunkPath = Path.Combine(uploadDir, $"chunk_{model.ChunkIndex}");
 
+            // Tạo model để lưu thông tin file khi upload xong
+            var uploadResult = new CloudinaryUploadResult();
             try
             {
-                using var stream = new FileStream(chunkPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-                await model.Chunk.CopyToAsync(stream);
+                // Sử dụng using statement để đảm bảo stream được dispose
+                using (var stream = new FileStream(chunkPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, 4096, true))
+                {
+                    await model.Chunk.CopyToAsync(stream);
+                }
+
+                // Check if this is the last chunk
+                if (model.ChunkIndex == model.TotalChunks - 1)
+                {
+                    var tempFilePath = Path.Combine(_tempDirectory, $"{Guid.NewGuid()}_{model.FileName}");
+
+                    try
+                    {
+                        // Sử dụng buffer để đọc và ghi file
+                        const int bufferSize = 81920; // 80KB buffer
+                        using (var outputStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true))
+                        {
+                            var chunks = Directory.GetFiles(uploadDir)
+                                .OrderBy(f => int.Parse(Path.GetFileName(f).Split('_')[1]))
+                                .ToList(); // Convert to list to avoid multiple enumerations
+
+                            foreach (var chunk in chunks)
+                            {
+                                // Sử dụng separate try-catch cho mỗi chunk
+                                try
+                                {
+                                    using (var inputStream = new FileStream(chunk, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, true))
+                                    {
+                                        await inputStream.CopyToAsync(outputStream, bufferSize);
+                                        inputStream.Close(); // Explicitly close the stream
+                                    }
+                                }
+                                catch (IOException ex)
+                                {
+                                    _logger.LogError(ex, $"Error reading chunk file: {chunk}");
+                                    // Thêm retry logic nếu cần
+                                    await Task.Delay(100); // Wait briefly before retry
+                                    using (var inputStream = new FileStream(chunk, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, true))
+                                    {
+                                        await inputStream.CopyToAsync(outputStream, bufferSize);
+                                        inputStream.Close();
+                                    }
+                                }
+                            }
+
+                            uploadResult.FileName = model.FileName;
+                            uploadResult.FileSize = outputStream.Length;
+                            uploadResult.FileType = model.MimeType;
+                        }
+
+                        // Generate temporary URL
+                        var tempUrl = GenerateTemporaryUrl(tempFilePath);
+                        uploadResult.Url = tempUrl;
+
+                        // Send message to RabbitMQ to process the file upload to Cloudinary
+                        _rabbitMQService.PublishMessage("file_upload_queue", new FileUploadMessage
+                        {
+                            FileName = model.FileName,
+                            MimeType = model.MimeType,
+                            FileSize = model.FileSize ?? 0,
+                            ChatId = model.ChatId,
+                            MessageId = model.MessageId,
+                            FilePath = tempFilePath
+                        });
+
+                        // Clean up chunks safely
+                        await CleanupChunksAsync(uploadDir);
+
+                        return Ok(new ApiResponse("Upload completed successfully", uploadResult, StatusCodes.Status200OK));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error occurred while combining chunks");
+                        await CleanupChunksAsync(uploadDir); // Cleanup on error
+                        throw;
+                    }
+                }
+
                 return Ok();
             }
             catch (Exception ex)
@@ -61,75 +147,73 @@ namespace PingMeAttachment.CMS.Api.Controllers
             }
         }
 
-        [HttpPost]
-        [ValidateUserAndModel]
-        [Route(ApiRoutes.Feature.Attachment.CompleteUploadRoute)]
-        public async Task<IActionResult> CompleteUpload([FromBody] CompleteUploadModel model)
+        private async Task CleanupChunksAsync(string directory)
         {
-            var uploadDir = Path.Combine(_tempDirectory, model.UploadId);
-            if (!Directory.Exists(uploadDir))
-            {
-                return BadRequest("Upload ID not found");
-            }
+            int maxRetries = 3;
+            int currentRetry = 0;
 
-            var tempFilePath = Path.Combine(_tempDirectory, $"{Guid.NewGuid()}_{model.FileName}");
-
-            try
+            while (currentRetry < maxRetries)
             {
-                await using (var outputStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
+                try
                 {
-                    var chunks = Directory.GetFiles(uploadDir).OrderBy(f => int.Parse(Path.GetFileName(f).Split('_')[1]));
-                    foreach (var chunk in chunks)
+                    if (Directory.Exists(directory))
                     {
-                        await using var inputStream = new FileStream(chunk, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
-                        await inputStream.CopyToAsync(outputStream);
+                        // Ensure all file handles are released
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        Directory.Delete(directory, true);
                     }
+                    break;
                 }
-
-                CloudinaryUploadResult uploadResult;
-                await using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read))
+                catch (IOException)
                 {
-                    var formFile = new FormFile(fileStream, 0, new FileInfo(tempFilePath).Length, model.FileName, model.FileName)
+                    currentRetry++;
+                    if (currentRetry == maxRetries)
                     {
-                        Headers = new HeaderDictionary(),
-                        ContentType = model.MimeType
-                    };
-
-                    uploadResult = await _attachmentService.UploadFileAsync(formFile);
+                        _logger.LogWarning($"Failed to delete directory {directory} after {maxRetries} attempts");
+                        break;
+                    }
+                    await Task.Delay(100 * currentRetry); // Exponential backoff
                 }
-
-                // Clean up
-                Directory.Delete(uploadDir, true);
-                System.IO.File.Delete(tempFilePath);
-
-                if (uploadResult == null)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, "Upload failed");
-                }
-
-                return Ok(new ApiResponse("Upload completed successfully", uploadResult, StatusCodes.Status200OK));
             }
-            catch (Exception ex)
+        }
+
+        private string GenerateTemporaryUrl(string filePath)
+        {
+            // Implement logic to generate a temporary URL for the file
+            var fileName = Path.GetFileName(filePath);
+            return Url.Action("GetTemporaryFile", "Attachment", new { fileName }, Request.Scheme);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Feature.Attachment.GetTemporaryFile)]
+        public IActionResult GetTemporaryFile(string fileName)
+        {
+            var filePath = Path.Combine(_tempDirectory, fileName);
+            if (!System.IO.File.Exists(filePath))
             {
-                _logger.LogError(ex, "Error occurred while completing upload");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing your request");
+                return NotFound();
             }
+
+            var mimeType = "application/octet-stream";
+            return PhysicalFile(filePath, mimeType, fileName);
         }
 
         public class ChunkUploadModel
         {
-            public string? UploadId { get; set; }
+            public string? UploadId { get; set; } = Guid.NewGuid().ToString();
             public int ChunkIndex { get; set; }
             public int TotalChunks { get; set; }
             public IFormFile Chunk { get; set; }
+            public string? FileName { get; set; } // đính kèm với chunk cuối cùng
+            public string? MimeType { get; set; } // đính kèm với chunk cuối cùng
+            public long? FileSize { get; set; } // đính kèm với chunk cuối cùng
+
+            public string? ChatId { get; set; }
+            public string? MessageId { get; set; }
         }
 
-        public class CompleteUploadModel
-        {
-            public string? UploadId { get; set; }
-            public string? FileName { get; set; }
-            public string? MimeType { get; set; }
-            public long FileSize { get; set; }
-        }
     }
 }

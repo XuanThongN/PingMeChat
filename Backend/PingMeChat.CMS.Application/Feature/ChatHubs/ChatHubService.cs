@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.SignalR;
+using PingMeChat.CMS.Application.Feature.Service.Attachments.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Chats.Dto;
 using PingMeChat.CMS.Application.Feature.Service.Messages.Dto;
 using PingMeChat.CMS.Entities.Feature;
@@ -33,6 +34,10 @@ namespace PingMeChat.CMS.Application.Feature.ChatHubs
             await _hubContext.Groups.AddToGroupAsync(connectionId, groupName);
         }
 
+        public async Task NotifyUploadFileSuccessAsync(AttachmentDto attachmentDto)
+        {
+            await _hubContext.Clients.Group(attachmentDto.ChatId).SendAsync("UploadFileSuccess", attachmentDto);
+        }
     }
 
 }

@@ -22,6 +22,7 @@ using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.MessageQueues
 using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.NotificationQueues;
 using Microsoft.AspNetCore.SignalR;
 using System.Configuration;
+using PingMeChat.CMS.Application.Feature.Services.RabbitMQServices.FileUploadQueues;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -148,9 +149,15 @@ builder.Services.AddControllers(op => { })
 #endregion
 
 #region RabbitMQServices
-builder.Services.AddHostedService<MessageProcessingService>();
+// Tạo ra MessageProcessor để tránh sự phụ thuộc giữa MessageProcessingService (Singleton) và MessageService (Scoped)
 builder.Services.AddScoped<MessageProcessor>();
+builder.Services.AddHostedService<MessageProcessingService>();
+
 builder.Services.AddHostedService<NotificationProcessingService>();
+
+// Tạo ra FileUploadProcessor để tránh sự phụ thuộc giữa FileUploadProcessingService (Singleton) và AttachmentService (Scoped)
+builder.Services.AddScoped<FileUploadProcessor>();
+builder.Services.AddHostedService<FileUploadProcessingService>();
 
 #endregion
 

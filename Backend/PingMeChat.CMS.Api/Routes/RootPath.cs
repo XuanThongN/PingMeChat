@@ -115,6 +115,7 @@ namespace PingMeChat.CMS.API.Routes
                 public const string UploadMultipleFilesRoute = "api/attachments/upload-multiple-files";
                 public const string UploadChunkRoute = "api/attachments/upload-chunk";
                 public const string CompleteUploadRoute = "api/attachments/complete-upload";
+                public const string GetTemporaryFile = "api/attachments/get-temporary-file";
             }
 
             // Search api routes

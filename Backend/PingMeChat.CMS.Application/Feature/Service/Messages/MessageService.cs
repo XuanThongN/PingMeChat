@@ -216,6 +216,7 @@ namespace PingMeChat.CMS.Application.Feature.Service.Messages
         {
             return attachmentDtos.Select(a => new Attachment
             {
+                Id = a.UploadId!,
                 FileUrl = a.FileUrl,
                 FileName = a.FileName,
                 FileType = FileTypeHelper.GetFileTypeFromMimeType(a.FileType),
